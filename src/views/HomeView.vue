@@ -1,1341 +1,1010 @@
 <template>
-  <div class="page-wrapper">
-    <!-- 顶部导航栏 -->
-    <header class="top-header">
-      <div class="header-container">
-        <div class="logo-section">
-          <div class="logo">🏆 揭榜挂帅系统</div>
+  <div class="home-page">
+    <header class="main-header">
+      <div class="header-inner">
+        <div class="brand">
+          <img src="../assets/Logo.png" alt="产教融合平台" class="brand-logo" />
+          <span class="brand-name">产教融合项目揭榜平台</span>
         </div>
-        <nav class="nav-menu">
-          <el-menu mode="horizontal" :default-active="activeNav" @select="handleNavSelect" class="top-nav">
-            <el-menu-item index="home">首页</el-menu-item>
-            <el-menu-item index="tasks">项目大厅</el-menu-item>
-            <el-menu-item index="statistics">数据中心</el-menu-item>
-            <el-menu-item index="messages">
-              消息
-              <el-badge :value="unreadCount" class="message-badge" v-if="unreadCount > 0"></el-badge>
-            </el-menu-item>
-          </el-menu>
+        <nav class="main-nav">
+          <router-link to="/home" class="nav-link" active-class="active">首页</router-link>
+          <router-link to="/projects" class="nav-link" active-class="active">项目大厅</router-link>
+          <router-link to="/statistics" class="nav-link" active-class="active">数据中心</router-link>
+          <router-link to="/messages" class="nav-link messages" active-class="active">
+            消息 <span class="badge">2</span>
+          </router-link>
         </nav>
-        <div class="auth-section">
-          <!-- 未登录状态 -->
-          <div v-if="!isLoggedIn" class="login-buttons">
-            <el-button @click="goLogin" type="text" class="login-btn">登录</el-button>
-            <el-button @click="goRegister" type="primary" class="register-btn">注册</el-button>
-          </div>
-          <!-- 已登录状态 -->
-          <div v-else class="user-section">
-            <el-dropdown>
-              <span class="user-info">
-                <el-avatar :size="32" :src="userInfo.avatar">
-                  {{ userInfo.username?.charAt(0) || 'U' }}
-                </el-avatar>
-                <span class="username">{{ userInfo.username || '用户' }}</span>
-              </span>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item @click="$router.push('/user')">
-                    <el-icon><User /></el-icon>
-                    个人中心
-                  </el-dropdown-item>
-                  <el-dropdown-item divided @click="handleLogout">
-                    <el-icon><SwitchButton /></el-icon>
-                    退出登录
-                  </el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
+        <div class="auth-area">
+          <template v-if="!isLoggedIn">
+            <router-link to="/login" class="auth-btn solid">登录</router-link>
+          </template>
+          <div v-else class="user-panel" @click="toggleDropdown">
+            <img :src="userInfo.avatar" :alt="userInfo.username" class="user-avatar" />
+            <div class="user-dropdown" :class="{ active: showDropdown }">
+              <span class="user-name">{{ userInfo.username }}</span>
+              <router-link to="/user" class="dropdown-link" @click="hideDropdown">个人中心</router-link>
+              <router-link to="/my-projects" class="dropdown-link" @click="hideDropdown">我的项目</router-link>
+              <button class="dropdown-link danger" @click="handleLogout">退出登录</button>
+            </div>
           </div>
         </div>
       </div>
     </header>
 
-    <!-- 主内容区 -->
-    <main class="main-content">
-      <!-- 首页内容 -->
-      <div v-if="activeNav === 'home'" class="content-section home-section">
-        <!-- 英雄区域 - 轮播图 -->
-        <section class="hero-section">
-          <el-carousel :interval="5000" type="card" height="400px" class="carousel">
-            <el-carousel-item v-for="item in carouselItems" :key="item.id">
-              <div class="carousel-item">
-                <img :src="item.image" :alt="item.title" />
-                <div class="carousel-content">
-                  <h3>{{ item.title }}</h3>
-                  <p>{{ item.description }}</p>
-                  <el-button type="primary" class="cta-button" @click="item.action">{{ item.buttonText }}</el-button>
+    <main class="page-body">
+      <!-- 轮播Banner区：展示平台特色、优秀案例、重要通知 -->
+      <section class="banner-section">
+        <div class="banner-container">
+          <button class="banner-arrow banner-arrow-left" @click="prevBanner">&#8249;</button>
+          <button class="banner-arrow banner-arrow-right" @click="nextBanner">&#8250;</button>
+          <div class="banner-slider">
+            <div
+              class="banner-slide"
+              :class="[slide.class, { active: index === activeBannerIndex }]"
+              v-for="(slide, index) in bannerSlides"
+              :key="slide.id"
+            >
+              <div class="banner-content">
+                <span class="banner-tag">{{ slide.tag }}</span>
+                <h1 class="banner-title">{{ slide.title }}</h1>
+                <p class="banner-description">{{ slide.description }}</p>
+                <div class="banner-actions">
+                  <router-link :to="slide.actionLink" class="banner-btn primary">{{ slide.actionText }}</router-link>
                 </div>
-              </div>
-            </el-carousel-item>
-          </el-carousel>
-        </section>
-
-        <!-- 数据统计区域 -->
-        <section class="stats-section">
-          <div class="section-header">
-            <h2>平台数据</h2>
-            <p>实时统计，见证成长</p>
-          </div>
-          <div class="stats-grid">
-            <div v-for="stat in statsData" :key="stat.key" class="stat-card">
-              <div class="stat-icon">{{ stat.icon }}</div>
-              <div class="stat-info">
-                <h3>{{ stat.value }}</h3>
-                <p>{{ stat.label }}</p>
               </div>
             </div>
           </div>
-        </section>
-
-        <!-- 最新任务区域 -->
-        <section class="latest-tasks-section">
-          <div class="section-header">
-            <h2>最新任务</h2>
-            <el-button type="text" @click="activeNav = 'tasks'">查看更多 →</el-button>
+          <div class="banner-indicators">
+            <button
+              class="indicator"
+              :class="{ active: index === activeBannerIndex }"
+              v-for="(slide, index) in bannerSlides"
+              :key="index"
+              @click="goToBanner(index)"
+            ></button>
           </div>
-          <div class="tasks-grid">
-            <div v-for="task in latestTasks" :key="task.id" class="task-card">
-              <div class="task-header">
-                <h4>{{ task.title }}</h4>
-                <el-tag :type="getTaskStatusType(task.status)">{{ task.statusText }}</el-tag>
-              </div>
-              <p class="task-desc">{{ task.description }}</p>
-              <div class="task-meta">
-                <span class="task-budget">💰 {{ task.budget }}</span>
-                <span class="task-deadline">⏰ {{ task.deadline }}</span>
-              </div>
-              <div class="task-footer">
-                <span class="task-applicants">👥 {{ task.applicants }}人申请</span>
-                <span class="task-category">{{ task.category }}</span>
-                <el-button size="small" type="primary">立即申请</el-button>
-              </div>
+        </div>
+      </section>
+
+      <section class="stats-section">
+        <div class="stat-card" v-for="stat in stats" :key="stat.label">
+          <div class="stat-value">{{ stat.value }}</div>
+          <div class="stat-label">{{ stat.label }}</div>
+        </div>
+      </section>
+
+      <section class="module">
+        <div class="module-header">
+          <h2>热门项目推荐</h2>
+          <router-link to="/projects" class="more-link">更多 &gt;</router-link>
+        </div>
+        <div class="project-grid">
+          <div class="project-card" v-for="project in hotProjects" :key="project.id">
+            <div class="project-head">
+              <h3>{{ project.title }}</h3>
+              <span :class="['status-tag', project.status]">{{ project.statusText }}</span>
+            </div>
+            <p class="project-desc">{{ project.description }}</p>
+            <div class="project-meta">
+              <span class="price">{{ project.price }}</span>
+              <span class="meta-title">预算</span>
+            </div>
+            <div class="project-actions">
+              <button class="ghost-btn small">查看详情</button>
+              <button class="primary-btn small">立即揭榜</button>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <!-- 热门分类区域 -->
-        <section class="categories-section">
-          <div class="section-header">
-            <h2>热门分类</h2>
-            <p>找到您感兴趣的项目类型</p>
-          </div>
-          <div class="category-grid">
-            <div v-for="category in categories" :key="category.id" class="category-item" @click="filterByCategory(category.id)">
-              <div class="category-icon">{{ category.icon }}</div>
-              <div class="category-name">{{ category.name }}</div>
-              <div class="category-count">{{ category.count }}个任务</div>
-            </div>
-          </div>
-        </section>
-      </div>
+      <section class="module">
+        <div class="module-header">
+          <h2>最新动态</h2>
+          <router-link to="/news" class="more-link">更多 &gt;</router-link>
+        </div>
+        <ul class="news-list">
+          <li class="news-item" v-for="item in latestNews" :key="item.id">
+            <span class="dot">•</span>
+            <span class="news-text">{{ item.content }}</span>
+            <span class="news-time">{{ item.time }}</span>
+          </li>
+        </ul>
+      </section>
 
-      <!-- 任务大厅内容 -->
-      <div v-else-if="activeNav === 'tasks'" class="content-section">
-        <div class="page-header">
-          <h2>任务大厅</h2>
-          <div class="filter-controls">
-            <el-input v-model="searchKeyword" placeholder="搜索任务..." style="width: 300px; margin-right: 16px;">
-              <template #prefix>
-                <el-icon><Search /></el-icon>
-              </template>
-            </el-input>
-            <el-select v-model="filterCategory" placeholder="选择分类" style="width: 150px; margin-right: 16px;">
-              <el-option label="全部分类" value=""></el-option>
-              <el-option label="技术开发" value="tech"></el-option>
-              <el-option label="设计创意" value="design"></el-option>
-              <el-option label="市场营销" value="marketing"></el-option>
-            </el-select>
-            <el-select v-model="filterStatus" placeholder="任务状态" style="width: 150px;">
-              <el-option label="全部状态" value=""></el-option>
-              <el-option label="进行中" value="active"></el-option>
-              <el-option label="待审核" value="pending"></el-option>
-            </el-select>
+      <!-- 合作企业：展示合作企业，增强信任感 -->
+      <section class="module">
+        <div class="module-header">
+          <h2>合作企业</h2>
+          <p class="module-subtitle">与众多知名企业建立深度合作关系</p>
+        </div>
+        <div class="partners-grid">
+          <div class="partner-card" v-for="partner in partners" :key="partner.id">
+            <div class="partner-logo">{{ partner.logo }}</div>
+            <div class="partner-name">{{ partner.name }}</div>
           </div>
         </div>
-        
-        <div class="tasks-grid">
-          <el-col :span="8" v-for="task in filteredTasks" :key="task.id">
-            <el-card class="task-card" shadow="hover" @click="viewTaskDetail(task.id)">
-              <div class="task-header">
-                <h4>{{ task.title }}</h4>
-                <el-tag :type="getTaskStatusType(task.status)">{{ task.statusText }}</el-tag>
-              </div>
-              <p class="task-desc">{{ task.description }}</p>
-              <div class="task-meta">
-                <span class="task-budget">💰 {{ task.budget }}</span>
-                <span class="task-deadline">⏰ {{ task.deadline }}</span>
-              </div>
-              <div class="task-footer">
-                <span class="task-applicants">👥 {{ task.applicants }}人申请</span>
-                <span class="task-category">{{ task.category }}</span>
-              </div>
-            </el-card>
-          </el-col>
-        </div>
-      </div>
+      </section>
 
-      <!-- 发布任务内容 -->
-      <div v-else-if="activeNav === 'publish'" class="content-section">
-        <div class="page-header">
-          <h2>发布任务</h2>
+      <footer class="page-footer">
+        <div class="footer-links">
+          <router-link to="/about" class="footer-link">关于我们</router-link>
+          <router-link to="/contact" class="footer-link">联系我们</router-link>
+          <router-link to="/help" class="footer-link">帮助中心</router-link>
+          <router-link to="/privacy" class="footer-link">隐私政策</router-link>
         </div>
-        <el-card class="publish-form">
-          <el-form :model="taskForm" :rules="taskRules" ref="taskFormRef" label-width="120px">
-            <el-form-item label="任务标题" prop="title">
-              <el-input v-model="taskForm.title" placeholder="请输入任务标题"></el-input>
-            </el-form-item>
-            <el-form-item label="任务分类" prop="category">
-              <el-select v-model="taskForm.category" placeholder="请选择任务分类" style="width: 100%;">
-                <el-option label="技术开发" value="tech"></el-option>
-                <el-option label="设计创意" value="design"></el-option>
-                <el-option label="市场营销" value="marketing"></el-option>
-              </el-select>
-            </el-form-item>
-            <el-form-item label="任务描述" prop="description">
-              <el-input v-model="taskForm.description" type="textarea" :rows="6" placeholder="详细描述任务需求"></el-input>
-            </el-form-item>
-            <el-form-item label="任务预算" prop="budget">
-              <el-input v-model="taskForm.budget" placeholder="请输入预算金额">
-                <template #append>元</template>
-              </el-input>
-            </el-form-item>
-            <el-form-item label="截止日期" prop="deadline">
-              <el-date-picker v-model="taskForm.deadline" type="date" placeholder="选择截止日期" style="width: 100%;"></el-date-picker>
-            </el-form-item>
-            <el-form-item>
-              <el-button type="primary" @click="submitTask" :loading="submitting">发布任务</el-button>
-              <el-button @click="resetForm">重置</el-button>
-            </el-form-item>
-          </el-form>
-        </el-card>
-      </div>
-
-      <!-- 我的任务内容 -->
-      <div v-else-if="activeNav === 'my-tasks'" class="content-section">
-        <div class="page-header">
-          <h2>我的任务</h2>
-        </div>
-        <el-tabs v-model="myTasksTab" class="my-tasks-tabs">
-          <el-tab-pane label="我发布的" name="published">
-            <el-table :data="myPublishedTasks" style="width: 100%">
-              <el-table-column prop="title" label="任务标题" width="200"></el-table-column>
-              <el-table-column prop="createTime" label="发布时间" width="150"></el-table-column>
-              <el-table-column prop="status" label="状态" width="100">
-                <template #default="scope">
-                  <el-tag :type="getTaskStatusType(scope.row.status)">{{ scope.row.statusText }}</el-tag>
-                </template>
-              </el-table-column>
-              <el-table-column prop="applicants" label="申请人数" width="100"></el-table-column>
-              <el-table-column label="操作">
-                <template #default="scope">
-                  <el-button link type="primary" @click="viewTaskDetail(scope.row.id)">查看详情</el-button>
-                  <el-button link type="success" @click="manageTask(scope.row.id)">管理</el-button>
-                </template>
-              </el-table-column>
-            </el-table>
-          </el-tab-pane>
-          <el-tab-pane label="我申请的" name="applied">
-            <el-table :data="myAppliedTasks" style="width: 100%">
-              <el-table-column prop="title" label="任务标题" width="200"></el-table-column>
-              <el-table-column prop="applyTime" label="申请时间" width="150"></el-table-column>
-              <el-table-column prop="status" label="状态" width="100">
-                <template #default="scope">
-                  <el-tag :type="getApplyStatusType(scope.row.status)">{{ scope.row.statusText }}</el-tag>
-                </template>
-              </el-table-column>
-              <el-table-column label="操作">
-                <template #default="scope">
-                  <el-button link type="primary" @click="viewTaskDetail(scope.row.id)">查看详情</el-button>
-                  <el-button link type="warning" @click="withdrawApplication(scope.row.id)">撤回申请</el-button>
-                </template>
-              </el-table-column>
-            </el-table>
-          </el-tab-pane>
-        </el-tabs>
-      </div>
-
-      <!-- 数据统计内容 -->
-      <div v-else-if="activeNav === 'statistics'" class="content-section">
-        <div class="page-header">
-          <h2>数据统计</h2>
-        </div>
-        <el-row :gutter="24">
-          <el-col :span="12">
-            <el-card class="chart-card">
-              <template #header>
-                <div class="card-header">
-                  <span>任务发布趋势</span>
-                </div>
-              </template>
-              <div class="chart-placeholder">
-                <el-empty description="图表功能开发中"></el-empty>
-              </div>
-            </el-card>
-          </el-col>
-          <el-col :span="12">
-            <el-card class="chart-card">
-              <template #header>
-                <div class="card-header">
-                  <span>分类统计</span>
-                </div>
-              </template>
-              <div class="chart-placeholder">
-                <el-empty description="图表功能开发中"></el-empty>
-              </div>
-            </el-card>
-          </el-col>
-        </el-row>
-      </div>
+        <p class="copyright">
+          Copyright © 2025 产教融合平台 All Rights Reserved
+        </p>
+      </footer>
     </main>
-
-    <!-- 底部 -->
-    <footer class="page-footer">
-      <div class="footer-container">
-        <div class="footer-section">
-          <h4>关于我们</h4>
-          <p>揭榜挂帅系统是一个专业的任务发布与承接平台，连接需求方与服务方。</p>
-        </div>
-        <div class="footer-section">
-          <h4>快速链接</h4>
-          <ul>
-            <li><el-link type="info" @click="activeNav = 'home'">首页</el-link></li>
-            <li><el-link type="info" @click="activeNav = 'tasks'">任务大厅</el-link></li>
-            <li><el-link type="info" @click="activeNav = 'publish'">发布任务</el-link></li>
-          </ul>
-        </div>
-        <div class="footer-section">
-          <h4>联系方式</h4>
-          <p>邮箱：support@task.com</p>
-          <p>电话：400-123-4567</p>
-        </div>
-        <div class="footer-section">
-          <h4>关注我们</h4>
-          <div class="social-links">
-            <span class="social-icon">📱</span>
-            <span class="social-icon">💬</span>
-            <span class="social-icon">📧</span>
-          </div>
-        </div>
-      </div>
-      <div class="footer-bottom">
-        <p>&copy; 2025 揭榜挂帅系统. All rights reserved.</p>
-      </div>
-    </footer>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useUserStore } from '../store/user'
-import { ElMessageBox, ElMessage } from 'element-plus'
-import { 
-  User, SwitchButton, Search
-} from '@element-plus/icons-vue'
 
 const router = useRouter()
-const userStore = useUserStore()
-
-// 当前激活的导航
-const activeNav = ref('home')
 const isLoggedIn = ref(false)
-const userInfo = reactive({
-  username: userStore.username || '用户',
-  avatar: ''
-})
-const unreadCount = ref(2) // 未读消息数量
-
-// 轮播图数据
-const carouselItems = ref([
-  {
-    id: 1,
-    title: '发布任务，寻找专业人才',
-    description: '快速发布您的任务需求，获得专业人才的优质服务',
-    buttonText: '立即发布',
-    image: '/src/assets/task-banner-1.jpg',
-    action: () => activeNav.value = 'publish'
-  },
-  {
-    id: 2,
-    title: '承接任务，展示专业技能',
-    description: '发挥您的专业技能，承接各类任务获得收益',
-    buttonText: '查看任务',
-    image: '/src/assets/task-banner-2.jpg',
-    action: () => activeNav.value = 'tasks'
-  },
-  {
-    id: 3,
-    title: '安全可靠的交易平台',
-    description: '提供安全的交易保障，让双方合作无忧',
-    buttonText: '了解更多',
-    image: '/src/assets/task-banner-3.jpg',
-    action: () => activeNav.value = 'home'
-  }
-])
-
-// 统计数据
-const statsData = ref([
-  {
-    key: 'total',
-    icon: '📊',
-    value: '1,234',
-    label: '总任务数'
-  },
-  {
-    key: 'active',
-    icon: '🎯',
-    value: '567',
-    label: '进行中'
-  },
-  {
-    key: 'completed',
-    icon: '✅',
-    value: '890',
-    label: '已完成'
-  },
-  {
-    key: 'users',
-    icon: '👥',
-    value: '2,456',
-    label: '注册用户'
-  }
-])
-
-// 最新任务
-const latestTasks = ref([
-  {
-    id: 1,
-    title: '企业官网前端开发',
-    description: '需要开发响应式企业官网，包含首页、产品展示、关于我们等模块',
-    budget: '¥50,000',
-    deadline: '2025-12-15',
-    status: 'active',
-    statusText: '进行中',
-    applicants: 8,
-    category: '技术开发'
-  },
-  {
-    id: 2,
-    title: '移动应用UI设计',
-    description: '为电商APP设计完整的UI界面，需要符合现代审美趋势',
-    budget: '¥30,000',
-    deadline: '2025-11-30',
-    status: 'active',
-    statusText: '进行中',
-    applicants: 15,
-    category: '设计创意'
-  },
-  {
-    id: 3,
-    title: '数据分析平台后端开发',
-    description: '开发数据分析平台后端API，支持大数据处理和分析',
-    budget: '¥80,000',
-    deadline: '2025-12-20',
-    status: 'pending',
-    statusText: '待审核',
-    applicants: 5,
-    category: '技术开发'
-  }
-])
-
-// 分类数据
-const categories = ref([
-  { id: 'tech', name: '技术开发', icon: '💻', count: 456 },
-  { id: 'design', name: '设计创意', icon: '🎨', count: 234 },
-  { id: 'marketing', name: '市场营销', icon: '📈', count: 189 },
-  { id: 'writing', name: '文案写作', icon: '✍️', count: 156 },
-  { id: 'video', name: '视频制作', icon: '🎬', count: 123 },
-  { id: 'consulting', name: '咨询服务', icon: '💡', count: 98 }
-])
-
-// 搜索和筛选
-const searchKeyword = ref('')
-const filterCategory = ref('')
-const filterStatus = ref('')
-
-// 任务表单
-const taskForm = reactive({
-  title: '',
-  category: '',
-  description: '',
-  budget: '',
-  deadline: ''
+const showDropdown = ref(false)
+const userInfo = ref({
+  username: '张三',
+  avatar: 'https://picsum.photos/seed/user123/40/40.jpg'
 })
 
-const taskRules = {
-  title: [{ required: true, message: '请输入任务标题', trigger: 'blur' }],
-  category: [{ required: true, message: '请选择任务分类', trigger: 'change' }],
-  description: [{ required: true, message: '请输入任务描述', trigger: 'blur' }],
-  budget: [{ required: true, message: '请输入任务预算', trigger: 'blur' }],
-  deadline: [{ required: true, message: '请选择截止日期', trigger: 'change' }]
-}
+const stats = ref([
+  { label: '项目总数', value: '1,234' },
+  { label: '企业总数', value: '456' },
+  { label: '奖金总额', value: '328.5w' },
+  { label: '学生总数', value: '892' }
+])
 
-const taskFormRef = ref(null)
-const submitting = ref(false)
-
-// 我的任务标签页
-const myTasksTab = ref('published')
-
-// 我发布的任务
-const myPublishedTasks = ref([
+const hotProjects = ref([
   {
     id: 1,
-    title: '企业官网前端开发',
-    createTime: '2025-11-10',
-    status: 'active',
-    statusText: '进行中',
-    applicants: 8
+    title: 'AI智能助手开发',
+    price: '¥5,000',
+    status: 'bidding',
+    statusText: '揭榜中',
+    description: '基于深度学习的智能客服系统'
   },
   {
     id: 2,
-    title: '移动应用UI设计',
-    createTime: '2025-11-08',
-    status: 'completed',
-    statusText: '已完成',
-    applicants: 12
-  }
-])
-
-// 我申请的任务
-const myAppliedTasks = ref([
+    title: 'Web前端开发',
+    price: '¥8,000',
+    status: 'bidding',
+    statusText: '揭榜中',
+    description: '响应式企业官网开发'
+  },
   {
     id: 3,
-    title: '数据分析平台后端开发',
-    applyTime: '2025-11-05',
-    status: 'pending',
-    statusText: '待审核'
+    title: '数据分析平台',
+    price: '¥6,000',
+    status: 'reviewing',
+    statusText: '评审中',
+    description: '大数据可视化分析系统'
   },
   {
     id: 4,
-    title: '品牌Logo设计',
-    applyTime: '2025-11-03',
-    status: 'approved',
-    statusText: '已通过'
+    title: '移动应用开发',
+    price: '¥10,000',
+    status: 'bidding',
+    statusText: '揭榜中',
+    description: '跨平台移动应用开发'
   }
 ])
 
-// 所有任务列表（用于任务大厅）
-const allTasks = ref([
-  ...latestTasks.value,
+const latestNews = ref([
+  { id: 1, content: '某某学生团队成功中标"XX系统开发"项目', time: '2小时前' },
+  { id: 2, content: 'XX公司发布"智能客服机器人"项目', time: '3小时前' },
+  { id: 3, content: '恭喜张三同学获得本月"最佳创客"称号', time: '1天前' }
+])
+
+const activeBannerIndex = ref(0)
+let bannerTimer = null
+
+const bannerSlides = ref([
   {
-    id: 4,
-    title: '品牌Logo设计',
-    description: '为初创公司设计品牌Logo，需要简洁大方，体现公司特色',
-    budget: '¥15,000',
-    deadline: '2025-11-25',
-    status: 'active',
-    statusText: '进行中',
-    applicants: 12,
-    category: '设计创意'
+    id: 1,
+    tag: '平台特色',
+    title: '产教融合，创新未来',
+    description: '连接高校与企业，让知识创造价值，让创意落地生根',
+    actionText: '了解平台',
+    actionLink: '/about',
+    class: 'banner-1'
   },
   {
-    id: 5,
-    title: '社交媒体营销策划',
-    description: '制定完整的社交媒体营销方案，提升品牌影响力',
-    budget: '¥25,000',
-    deadline: '2025-12-10',
-    status: 'active',
-    statusText: '进行中',
-    applicants: 6,
-    category: '市场营销'
+    id: 2,
+    tag: '优秀案例',
+    title: '成功案例分享',
+    description: '多位学生通过平台成功完成项目，获得丰厚奖励和实习机会',
+    actionText: '查看案例',
+    actionLink: '/projects',
+    class: 'banner-2'
+  },
+  {
+    id: 3,
+    tag: '重要通知',
+    title: '新项目发布',
+    description: 'AI智能助手开发项目已上线，预算丰厚，欢迎揭榜',
+    actionText: '立即查看',
+    actionLink: '/projects',
+    class: 'banner-3'
   }
 ])
 
-// 计算属性：筛选后的任务
-const filteredTasks = computed(() => {
-  let filtered = allTasks.value
-  
-  if (searchKeyword.value) {
-    filtered = filtered.filter(task => 
-      task.title.includes(searchKeyword.value) || 
-      task.description.includes(searchKeyword.value)
-    )
-  }
-  
-  if (filterCategory.value) {
-    filtered = filtered.filter(task => task.category === filterCategory.value)
-  }
-  
-  if (filterStatus.value) {
-    filtered = filtered.filter(task => task.status === filterStatus.value)
-  }
-  
-  return filtered
-})
-
-// 消息相关数据
-const messageTab = ref('system')
-const systemMessages = ref([
-  { id: 1, title: '系统维护通知', content: '系统将于今晚22:00-24:00进行维护升级，期间可能影响正常使用。', time: '2024-01-15 18:30', read: false },
-  { id: 2, title: '新功能上线', content: '项目大厅新增智能推荐功能，为您推荐更合适的项目。', time: '2024-01-14 10:00', read: true },
-  { id: 3, title: '安全提醒', content: '请定期修改密码，确保账户安全。', time: '2024-01-13 15:20', read: true }
+const partners = ref([
+  { id: 1, name: '腾讯科技', logo: 'T' },
+  { id: 2, name: '阿里巴巴', logo: 'A' },
+  { id: 3, name: '华为技术', logo: 'H' },
+  { id: 4, name: '字节跳动', logo: 'B' },
+  { id: 5, name: '百度', logo: 'B' },
+  { id: 6, name: '京东', logo: 'J' }
 ])
 
-const projectMessages = ref([
-  { id: 1, title: '项目申请通过', content: '您申请的"企业官网开发"项目已通过审核，请及时联系项目发布者。', time: '2024-01-15 14:30', read: false },
-  { id: 2, title: '项目完成通知', content: '恭喜您完成的"Logo设计"项目已获得好评，收益已发放到您的账户。', time: '2024-01-14 16:45', read: true },
-  { id: 3, title: '新项目推荐', content: '根据您的技能，我们为您推荐了3个新的项目机会。', time: '2024-01-13 09:15', read: false }
-])
-
-// 导航选择处理
-const handleNavSelect = (index) => {
-  activeNav.value = index
-  
-  // 如果点击消息，清除未读数量
-  if (index === 'messages') {
-    setTimeout(() => {
-      unreadCount.value = 0
-      // 标记所有消息为已读
-      systemMessages.value.forEach(msg => msg.read = true)
-      projectMessages.value.forEach(msg => msg.read = true)
-    }, 1000)
-  }
-}
-
-// 查看任务详情
-const viewTaskDetail = (taskId) => {
-  ElMessage.info(`查看任务 ${taskId} 详情功能开发中`)
-}
-
-// 按分类筛选
-const filterByCategory = (categoryId) => {
-  activeNav.value = 'tasks'
-  filterCategory.value = categoryId
-}
-
-// 提交任务
-const submitTask = () => {
-  if (!taskFormRef.value) return
-  
-  taskFormRef.value.validate((valid) => {
-    if (!valid) return
-    
-    submitting.value = true
-    try {
-      // 模拟提交
-      setTimeout(() => {
-        ElMessage.success('任务发布成功！')
-        resetForm()
-        activeNav.value = 'tasks'
-        submitting.value = false
-      }, 1500)
-    } catch (error) {
-      ElMessage.error('发布失败，请重试')
-      submitting.value = false
-    }
-  })
-}
-
-// 重置表单
-const resetForm = () => {
-  if (taskFormRef.value) {
-    taskFormRef.value.resetFields()
-  }
-  Object.assign(taskForm, {
-    title: '',
-    category: '',
-    description: '',
-    budget: '',
-    deadline: ''
-  })
-}
-
-// 管理任务
-const manageTask = (taskId) => {
-  ElMessage.info(`管理任务 ${taskId} 功能开发中`)
-}
-
-// 撤回申请
-const withdrawApplication = (taskId) => {
-  ElMessageBox.confirm('确定要撤回申请吗？', '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
-  }).then(() => {
-    ElMessage.success('申请已撤回')
-  }).catch(() => {})
-}
-
-// 获取任务状态类型
-const getTaskStatusType = (status) => {
-  const statusMap = {
-    'active': 'success',
-    'pending': 'warning',
-    'completed': 'info',
-    'cancelled': 'danger'
-  }
-  return statusMap[status] || 'info'
-}
-
-// 获取申请状态类型
-const getApplyStatusType = (status) => {
-  const statusMap = {
-    'pending': 'warning',
-    'approved': 'success',
-    'rejected': 'danger',
-    'completed': 'info'
-  }
-  return statusMap[status] || 'info'
-}
-
-// 退出登录
-const handleLogout = () => {
-  ElMessageBox.confirm('确定要退出登录吗？', '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
-  })
-    .then(() => {
-      userStore.logout()
-      localStorage.removeItem('token')
-      ElMessage.success('已退出登录')
-      router.push('/login')
-    })
-    .catch(() => {})
-}
-
-// 检查登录状态
 const checkLoginStatus = () => {
   const token = localStorage.getItem('token')
-  const userInfoStr = localStorage.getItem('userInfo')
-  
-  if (token && userInfoStr) {
+  if (token) {
     isLoggedIn.value = true
-    try {
-      const userData = JSON.parse(userInfoStr)
-      userInfo.username = userData.username || '用户'
-      userInfo.avatar = userData.avatar || ''
-    } catch (e) {
-      console.error('解析用户信息失败:', e)
-      userInfo.username = '用户'
-      userInfo.avatar = ''
+    const userData = localStorage.getItem('userData')
+    if (userData) {
+      userInfo.value = JSON.parse(userData)
     }
   } else {
     isLoggedIn.value = false
-    userInfo.username = '用户'
-    userInfo.avatar = ''
   }
 }
 
-// 跳转登录
-const goLogin = () => {
+const toggleDropdown = () => {
+  showDropdown.value = !showDropdown.value
+}
+
+const hideDropdown = () => {
+  showDropdown.value = false
+}
+
+const handleLogout = () => {
+  localStorage.removeItem('token')
+  localStorage.removeItem('userData')
+  isLoggedIn.value = false
+  showDropdown.value = false
+  userInfo.value = {
+    username: '张三',
+    avatar: 'https://picsum.photos/seed/user123/40/40.jpg'
+  }
+  // 跳转到登录页面并清除可能的输入框数据
+  localStorage.removeItem('loginFormData')
+  localStorage.removeItem('loginRemember')
   router.push('/login')
 }
 
-// 跳转注册
-const goRegister = () => {
-  router.push('/register')
+onMounted(() => {
+  checkLoginStatus()
+})
+
+const startBannerAutoPlay = () => {
+  if (!bannerSlides.value.length) return
+  stopBannerAutoPlay()
+  bannerTimer = setInterval(() => {
+    activeBannerIndex.value = (activeBannerIndex.value + 1) % bannerSlides.value.length
+  }, 5000)
 }
 
-// 组件挂载时加载数据
+const stopBannerAutoPlay = () => {
+  if (bannerTimer) {
+    clearInterval(bannerTimer)
+    bannerTimer = null
+  }
+}
+
+const goToBanner = (index) => {
+  if (index < 0 || index >= bannerSlides.value.length) return
+  activeBannerIndex.value = index
+  startBannerAutoPlay()
+}
+
+const prevBanner = () => {
+  if (!bannerSlides.value.length) return
+  const total = bannerSlides.value.length
+  const nextIndex = (activeBannerIndex.value - 1 + total) % total
+  goToBanner(nextIndex)
+}
+
+const nextBanner = () => {
+  if (!bannerSlides.value.length) return
+  const total = bannerSlides.value.length
+  const nextIndex = (activeBannerIndex.value + 1) % total
+  goToBanner(nextIndex)
+}
+
 onMounted(() => {
-  // 检查登录状态
   checkLoginStatus()
-  // 初始化数据
+  startBannerAutoPlay()
+})
+
+onUnmounted(() => {
+  stopBannerAutoPlay()
 })
 </script>
 
 <style scoped>
-/* 页面整体布局 */
-.page-wrapper {
+.home-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  display: flex;
+  flex-direction: column;
+  background: #f5f7fb;
+  color: #1f274b;
 }
 
-/* 顶部导航栏 */
-.top-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 0;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  animation: slideDown 0.5s ease-out;
+
+
+.main-header {
+  position: relative;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 6px 30px rgba(15, 39, 106, 0.1);
+  z-index: 10;
 }
 
-.header-container {
+.header-inner {
   max-width: 1200px;
   margin: 0 auto;
+  padding: 16px 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px;
-  height: 60px;
+  gap: 24px;
 }
 
-.logo-section {
-  display: flex;
-  align-items: center;
-}
-
-.logo {
-  font-size: 24px;
-  font-weight: bold;
-  color: white;
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.nav-menu {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-}
-
-.top-nav {
-  background: transparent;
-  border: none;
-}
-
-.top-nav .el-menu-item {
-  color: white;
-  border-bottom: 2px solid transparent;
-  transition: all 0.3s ease;
-  font-weight: 500;
-}
-
-.top-nav .el-menu-item:hover,
-.top-nav .el-menu-item.is-active {
-  background-color: rgba(255, 255, 255, 0.1);
-  border-bottom-color: white;
-  color: white;
-}
-
-/* 认证区域样式 */
-.auth-section {
-  display: flex;
-  align-items: center;
-}
-
-.login-buttons {
+.brand {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.login-btn {
-  color: #409eff;
-  font-weight: 500;
-  padding: 8px 16px;
-  border-radius: 6px;
-  transition: all 0.3s ease;
+.brand-logo {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  object-fit: cover;
+  box-shadow: 0 10px 20px rgba(12, 80, 194, 0.2);
 }
 
-.login-btn:hover {
-  background-color: rgba(64, 158, 255, 0.1);
-  color: #337ecc;
+.brand-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f2c85;
 }
 
-.register-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border: none;
-  padding: 8px 20px;
-  font-weight: 500;
-  border-radius: 6px;
-  transition: all 0.3s ease;
+.main-nav {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  gap: 32px;
 }
 
-.register-btn:hover {
+.nav-link {
+  position: relative;
+  text-decoration: none;
+  color: #5a6486;
+  font-weight: 600;
+}
+
+.nav-link.active,
+.nav-link:hover {
+  color: #0c5fe7;
+}
+
+.nav-link.active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -8px;
+  width: 100%;
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(120deg, #0c5fe7, #2fb7ff);
+}
+
+.messages {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.badge {
+  display: inline-flex;
+  min-width: 18px;
+  padding: 0 6px;
+  height: 18px;
+  border-radius: 999px;
+  background: #ff4d4f;
+  color: #fff;
+  font-size: 12px;
+  justify-content: center;
+  align-items: center;
+}
+
+.auth-area {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.auth-btn {
+  padding: 8px 22px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-weight: 600;
+  text-decoration: none;
+  transition: transform 0.2s;
+}
+
+.auth-btn.ghost {
+  color: #0c5fe7;
+  border-color: rgba(12, 95, 231, 0.3);
+}
+
+.auth-btn.solid {
+  background: linear-gradient(120deg, #0c5fe7, #2fb7ff);
+  color: #fff;
+  box-shadow: 0 12px 24px rgba(12, 95, 231, 0.25);
+}
+
+.auth-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
-.user-section {
+.user-panel {
   display: flex;
   align-items: center;
-}
-
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  gap: 12px;
+  position: relative;
   cursor: pointer;
-  padding: 8px 12px;
-  border-radius: 8px;
+}
+
+.user-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 2px solid rgba(12, 95, 231, 0.2);
+  object-fit: cover;
+  transition: transform 0.2s;
+}
+
+.user-panel:hover .user-avatar {
+  transform: scale(1.05);
+}
+
+.user-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 10px 30px rgba(15, 39, 106, 0.15);
+  border: 1px solid #e0e6f2;
+  min-width: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
   transition: all 0.3s ease;
+  z-index: 1000;
 }
 
-.user-info:hover {
-  background-color: rgba(64, 158, 255, 0.1);
+.user-dropdown.active {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
 }
 
-.username {
-  font-weight: 500;
-  color: #333;
+.user-name {
+  font-weight: 600;
+  color: #1f274b;
+  margin-bottom: 4px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f0f3fa;
 }
 
-/* 消息徽章样式 */
-.message-badge {
-  margin-left: 4px;
+.dropdown-link {
+  background: none;
+  border: none;
+  padding: 8px 12px;
+  color: #5a6486;
+  text-decoration: none;
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  text-align: left;
 }
 
-/* 主内容区 */
-.main-content {
+.dropdown-link:hover {
+  background: #f5f7fb;
+  color: #0c5fe7;
+}
+
+.dropdown-link.danger {
+  color: #ff4d4f;
+}
+
+.dropdown-link.danger:hover {
+  background: #fff2f0;
+  color: #ff4d4f;
+}
+
+.page-body {
+  flex: 1;
   max-width: 1200px;
+  width: 100%;
   margin: 0 auto;
-  padding: 40px 20px 80px;
-  min-height: calc(100vh - 60px);
+  padding: 48px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  /* 滑动效果 */
   overflow-y: auto;
-  max-height: calc(100vh - 60px);
+  max-height: calc(100vh - 80px);
   scroll-behavior: smooth;
-}
-
-.content-section {
-  animation: fadeInUp 0.6s ease-out;
-  margin-bottom: 60px;
-}
-
-/* 隐藏滚动条但保持滚动功能 */
-.main-content::-webkit-scrollbar {
-  display: none;
-}
-
-/* 兼容 Firefox */
-.main-content {
+  -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
-}
-
-/* 兼容 IE 和 Edge */
-.main-content {
   -ms-overflow-style: none;
 }
 
-/* 区域标题样式 */
-.section-header {
+.page-body::-webkit-scrollbar {
+  display: none;
+}
+
+.page-footer {
+  margin-top: auto;
+  border-top: 1px solid #e0e6f2;
+  padding: 32px 16px 40px;
   text-align: center;
-  margin-bottom: 40px;
+  color: #7b89a9;
+  background: #fff;
 }
 
-.section-header h2 {
-  font-size: 32px;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 8px;
-}
-
-.section-header p {
-  font-size: 16px;
-  color: #666;
-  margin: 0;
-}
-
-/* 首页英雄区域 */
-.hero-section {
-  margin-bottom: 40px;
-}
-
-.carousel {
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-}
-
-.carousel-item {
-  position: relative;
-  height: 100%;
-  border-radius: 16px;
-  overflow: hidden;
-}
-
-.carousel-item img {
+.banner-section {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
 }
 
-.carousel-content {
+.banner-container {
+  position: relative;
+  overflow: hidden;
+  border-radius: 28px;
+  padding: 40px 48px;
+  background: linear-gradient(135deg, #1b51da, #2ee4ff);
+  color: #fff;
+  box-shadow: 0 30px 60px rgba(15, 39, 106, 0.25);
+}
+
+.banner-slider {
+  position: relative;
+  min-height: 180px;
+}
+
+.banner-slide {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
-  color: white;
-  padding: 40px;
-  text-align: center;
+  inset: 0;
+  opacity: 0;
+  transform: translateX(24px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  display: flex;
+  align-items: center;
 }
 
-.carousel-content h3 {
-  font-size: 28px;
+.banner-slide.active {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.banner-content {
+  max-width: 640px;
+}
+
+.banner-tag {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  letter-spacing: 4px;
+  font-size: 12px;
   margin-bottom: 12px;
 }
 
-.carousel-content p {
-  font-size: 16px;
-  margin-bottom: 24px;
-  opacity: 0.9;
-}
-
-.cta-button {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border: none;
-  padding: 12px 32px;
-  font-size: 16px;
-  border-radius: 24px;
-}
-
-/* 数据统计区域 */
-.stats-section {
-  margin-bottom: 40px;
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 24px;
-}
-
-.stat-card {
-  background: white;
-  padding: 32px 24px;
-  border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  text-align: center;
-  transition: all 0.3s ease;
-  border: 1px solid #f0f0f0;
-}
-
-.stat-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-}
-
-.stat-icon {
-  font-size: 48px;
-  margin-bottom: 16px;
-}
-
-.stat-info h3 {
+.banner-title {
   font-size: 32px;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 8px;
+  font-weight: 700;
+  margin-bottom: 12px;
 }
 
-.stat-info p {
-  color: #666;
+.banner-description {
   font-size: 16px;
-  margin: 0;
-}
-
-/* 任务卡片样式 */
-.latest-tasks-section {
-  margin-bottom: 40px;
-}
-
-.tasks-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-  gap: 24px;
-}
-
-.task-card {
-  background: white;
-  padding: 24px;
-  border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s ease;
-  border: 1px solid #f0f0f0;
-  cursor: pointer;
-}
-
-.task-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-}
-
-.task-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 16px;
-}
-
-.task-header h4 {
-  font-size: 18px;
-  font-weight: 600;
-  color: #333;
-  margin: 0;
-  flex: 1;
-}
-
-.task-desc {
-  color: #666;
-  line-height: 1.5;
-  margin-bottom: 16px;
+  opacity: 0.9;
+  margin-bottom: 24px;
+  max-width: 520px;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-.task-meta {
+.banner-actions {
   display: flex;
   gap: 16px;
-  margin-bottom: 16px;
+  flex-wrap: wrap;
 }
 
-.task-meta span {
+.banner-btn {
+  padding: 10px 26px;
+  border-radius: 999px;
+  text-decoration: none;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  font-weight: 600;
+  color: #1b51da;
+  background: #fff;
+  box-shadow: 0 12px 24px rgba(8, 31, 89, 0.3);
+}
+
+.banner-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.7);
+  color: #0f2c85;
   display: flex;
   align-items: center;
-  gap: 4px;
-  color: #666;
-  font-size: 14px;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+  opacity: 0;
+  transition: opacity 0.2s ease, background 0.2s ease, transform 0.2s ease;
+  z-index: 2;
 }
 
-.task-footer {
+.banner-arrow-left {
+  left: 16px;
+}
+
+.banner-arrow-right {
+  right: 16px;
+}
+
+.banner-container:hover .banner-arrow {
+  opacity: 1;
+}
+
+.banner-arrow:hover {
+  background: #fff;
+  transform: translateY(-50%) scale(1.05);
+}
+
+.banner-indicators {
+  position: absolute;
+  right: 32px;
+  bottom: 24px;
+  display: flex;
+  gap: 8px;
+}
+
+.indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  transition: width 0.2s ease, background 0.2s ease;
+}
+
+.indicator.active {
+  width: 24px;
+  background: #fff;
+}
+
+
+
+.hero {
+  background: linear-gradient(135deg, #1b51da, #2ee4ff);
+  border-radius: 28px;
+  padding: 48px;
+  color: #fff;
+  text-align: center;
+  box-shadow: 0 30px 60px rgba(15, 39, 106, 0.25);
+}
+
+.hero-tag {
+  letter-spacing: 4px;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.hero h1 {
+  font-size: 36px;
+  margin-bottom: 12px;
+}
+
+.hero-subtitle {
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 28px;
+}
+
+.hero-actions {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.primary-btn,
+.ghost-btn {
+  padding: 12px 30px;
+  border-radius: 999px;
+  text-decoration: none;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  font-weight: 700;
+  color: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s;
+}
+
+.primary-btn {
+  background: #fff;
+  color: #0c5fe7;
+}
+
+.ghost-btn {
+  color: #fff;
+}
+
+.primary-btn.small,
+.ghost-btn.small {
+  padding: 10px 0;
+  border-radius: 12px;
+  width: 48%;
+  border: 1px solid transparent;
+}
+
+.primary-btn.small {
+  background: linear-gradient(120deg, #0c5fe7, #2fb7ff);
+  color: #fff;
+  box-shadow: 0 12px 24px rgba(12, 95, 231, 0.25);
+}
+
+.ghost-btn.small {
+  color: #1f274b;
+  border-color: #dfe5fa;
+  background: #fff;
+}
+
+.primary-btn:hover,
+.ghost-btn:hover {
+  transform: translateY(-2px);
+}
+
+.stats-section {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.stat-card {
+  background: #fff;
+  border-radius: 20px;
+  text-align: center;
+  padding: 24px;
+  box-shadow: 0 18px 35px rgba(15, 39, 106, 0.08);
+}
+
+.stat-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: #0f2c85;
+}
+
+.stat-label {
+  color: #5f6c8b;
+  margin-top: 8px;
+}
+
+.module {
+  background: #fff;
+  border-radius: 24px;
+  padding: 32px;
+  box-shadow: 0 25px 50px rgba(15, 39, 106, 0.08);
+}
+
+.module-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.project-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.project-card {
+  border-radius: 20px;
+  border: 1px solid #edf1fb;
+  padding: 20px;
+  background: linear-gradient(180deg, #ffffff, #f9fbff);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.project-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 40px rgba(15, 39, 106, 0.12);
+}
+
+.project-head {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.task-applicants {
-  color: #666;
-  font-size: 14px;
-}
-
-.task-category {
-  background: #f0f7ff;
-  color: #409eff;
+.status-tag {
   padding: 4px 12px;
-  border-radius: 12px;
+  border-radius: 999px;
   font-size: 12px;
-  font-weight: 500;
+  color: #fff;
 }
 
-/* 分类区域 */
-.categories-section {
-  margin-bottom: 40px;
+.status-tag.bidding {
+  background: linear-gradient(120deg, #0c5fe7, #2fb7ff);
 }
 
-.category-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 24px;
+.status-tag.reviewing {
+  background: linear-gradient(120deg, #ff9f0a, #ffb347);
 }
 
-.category-item {
-  background: white;
-  padding: 32px 24px;
-  border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  text-align: center;
-  transition: all 0.3s ease;
-  border: 1px solid #f0f0f0;
-  cursor: pointer;
+.project-desc {
+  color: #5f6c8b;
+  min-height: 48px;
 }
 
-.category-item:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-}
-
-.category-icon {
-  font-size: 48px;
-  margin-bottom: 16px;
-}
-
-.category-name {
-  font-size: 16px;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 8px;
-}
-
-.category-count {
-  color: #666;
-  font-size: 14px;
-  margin: 0;
-}
-
-/* 任务大厅样式 */
-.filter-controls {
+.project-meta {
   display: flex;
-  gap: 16px;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.price {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f2c85;
+}
+
+.meta-title {
+  color: #9aa5c2;
+}
+
+.project-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.news-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.news-item {
+  display: flex;
   align-items: center;
+  gap: 12px;
+  color: #415070;
+}
+
+.dot {
+  font-size: 24px;
+  color: #0c5fe7;
+  line-height: 1;
+}
+
+.news-text {
+  flex: 1;
+}
+
+.news-time {
+  color: #9aa5c2;
+  font-size: 14px;
+}
+
+.partners-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.partner-card {
+  border: 1px dashed #cfd7f1;
+  border-radius: 16px;
+  padding: 30px;
+  text-align: center;
+  color: #4f5d7a;
+  font-weight: 600;
+  background: #f8faff;
+}
+
+.page-footer {
+  border-top: 1px solid #e0e6f2;
+  padding: 32px 16px 40px;
+  text-align: center;
+  color: #7b89a9;
+}
+
+.footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  margin-bottom: 16px;
   flex-wrap: wrap;
 }
 
-/* 发布表单样式 */
-.publish-form {
-  background: white;
-  padding: 32px;
-  border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  border: 1px solid #f0f0f0;
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-/* 我的任务样式 */
-.my-tasks-tabs {
-  background: white;
-  padding: 24px;
-  border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  border: 1px solid #f0f0f0;
-}
-
-/* 数据统计样式 */
-.chart-card {
-  background: white;
-  padding: 24px;
-  border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  border: 1px solid #f0f0f0;
-}
-
-.chart-placeholder {
-  height: 250px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background-color: #f8f9fa;
-  border-radius: 12px;
-  color: #666;
-}
-
-/* 底部样式 */
-.page-footer {
-  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-  color: white;
-  padding: 60px 0 20px;
-  margin-top: 80px;
-}
-
-.footer-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 40px;
-  padding: 0 20px;
-}
-
-.footer-section h4 {
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 16px;
-  color: white;
-}
-
-.footer-section p {
-  color: #bdc3c7;
-  line-height: 1.6;
-  margin-bottom: 8px;
-}
-
-.footer-section ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.footer-section ul li {
-  margin-bottom: 8px;
-}
-
-.footer-section ul li a {
-  color: #bdc3c7;
+.footer-link {
+  color: inherit;
   text-decoration: none;
-  transition: color 0.3s ease;
+  font-weight: 600;
 }
 
-.footer-section ul li a:hover {
-  color: white;
-}
-
-.social-links {
-  display: flex;
-  gap: 16px;
-}
-
-.social-icon {
-  background: rgba(255, 255, 255, 0.1);
-  padding: 8px 16px;
-  border-radius: 20px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.social-icon:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.footer-bottom {
-  text-align: center;
-  padding: 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  margin-top: 40px;
-}
-
-.footer-bottom p {
-  color: #bdc3c7;
-  margin: 0;
-  font-size: 14px;
-}
-
-/* 动画效果 */
-@keyframes slideDown {
-  from {
-    transform: translateY(-100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-@keyframes fadeInUp {
-  from {
-    transform: translateY(30px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-/* 响应式设计 */
-@media (max-width: 768px) {
-  .header-container {
-    padding: 0 16px;
-  }
-  
-  .nav-menu {
-    display: none;
-  }
-  
-  .main-content {
-    padding: 20px 16px;
-  }
-  
-  .stats-grid {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
-  }
-  
-  .tasks-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .category-grid {
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  }
-  
-  .filter-controls {
+@media (max-width: 1024px) {
+  .header-inner {
     flex-direction: column;
-    align-items: stretch;
   }
-  
-  .footer-container {
+
+  .main-nav {
+    flex-wrap: wrap;
+  }
+
+  .project-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .stats-section,
+  .partners-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .page-body {
+    padding: 32px 16px 48px;
+  }
+
+  .hero {
+    padding: 32px 20px;
+  }
+
+  .project-grid,
+  .stats-section,
+  .partners-grid {
     grid-template-columns: 1fr;
-    gap: 30px;
+  }
+
+  .project-actions {
+    flex-direction: column;
   }
 }
 </style>

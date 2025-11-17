@@ -3,7 +3,7 @@
     <transition name="slide-fade" appear>
       <div class="auth-card">
       <div class="auth-left">
-        <img class="auth-illustration" src="/src/assets/Login.jpg" alt="登录插画" @error="handleImageError" />
+        <img class="auth-illustration" src="../assets/Login.jpg" alt="登录插画" @error="handleImageError" />
       </div>
       <div class="auth-right">
         <div class="auth-header">
