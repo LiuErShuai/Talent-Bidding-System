@@ -1,23 +1,28 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
-import LoginView from '../views/LoginView.vue'
-import RegisterView from '../views/RegisterView.vue'
-import UserView from '../views/UserView.vue'
-import ProjectHallview from '../views/ProjectHallview.vue'
-import ProjectDetailsview from '../views/ProjectDetailsview.vue'
-import SmartMatchview from '../views/SmartMatchview.vue'
+import HomeView from '../views/Home.vue'
+import LoginView from '../views/Login.vue'
+import RegisterView from '../views/Register.vue'
+import UserView from '../views/User.vue'
+import ProjectHallview from '../views/ProjectHall.vue'
+import ProjectDetailsview from '../views/ProjectDetails.vue'
+import SmartMatchview from '../views/SmartMatch.vue'
 import Apply from '../views/Apply.vue'
 import MyProject from '../views/MyProject.vue'
 import GrowthCenter from '../views/GrowthCenter.vue'
-import Submitview from '../views/Submitview.vue'
-import Evaluationview from '../views/Evaluationview.vue'
+import Submitview from '../views/Submit.vue'
+import Evaluationview from '../views/Evaluation.vue'
 import Tracker from '../views/Tracker.vue'
 import DataCenter from '../views/DataCenter.vue'
-import Messageview from '../views/Messageview.vue'
+import Messageview from '../views/Message.vue'
 import About from '../views/About.vue'
 import Contact from '../views/Contact.vue'
 import Help from '../views/Help.vue'
 import Privacy from '../views/Privacy.vue'
+import PreReview from '../views/PreReview.vue'
+import FinalReview from '../views/FinalReview.vue'
+import MidtermDefense from '../views/MidtermDefense.vue'
+import ResultsCenter from '../views/ResultsCenter.vue'
+import AgreementProcessing from '../views/AgreementProcessing.vue'
 
 const routes = [
   { path: '/', redirect: '/login' },
@@ -62,7 +67,7 @@ const routes = [
     meta: { transition: 'fade' }
   },
   { 
-    path: '/project/:id', 
+    path: '/projects/:id', 
     component: ProjectDetailsview,
     meta: { transition: 'fade' }
   },
@@ -114,6 +119,31 @@ const routes = [
   { 
     path: '/user', 
     component: UserView,
+    meta: { transition: 'fade' }
+  },
+  { 
+    path: '/pre-review', 
+    component: PreReview,
+    meta: { transition: 'fade' }
+  },
+  { 
+    path: '/final-review', 
+    component: FinalReview,
+    meta: { transition: 'fade' }
+  },
+  { 
+    path: '/midterm-defense', 
+    component: MidtermDefense,
+    meta: { transition: 'fade' }
+  },
+  { 
+    path: '/results-center', 
+    component: ResultsCenter,
+    meta: { transition: 'fade' }
+  },
+  { 
+    path: '/agreement-processing', 
+    component: AgreementProcessing,
     meta: { transition: 'fade' }
   },
 ]

@@ -1,13 +1,14 @@
 <template>
   <div class="help-page">
-    <header class="page-header">
-      <div class="header-content">
-        <h1>帮助中心</h1>
-        <p>快速找到您需要的帮助信息</p>
-      </div>
-    </header>
-
-    <main class="page-content">
+    <!-- 整个页面内容都在一个滚动容器中 -->
+    <div class="page-content">
+      <!-- 顶部banner -->
+      <header class="page-header">
+        <div class="header-content">
+          <h1>帮助中心</h1>
+          <p>快速找到您需要的帮助信息</p>
+        </div>
+      </header>
       <div class="container">
         <div class="help-layout">
           <!-- 侧边栏导航 -->
@@ -84,11 +85,69 @@
                   </div>
                 </div>
               </div>
+
+              <!-- 详细帮助内容 -->
+              <div class="detailed-help">
+                <h3>详细帮助内容</h3>
+                <div class="help-details">
+                  <div class="help-item">
+                    <h4>平台使用流程</h4>
+                    <p>从注册到项目完成的完整使用流程指南，帮助您快速上手平台。</p>
+                    <ul>
+                      <li>注册并完成实名认证</li>
+                      <li>浏览项目大厅，筛选合适项目</li>
+                      <li>提交项目揭榜申请</li>
+                      <li>与项目方沟通确认需求</li>
+                      <li>按时完成项目交付</li>
+                      <li>提交项目成果等待验收</li>
+                      <li>获得项目奖金</li>
+                    </ul>
+                  </div>
+                  
+                  <div class="help-item">
+                    <h4>常见问题解答</h4>
+                    <p>针对用户常见问题的详细解答，帮助您解决使用过程中的疑问。</p>
+                    <div class="faq-details">
+                      <div class="detail-item">
+                        <h5>如何提高项目揭榜成功率？</h5>
+                        <p>完善个人资料、展示相关技能和经验、与项目方充分沟通。</p>
+                      </div>
+                      <div class="detail-item">
+                        <h5>项目交付期限可以延长吗？</h5>
+                        <p>可以与项目方协商，但需要提前沟通并获得同意。</p>
+                      </div>
+                      <div class="detail-item">
+                        <h5>奖金如何计算和发放？</h5>
+                        <p>根据项目难度和完成质量评估，通过平台担保安全发放。</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="help-item">
+                    <h4>技术支持服务</h4>
+                    <p>遇到技术问题时的支持渠道和解决方案。</p>
+                    <div class="support-info">
+                      <div class="support-channel">
+                        <span class="channel-icon">💻</span>
+                        <span>在线技术支持</span>
+                      </div>
+                      <div class="support-channel">
+                        <span class="channel-icon">📱</span>
+                        <span>移动端使用指导</span>
+                      </div>
+                      <div class="support-channel">
+                        <span class="channel-icon">🔧</span>
+                        <span>技术问题排查</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </main>
+    </div>
 
     <!-- 快速帮助浮动按钮 -->
     <div class="quick-help">
@@ -259,9 +318,8 @@ const getCategoryName = (categoryId) => {
 }
 
 .page-content {
-  padding: 60px 0;
+  height: 100vh;
   overflow-y: auto;
-  max-height: calc(100vh - 80px);
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
@@ -570,4 +628,6 @@ const getCategoryName = (categoryId) => {
     width: 250px;
   }
 }
+
+
 </style>

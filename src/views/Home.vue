@@ -9,9 +9,11 @@
         <nav class="main-nav">
           <router-link to="/home" class="nav-link" active-class="active">首页</router-link>
           <router-link to="/projects" class="nav-link" active-class="active">项目大厅</router-link>
+          <router-link to="/my-projects" class="nav-link" active-class="active">我的项目</router-link>
           <router-link to="/statistics" class="nav-link" active-class="active">数据中心</router-link>
           <router-link to="/messages" class="nav-link messages" active-class="active">
-            消息 <span class="badge">2</span>
+            <span>消息</span>
+            <span v-if="isLoggedIn && unreadCount > 0" class="badge">{{ unreadCount }}</span>
           </router-link>
         </nav>
         <div class="auth-area">
@@ -22,9 +24,19 @@
             <img :src="userInfo.avatar" :alt="userInfo.username" class="user-avatar" />
             <div class="user-dropdown" :class="{ active: showDropdown }">
               <span class="user-name">{{ userInfo.username }}</span>
-              <router-link to="/user" class="dropdown-link" @click="hideDropdown">个人中心</router-link>
-              <router-link to="/my-projects" class="dropdown-link" @click="hideDropdown">我的项目</router-link>
-              <button class="dropdown-link danger" @click="handleLogout">退出登录</button>
+              <!-- 学生端菜单 -->
+              <template v-if="userRole === 'student'">
+                <button class="dropdown-link" @click.stop="goGrowthCenter">成长中心</button>
+                <button class="dropdown-link" @click.stop="goSmartMatch">智能匹配</button>
+                <button class="dropdown-link" @click.stop="goUserCenter">个人中心</button>
+                <button class="dropdown-link danger" @click.stop="handleLogout">退出登录</button>
+              </template>
+              <!-- 企业端菜单 -->
+              <template v-else>
+                <button class="dropdown-link" @click.stop="goProjectReview">项目评审</button>
+                <button class="dropdown-link" @click.stop="goUserCenter">个人中心</button>
+                <button class="dropdown-link danger" @click.stop="handleLogout">退出登录</button>
+              </template>
             </div>
           </div>
         </div>
@@ -37,23 +49,29 @@
         <div class="banner-container">
           <button class="banner-arrow banner-arrow-left" @click="prevBanner">&#8249;</button>
           <button class="banner-arrow banner-arrow-right" @click="nextBanner">&#8250;</button>
+
           <div class="banner-slider">
             <div
-              class="banner-slide"
-              :class="[slide.class, { active: index === activeBannerIndex }]"
               v-for="(slide, index) in bannerSlides"
               :key="slide.id"
+              class="banner-slide"
+              :class="[slide.class, getBannerSlideClass(index)]"
             >
-              <div class="banner-content">
-                <span class="banner-tag">{{ slide.tag }}</span>
-                <h1 class="banner-title">{{ slide.title }}</h1>
-                <p class="banner-description">{{ slide.description }}</p>
-                <div class="banner-actions">
-                  <router-link :to="slide.actionLink" class="banner-btn primary">{{ slide.actionText }}</router-link>
+              <div class="banner-card">
+                <div class="banner-card-content">
+                  <span class="banner-tag">{{ slide.tag }}</span>
+                  <h1 class="banner-title">{{ slide.title }}</h1>
+                  <p class="banner-description">{{ slide.description }}</p>
+                  <div class="banner-actions">
+                    <router-link :to="slide.actionLink" class="banner-btn primary">
+                      {{ slide.actionText }}
+                    </router-link>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
+
           <div class="banner-indicators">
             <button
               class="indicator"
@@ -79,21 +97,24 @@
           <router-link to="/projects" class="more-link">更多 &gt;</router-link>
         </div>
         <div class="project-grid">
-          <div class="project-card" v-for="project in hotProjects" :key="project.id">
+          <router-link 
+            v-for="project in hotProjects" 
+            :key="project.id" 
+            :to="`/projects/${project.id}`"
+            class="project-card"
+          >
             <div class="project-head">
               <h3>{{ project.title }}</h3>
-              <span :class="['status-tag', project.status]">{{ project.statusText }}</span>
             </div>
             <p class="project-desc">{{ project.description }}</p>
             <div class="project-meta">
               <span class="price">{{ project.price }}</span>
               <span class="meta-title">预算</span>
             </div>
-            <div class="project-actions">
-              <button class="ghost-btn small">查看详情</button>
-              <button class="primary-btn small">立即揭榜</button>
+            <div class="project-status">
+              <span :class="['status-tag', project.status]">{{ project.statusText }}</span>
             </div>
-          </div>
+          </router-link>
         </div>
       </section>
 
@@ -141,16 +162,20 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const isLoggedIn = ref(false)
 const showDropdown = ref(false)
+const unreadCount = ref(2)
 const userInfo = ref({
   username: '张三',
+  role: 'student',
   avatar: 'https://picsum.photos/seed/user123/40/40.jpg'
 })
+
+const userRole = computed(() => userInfo.value.role || 'student')
 
 const stats = ref([
   { label: '项目总数', value: '1,234' },
@@ -248,10 +273,16 @@ const checkLoginStatus = () => {
     isLoggedIn.value = true
     const userData = localStorage.getItem('userData')
     if (userData) {
-      userInfo.value = JSON.parse(userData)
+      const parsed = JSON.parse(userData)
+      userInfo.value = {
+        ...userInfo.value,
+        ...parsed
+      }
     }
   } else {
     isLoggedIn.value = false
+    // 未登录默认全部已读
+    unreadCount.value = 0
   }
 }
 
@@ -263,6 +294,26 @@ const hideDropdown = () => {
   showDropdown.value = false
 }
 
+const goGrowthCenter = () => {
+  hideDropdown()
+  router.push('/growth-center')
+}
+
+const goSmartMatch = () => {
+  hideDropdown()
+  router.push('/smart-match')
+}
+
+const goUserCenter = () => {
+  hideDropdown()
+  router.push('/user')
+}
+
+const goProjectReview = () => {
+  hideDropdown()
+  router.push('/my-projects')
+}
+
 const handleLogout = () => {
   localStorage.removeItem('token')
   localStorage.removeItem('userData')
@@ -270,17 +321,13 @@ const handleLogout = () => {
   showDropdown.value = false
   userInfo.value = {
     username: '张三',
+    role: 'student',
     avatar: 'https://picsum.photos/seed/user123/40/40.jpg'
   }
-  // 跳转到登录页面并清除可能的输入框数据
   localStorage.removeItem('loginFormData')
   localStorage.removeItem('loginRemember')
   router.push('/login')
 }
-
-onMounted(() => {
-  checkLoginStatus()
-})
 
 const startBannerAutoPlay = () => {
   if (!bannerSlides.value.length) return
@@ -315,6 +362,23 @@ const nextBanner = () => {
   const total = bannerSlides.value.length
   const nextIndex = (activeBannerIndex.value + 1) % total
   goToBanner(nextIndex)
+}
+
+const getBannerSlideClass = (index) => {
+  const total = bannerSlides.value.length
+  if (!total) return ''
+
+  if (index === activeBannerIndex.value) {
+    return 'is-center'
+  }
+
+  const prevIndex = (activeBannerIndex.value - 1 + total) % total
+  const nextIndex = (activeBannerIndex.value + 1) % total
+
+  if (index === prevIndex) return 'is-left'
+  if (index === nextIndex) return 'is-right'
+
+  return 'is-hidden'
 }
 
 onMounted(() => {
@@ -439,10 +503,7 @@ onUnmounted(() => {
   transition: transform 0.2s;
 }
 
-.auth-btn.ghost {
-  color: #0c5fe7;
-  border-color: rgba(12, 95, 231, 0.3);
-}
+
 
 .auth-btn.solid {
   background: linear-gradient(120deg, #0c5fe7, #2fb7ff);
@@ -576,30 +637,68 @@ onUnmounted(() => {
   position: relative;
   overflow: hidden;
   border-radius: 28px;
-  padding: 40px 48px;
-  background: linear-gradient(135deg, #1b51da, #2ee4ff);
-  color: #fff;
-  box-shadow: 0 30px 60px rgba(15, 39, 106, 0.25);
+  padding: 28px 12px 40px;
+  background: linear-gradient(135deg, #f6f8ff, #e8ecf8);
+  box-shadow: 0 18px 40px rgba(15, 39, 106, 0.12);
 }
 
 .banner-slider {
   position: relative;
-  min-height: 180px;
+  height: 240px;
 }
 
 .banner-slide {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 50%;
+  width: 68%;
+  max-width: 820px;
+  transform: translateX(-50%) scale(0.85);
   opacity: 0;
-  transform: translateX(24px);
-  transition: opacity 0.5s ease, transform 0.5s ease;
-  display: flex;
-  align-items: center;
+  transition: transform 0.5s ease, opacity 0.5s ease, z-index 0.5s ease;
+  z-index: 1;
 }
 
-.banner-slide.active {
+.banner-slide.is-center {
   opacity: 1;
-  transform: translateX(0);
+  z-index: 3;
+  transform: translateX(-50%) scale(1);
+}
+
+.banner-slide.is-left {
+  opacity: 0.7;
+  z-index: 2;
+  transform: translateX(-118%) scale(0.92);
+}
+
+.banner-slide.is-right {
+  opacity: 0.7;
+  z-index: 2;
+  transform: translateX(18%) scale(0.92);
+}
+
+.banner-slide.is-hidden {
+  opacity: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.banner-card {
+  height: 100%;
+  border-radius: 24px;
+  overflow: hidden;
+  background: radial-gradient(circle at 0 0, #4a6bff 0, #1b1f3a 55%, #111320 100%);
+  box-shadow: 0 26px 48px rgba(7, 15, 46, 0.55);
+  display: flex;
+  align-items: flex-end;
+}
+
+.banner-card-content {
+  width: 100%;
+  padding: 26px 40px 32px;
+  color: #fff;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.08));
+  backdrop-filter: blur(6px);
 }
 
 .banner-content {
@@ -617,7 +716,7 @@ onUnmounted(() => {
 }
 
 .banner-title {
-  font-size: 32px;
+  font-size: 30px;
   font-weight: 700;
   margin-bottom: 12px;
 }
@@ -650,24 +749,36 @@ onUnmounted(() => {
   box-shadow: 0 12px 24px rgba(8, 31, 89, 0.3);
 }
 
+.banner-slide.is-left .banner-card-content,
+.banner-slide.is-right .banner-card-content {
+  opacity: 0.7;
+}
+
+.banner-slide.is-left .banner-btn,
+.banner-slide.is-right .banner-btn {
+  box-shadow: none;
+}
+
 .banner-arrow {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   border: none;
-  background: rgba(255, 255, 255, 0.7);
-  color: #0f2c85;
+  /* 默认：半透明灰白色按钮 */
+  background: rgba(255, 255, 255, 0.35);
+  color: #4a4a4a;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
+  /* 默认不显示，鼠标靠近轮播区时再显现 */
   opacity: 0;
   transition: opacity 0.2s ease, background 0.2s ease, transform 0.2s ease;
-  z-index: 2;
+  z-index: 6;
 }
 
 .banner-arrow-left {
@@ -683,8 +794,15 @@ onUnmounted(() => {
 }
 
 .banner-arrow:hover {
-  background: #fff;
+  /* 悬停：更明亮一些 */
+  background: rgba(255, 255, 255, 0.75);
   transform: translateY(-50%) scale(1.05);
+}
+
+.banner-arrow:active {
+  /* 点击：基本不透明，略微缩小作为按压反馈 */
+  background: rgba(255, 255, 255, 0.95);
+  transform: translateY(-50%) scale(0.97);
 }
 
 .banner-indicators {
@@ -712,86 +830,6 @@ onUnmounted(() => {
 
 
 
-.hero {
-  background: linear-gradient(135deg, #1b51da, #2ee4ff);
-  border-radius: 28px;
-  padding: 48px;
-  color: #fff;
-  text-align: center;
-  box-shadow: 0 30px 60px rgba(15, 39, 106, 0.25);
-}
-
-.hero-tag {
-  letter-spacing: 4px;
-  font-size: 14px;
-  margin-bottom: 8px;
-}
-
-.hero h1 {
-  font-size: 36px;
-  margin-bottom: 12px;
-}
-
-.hero-subtitle {
-  font-size: 18px;
-  color: rgba(255, 255, 255, 0.9);
-  margin-bottom: 28px;
-}
-
-.hero-actions {
-  display: flex;
-  justify-content: center;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.primary-btn,
-.ghost-btn {
-  padding: 12px 30px;
-  border-radius: 999px;
-  text-decoration: none;
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  font-weight: 700;
-  color: inherit;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.2s;
-}
-
-.primary-btn {
-  background: #fff;
-  color: #0c5fe7;
-}
-
-.ghost-btn {
-  color: #fff;
-}
-
-.primary-btn.small,
-.ghost-btn.small {
-  padding: 10px 0;
-  border-radius: 12px;
-  width: 48%;
-  border: 1px solid transparent;
-}
-
-.primary-btn.small {
-  background: linear-gradient(120deg, #0c5fe7, #2fb7ff);
-  color: #fff;
-  box-shadow: 0 12px 24px rgba(12, 95, 231, 0.25);
-}
-
-.ghost-btn.small {
-  color: #1f274b;
-  border-color: #dfe5fa;
-  background: #fff;
-}
-
-.primary-btn:hover,
-.ghost-btn:hover {
-  transform: translateY(-2px);
-}
 
 .stats-section {
   display: grid;
@@ -847,6 +885,9 @@ onUnmounted(() => {
   flex-direction: column;
   gap: 12px;
   transition: transform 0.2s, box-shadow 0.2s;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
 }
 
 .project-card:hover {
@@ -878,6 +919,7 @@ onUnmounted(() => {
 .project-desc {
   color: #5f6c8b;
   min-height: 48px;
+  flex: 1;
 }
 
 .project-meta {
@@ -896,9 +938,10 @@ onUnmounted(() => {
   color: #9aa5c2;
 }
 
-.project-actions {
+.project-status {
   display: flex;
-  gap: 12px;
+  justify-content: flex-end;
+  margin-top: auto;
 }
 
 .news-list {

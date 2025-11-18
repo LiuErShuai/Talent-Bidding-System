@@ -1,13 +1,14 @@
 <template>
   <div class="about-page">
-    <header class="page-header">
-      <div class="header-content">
-        <h1>关于我们</h1>
-        <p>连接高校与企业，共创未来</p>
-      </div>
-    </header>
-
-    <main class="page-content">
+    <!-- 整个页面内容都在一个滚动容器中 -->
+    <div class="page-content">
+      <!-- 顶部banner -->
+      <header class="page-header">
+        <div class="header-content">
+          <h1>关于我们</h1>
+          <p>连接高校与企业，共创未来</p>
+        </div>
+      </header>
       <section class="intro-section">
         <div class="container">
           <div class="intro-content">
@@ -90,7 +91,7 @@
           </div>
         </div>
       </section>
-    </main>
+    </div>
   </div>
 </template>
 
@@ -123,9 +124,8 @@
 }
 
 .page-content {
-  padding: 60px 0;
+  height: 100vh;
   overflow-y: auto;
-  max-height: calc(100vh - 80px);
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;

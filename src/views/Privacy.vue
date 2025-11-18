@@ -1,13 +1,14 @@
 <template>
   <div class="privacy-page">
-    <header class="page-header">
-      <div class="header-content">
-        <h1>隐私政策</h1>
-        <p>保护您的个人信息是我们的首要任务</p>
-      </div>
-    </header>
-
-    <main class="page-content">
+    <!-- 整个页面内容都在一个滚动容器中 -->
+    <div class="page-content">
+      <!-- 顶部banner -->
+      <header class="page-header">
+        <div class="header-content">
+          <h1>隐私政策</h1>
+          <p>保护您的个人信息是我们的首要任务</p>
+        </div>
+      </header>
       <div class="container">
         <div class="privacy-content">
           <!-- 目录导航 -->
@@ -207,7 +208,7 @@
           </div>
         </div>
       </div>
-    </main>
+    </div>
   </div>
 </template>
 
@@ -292,9 +293,8 @@ onMounted(() => {
 }
 
 .page-content {
-  padding: 60px 0;
+  height: 100vh;
   overflow-y: auto;
-  max-height: calc(100vh - 80px);
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;

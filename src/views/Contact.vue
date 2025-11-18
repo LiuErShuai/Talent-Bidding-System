@@ -1,13 +1,14 @@
 <template>
   <div class="contact-page">
-    <header class="page-header">
-      <div class="header-content">
-        <h1>联系我们</h1>
-        <p>有问题需要帮助？我们随时为您服务</p>
-      </div>
-    </header>
-
-    <main class="page-content">
+    <!-- 整个页面内容都在一个滚动容器中 -->
+    <div class="page-content">
+      <!-- 顶部banner -->
+      <header class="page-header">
+        <div class="header-content">
+          <h1>联系我们</h1>
+          <p>有问题需要帮助？我们随时为您服务</p>
+        </div>
+      </header>
       <section class="contact-section">
         <div class="container">
           <div class="contact-grid">
@@ -125,7 +126,7 @@
           </div>
         </div>
       </section>
-    </main>
+    </div>
   </div>
 </template>
 
@@ -184,9 +185,8 @@ const submitForm = async () => {
 }
 
 .page-content {
-  padding: 60px 0;
+  height: 100vh;
   overflow-y: auto;
-  max-height: calc(100vh - 80px);
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
