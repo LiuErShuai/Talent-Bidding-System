@@ -45,154 +45,359 @@
 
     <div class="myproject-container">
       <div class="myproject-layout">
-        <!-- 侧边栏 -->
+        <!-- 侧边栏：学生与企业展示不同 -->
         <aside class="sidebar">
-          <div class="sidebar-section">
-            <div class="sidebar-title">我的项目</div>
-            <button
-              class="sidebar-item"
-              :class="{ active: activeSidebar === 'ongoing' }"
-              @click="activeSidebar = 'ongoing'"
-            >
-              进行中 ({{ ongoingCount }})
-            </button>
-            <button
-              class="sidebar-item"
-              :class="{ active: activeSidebar === 'awarded' }"
-              @click="activeSidebar = 'awarded'"
-            >
-              已揭榜 ({{ awardedCount }})
-            </button>
-            <button
-              class="sidebar-item"
-              :class="{ active: activeSidebar === 'review' }"
-              @click="activeSidebar = 'review'"
-            >
-              待评审 ({{ reviewCount }})
-            </button>
-            <button
-              class="sidebar-item"
-              :class="{ active: activeSidebar === 'finished' }"
-              @click="activeSidebar = 'finished'"
-            >
-              已完成 ({{ finishedCount }})
-            </button>
-          </div>
+          <!-- 学生端侧边栏 -->
+          <template v-if="userRole === 'student'">
+            <div class="sidebar-section">
+              <div class="sidebar-title">我的项目</div>
+              <button
+                class="sidebar-item"
+                :class="{ active: activeModule === 'projects' && activeStatus === 'ongoing' }"
+                @click="activeSidebar = 'ongoing'; activeStatus = 'ongoing'; activeModule = 'projects'"
+              >
+                进行中 ({{ ongoingCount }})
+              </button>
+              <button
+                class="sidebar-item"
+                :class="{ active: activeModule === 'projects' && activeStatus === 'awarded' }"
+                @click="activeSidebar = 'awarded'; activeStatus = 'awarded'; activeModule = 'projects'"
+              >
+                已揭榜 ({{ awardedCount }})
+              </button>
+              <button
+                class="sidebar-item"
+                :class="{ active: activeModule === 'projects' && activeStatus === 'review' }"
+                @click="activeSidebar = 'review'; activeStatus = 'review'; activeModule = 'projects'"
+              >
+                待评审 ({{ reviewCount }})
+              </button>
+              <button
+                class="sidebar-item"
+                :class="{ active: activeModule === 'projects' && activeStatus === 'finished' }"
+                @click="activeSidebar = 'finished'; activeStatus = 'finished'; activeModule = 'projects'"
+              >
+                已完成 ({{ finishedCount }})
+              </button>
+            </div>
 
-          <div class="sidebar-section">
-            <div class="sidebar-title">我的团队</div>
-            <button class="sidebar-item">智能开发小组</button>
-            <button class="sidebar-item">AI创新团队</button>
-          </div>
+            <div class="sidebar-section">
+              <div class="sidebar-title">我的团队</div>
+              <button
+                class="sidebar-item"
+                :class="{ active: activeModule === 'team' && activeTeam === 'dev' }"
+                @click="setTeamModule('dev')"
+              >
+                智能开发小组
+              </button>
+              <button
+                class="sidebar-item"
+                :class="{ active: activeModule === 'team' && activeTeam === 'ai' }"
+                @click="setTeamModule('ai')"
+              >
+                AI创新团队
+              </button>
+            </div>
 
-          <div class="sidebar-section">
-            <div class="sidebar-title">我的成果</div>
-            <button class="sidebar-item">待提交 (2)</button>
-            <button class="sidebar-item">评审中 (3)</button>
-            <button class="sidebar-item">已通过 (8)</button>
-          </div>
+            <div class="sidebar-section">
+              <div class="sidebar-title">我的成果</div>
+              <button
+                class="sidebar-item"
+                :class="{ active: activeModule === 'results' && activeResult === 'pending' }"
+                @click="setResultModule('pending')"
+              >
+                待提交 (2)
+              </button>
+              <button
+                class="sidebar-item"
+                :class="{ active: activeModule === 'results' && activeResult === 'review' }"
+                @click="setResultModule('review')"
+              >
+                评审中 (3)
+              </button>
+              <button
+                class="sidebar-item"
+                :class="{ active: activeModule === 'results' && activeResult === 'passed' }"
+                @click="setResultModule('passed')"
+              >
+                已通过 (8)
+              </button>
+            </div>
 
-          <div class="sidebar-section">
-            <div class="sidebar-title">我的数据</div>
-            <button class="sidebar-item">能力雷达图</button>
-            <button class="sidebar-item">项目统计</button>
-            <button class="sidebar-item">收入明细</button>
-          </div>
+            <div class="sidebar-section">
+              <div class="sidebar-title">我的数据</div>
+              <button
+                class="sidebar-item"
+                :class="{ active: activeModule === 'data' && activeData === 'radar' }"
+                @click="setDataModule('radar')"
+              >
+                能力雷达图
+              </button>
+              <button
+                class="sidebar-item"
+                :class="{ active: activeModule === 'data' && activeData === 'stats' }"
+                @click="setDataModule('stats')"
+              >
+                项目统计
+              </button>
+              <button
+                class="sidebar-item"
+                :class="{ active: activeModule === 'data' && activeData === 'income' }"
+                @click="setDataModule('income')"
+              >
+                收入明细
+              </button>
+            </div>
+          </template>
+
+          <!-- 企业端侧边栏：使用角色标签 -->
+          <template v-else>
+            <div class="sidebar-section">
+              <div class="sidebar-title">我的项目</div>
+              <button
+                v-for="tab in roleTabs"
+                :key="tab.key"
+                class="sidebar-item"
+                :class="{ active: activeRoleTab === tab.key }"
+                @click="activeRoleTab = tab.key"
+              >
+                {{ tab.label }}
+              </button>
+            </div>
+          </template>
         </aside>
 
         <!-- 主内容区 -->
         <section class="main-content">
-          <!-- 角色视图切换 -->
-          <div class="role-tabs">
-            <button
-              v-for="tab in roleTabs"
-              :key="tab.key"
-              class="role-tab"
-              :class="{ active: activeRoleTab === tab.key }"
-              @click="activeRoleTab = tab.key"
-            >
-              {{ tab.label }}
-            </button>
-          </div>
+          <!-- 学生端：根据侧边栏切换不同模块 -->
+          <template v-if="userRole === 'student'">
+            <!-- 我的项目模块 -->
+            <div v-if="activeModule === 'projects'">
+              <div class="section-header">
+                <h2 class="section-title">
+                  进行中的项目 ({{ filteredProjects.length }})
+                </h2>
+              </div>
 
-          <!-- 项目列表区 -->
-          <div class="section-header">
-            <h2 class="section-title">
-              进行中的项目 ({{ filteredProjects.length }})
-            </h2>
-            <div class="status-filters">
-              <button
-                v-for="status in statusFilters"
-                :key="status.value"
-                class="status-chip"
-                :class="{ active: activeStatus === status.value }"
-                @click="activeStatus = status.value"
-              >
-                {{ status.label }}
-              </button>
-            </div>
-          </div>
-
-          <div class="project-list">
-            <article
-              v-for="project in filteredProjects"
-              :key="project.id"
-              class="project-card"
-            >
-              <div class="project-card-main">
-                <div class="project-card-header">
-                  <h3 class="project-name">{{ project.name }}</h3>
-                  <span class="project-tag" :class="project.status">
-                    {{ project.statusText }}
-                  </span>
-                </div>
-
-                <div class="project-meta-row">
-                  <span>状态：{{ project.stageText }}</span>
-                  <span>进度：{{ project.progress }}%</span>
-                  <span>剩余时间：{{ project.remainDays }}天</span>
-                  <span>奖金：￥{{ project.reward.toLocaleString() }}</span>
-                </div>
-
-                <p class="project-brief">{{ project.brief }}</p>
-
-                <div class="project-actions-row">
-                  <div class="project-actions">
-                    <button class="link-btn" @click="viewDetail(project)">
-                      查看详情
-                    </button>
-                    <button
-                      v-if="project.canUpload"
-                      class="primary-chip"
-                      @click="uploadDeliverable(project)"
-                    >
-                      {{ project.uploadLabel }}
-                    </button>
-                    <button
-                      v-if="project.canCollaborate"
-                      class="ghost-chip"
-                      @click="openTeamCollab(project)"
-                    >
-                      团队协作
-                    </button>
-                  </div>
-                  <div class="project-progress">
-                    <div class="progress-bar">
-                      <div
-                        class="progress-inner"
-                        :style="{ width: project.progress + '%' }"
-                      ></div>
+              <div class="project-list">
+                <article
+                  v-for="project in filteredProjects"
+                  :key="project.id"
+                  class="project-card"
+                  @click="viewDetail(project)"
+                >
+                  <div class="project-card-main">
+                    <div class="project-card-header">
+                      <h3 class="project-name">{{ project.name }}</h3>
+                      <span class="project-tag" :class="project.status">
+                        {{ project.statusText }}
+                      </span>
                     </div>
-                    <span class="progress-text">{{ project.progress }}%</span>
+
+                    <div class="project-meta-row">
+                      <span>状态：{{ project.stageText }}</span>
+                      <span>进度：{{ project.progress }}%</span>
+                      <span>剩余时间：{{ project.remainDays }}天</span>
+                      <span>奖金：￥{{ project.reward.toLocaleString() }}</span>
+                    </div>
+
+                    <p class="project-brief">{{ project.brief }}</p>
+
+                    <div class="project-actions-row">
+                      <div class="project-actions">
+                        <button
+                          v-if="project.canUpload"
+                          class="primary-chip"
+                          @click.stop="uploadDeliverable(project)"
+                        >
+                          {{ project.uploadLabel }}
+                        </button>
+                        <button
+                          v-if="project.canCollaborate"
+                          class="ghost-chip"
+                          @click.stop="openTeamCollab(project)"
+                        >
+                          团队协作
+                        </button>
+                      </div>
+                      <div class="project-progress">
+                        <div class="progress-bar">
+                          <div
+                            class="progress-inner"
+                            :style="{ width: project.progress + '%' }"
+                          ></div>
+                        </div>
+                        <span class="progress-text">{{ project.progress }}%</span>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+
+                <div v-if="filteredProjects.length === 0" class="empty-state">
+                  暂无符合条件的项目
+                </div>
+              </div>
+            </div>
+
+            <!-- 我的团队模块 -->
+            <div v-else-if="activeModule === 'team'">
+              <div class="section-header">
+                <h2 class="section-title">我的团队</h2>
+              </div>
+              <div class="project-list">
+                <div class="project-card" v-if="activeTeam === 'dev'">
+                  <div class="project-card-main">
+                    <div class="project-card-header">
+                      <h3 class="project-name">智能开发小组</h3>
+                    </div>
+                    <p class="project-brief">负责平台前端与移动端开发的学生团队。</p>
+                  </div>
+                </div>
+                <div class="project-card" v-else-if="activeTeam === 'ai'">
+                  <div class="project-card-main">
+                    <div class="project-card-header">
+                      <h3 class="project-name">AI创新团队</h3>
+                    </div>
+                    <p class="project-brief">聚焦人工智能与数据分析方向的创新团队。</p>
                   </div>
                 </div>
               </div>
-            </article>
-
-            <div v-if="filteredProjects.length === 0" class="empty-state">
-              暂无符合条件的项目
             </div>
-          </div>
+
+            <!-- 我的成果模块 -->
+            <div v-else-if="activeModule === 'results'">
+              <div class="section-header">
+                <h2 class="section-title">我的成果</h2>
+              </div>
+              <div class="project-list">
+                <div class="project-card" v-if="activeResult === 'pending'">
+                  <div class="project-card-main">
+                    <div class="project-card-header">
+                      <h3 class="project-name">待提交 (2)</h3>
+                    </div>
+                    <p class="project-brief">还有 2 个项目待上传最终成果，请尽快完成提交。</p>
+                  </div>
+                </div>
+                <div class="project-card" v-else-if="activeResult === 'review'">
+                  <div class="project-card-main">
+                    <div class="project-card-header">
+                      <h3 class="project-name">评审中 (3)</h3>
+                    </div>
+                    <p class="project-brief">3 个项目成果正在评审中，请耐心等待结果。</p>
+                  </div>
+                </div>
+                <div class="project-card" v-else-if="activeResult === 'passed'">
+                  <div class="project-card-main">
+                    <div class="project-card-header">
+                      <h3 class="project-name">已通过 (8)</h3>
+                    </div>
+                    <p class="project-brief">恭喜！已有 8 个项目成果通过评审。</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 我的数据模块 -->
+            <div v-else-if="activeModule === 'data'">
+              <div class="section-header">
+                <h2 class="section-title">我的数据</h2>
+              </div>
+              <div class="project-list">
+                <div class="project-card" v-if="activeData === 'radar'">
+                  <div class="project-card-main">
+                    <div class="project-card-header">
+                      <h3 class="project-name">能力雷达图</h3>
+                    </div>
+                    <p class="project-brief">从技术、项目管理、团队协作等多维度评估你的综合能力。</p>
+                  </div>
+                </div>
+                <div class="project-card" v-else-if="activeData === 'stats'">
+                  <div class="project-card-main">
+                    <div class="project-card-header">
+                      <h3 class="project-name">项目统计</h3>
+                    </div>
+                    <p class="project-brief">统计你参与的项目数量、完成率、平均评分等关键指标。</p>
+                  </div>
+                </div>
+                <div class="project-card" v-else-if="activeData === 'income'">
+                  <div class="project-card-main">
+                    <div class="project-card-header">
+                      <h3 class="project-name">收入明细</h3>
+                    </div>
+                    <p class="project-brief">查看各个项目获得的奖金与收入明细。</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </template>
+
+          <!-- 企业端：保持原有项目列表视图 -->
+          <template v-else>
+            <div class="section-header">
+              <h2 class="section-title">
+                进行中的项目 ({{ filteredProjects.length }})
+              </h2>
+            </div>
+
+            <div class="project-list">
+              <article
+                v-for="project in filteredProjects"
+                :key="project.id"
+                class="project-card"
+                @click="viewDetail(project)"
+              >
+                <div class="project-card-main">
+                  <div class="project-card-header">
+                    <h3 class="project-name">{{ project.name }}</h3>
+                    <span class="project-tag" :class="project.status">
+                      {{ project.statusText }}
+                    </span>
+                  </div>
+
+                  <div class="project-meta-row">
+                    <span>状态：{{ project.stageText }}</span>
+                    <span>进度：{{ project.progress }}%</span>
+                    <span>剩余时间：{{ project.remainDays }}天</span>
+                    <span>奖金：￥{{ project.reward.toLocaleString() }}</span>
+                  </div>
+
+                  <p class="project-brief">{{ project.brief }}</p>
+
+                  <div class="project-actions-row">
+                    <div class="project-actions">
+                      <button
+                        v-if="project.canUpload"
+                        class="primary-chip"
+                        @click.stop="uploadDeliverable(project)"
+                      >
+                        {{ project.uploadLabel }}
+                      </button>
+                      <button
+                        v-if="project.canCollaborate"
+                        class="ghost-chip"
+                        @click.stop="openTeamCollab(project)"
+                      >
+                        团队协作
+                      </button>
+                    </div>
+                    <div class="project-progress">
+                      <div class="progress-bar">
+                        <div
+                          class="progress-inner"
+                          :style="{ width: project.progress + '%' }"
+                        ></div>
+                      </div>
+                      <span class="progress-text">{{ project.progress }}%</span>
+                    </div>
+                  </div>
+                </div>
+              </article>
+
+              <div v-if="filteredProjects.length === 0" class="empty-state">
+                暂无符合条件的项目
+              </div>
+            </div>
+          </template>
         </section>
       </div>
     </div>
@@ -210,20 +415,24 @@ const showDropdown = ref(false)
 const unreadCount = ref(0)
 const userInfo = ref({
   username: '张三',
-  role: 'student', // student / enterprise / expert
+  role: 'student', // student / enterprise
   avatar: 'https://picsum.photos/seed/user123/40/40.jpg'
 })
 
-const userRole = computed(() => userInfo.value.role || 'student')
+const userRole = computed(() => (userInfo.value.role === 'enterprise' ? 'enterprise' : 'student'))
 
 // 侧边栏和角色视图
 const activeSidebar = ref('ongoing')
 const activeRoleTab = ref('studentProjects')
 const activeStatus = ref('ongoing')
+const activeModule = ref('projects')
+const activeTeam = ref('dev') // dev | ai
+const activeResult = ref('pending') // pending | review | passed
+const activeData = ref('radar') // radar | stats | income
 
 // 角色标签，根据用户角色展示不同入口
 const roleTabs = computed(() => {
-  const role = userInfo.value.role || 'student'
+  const role = userRole.value
   const tabs = []
   if (role === 'enterprise') {
     tabs.push({ key: 'published', label: '我发布的（企业）' })
@@ -232,9 +441,6 @@ const roleTabs = computed(() => {
     tabs.push({ key: 'studentProjects', label: '我揭榜的（学生）' })
     tabs.push({ key: 'studentTeams', label: '我的团队（学生）' })
   }
-  if (role === 'expert') {
-    tabs.push({ key: 'review', label: '我评审的（教师/专家）' })
-  }
   tabs.push({ key: 'timeline', label: '项目进度跟踪' })
   // 默认激活第一个 tab
   if (!tabs.find((t) => t.key === activeRoleTab.value)) {
@@ -242,14 +448,6 @@ const roleTabs = computed(() => {
   }
   return tabs
 })
-
-// 状态筛选
-const statusFilters = [
-  { label: '进行中', value: 'ongoing' },
-  { label: '已揭榜', value: 'awarded' },
-  { label: '待评审', value: 'review' },
-  { label: '已完成', value: 'finished' }
-]
 
 // 示例项目数据
 const projects = ref([
@@ -309,13 +507,28 @@ const awardedCount = computed(() => projects.value.filter((p) => p.status === 'a
 const reviewCount = computed(() => projects.value.filter((p) => p.status === 'review').length)
 const finishedCount = computed(() => projects.value.filter((p) => p.status === 'finished').length)
 
+// 切换模块辅助方法
+const setTeamModule = (key) => {
+  activeModule.value = 'team'
+  activeTeam.value = key
+}
+
+const setResultModule = (key) => {
+  activeModule.value = 'results'
+  activeResult.value = key
+}
+
+const setDataModule = (key) => {
+  activeModule.value = 'data'
+  activeData.value = key
+}
+
 // 根据角色和状态过滤项目
 const filteredProjects = computed(() => {
   return projects.value.filter((p) => {
     // 按角色 tab 过滤
     if (activeRoleTab.value === 'published' && p.ownerType !== 'enterprise') return false
     if (activeRoleTab.value === 'studentProjects' && p.ownerType !== 'student') return false
-    if (activeRoleTab.value === 'review' && p.status !== 'review') return false
     // 时间线、团队等 tab 这里简化为同样展示
 
     // 按状态筛选
@@ -389,7 +602,7 @@ const handleLogout = () => {
 }
 
 const viewDetail = (project) => {
-  router.push(`/project/${project.id}`)
+  router.push(`/projects/${project.id}`)
 }
 
 const uploadDeliverable = (project) => {
@@ -767,6 +980,13 @@ onMounted(() => {
   padding: 16px 18px;
   background: linear-gradient(180deg, #ffffff, #f9fbff);
   box-shadow: 0 8px 20px rgba(15, 39, 106, 0.08);
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.project-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(15, 39, 106, 0.12);
 }
 
 .project-card-main {

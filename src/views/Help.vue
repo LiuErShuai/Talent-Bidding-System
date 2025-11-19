@@ -2,14 +2,8 @@
   <div class="help-page">
     <!-- 整个页面内容都在一个滚动容器中 -->
     <div class="page-content">
-      <!-- 顶部banner -->
-      <header class="page-header">
-        <div class="header-content">
-          <h1>帮助中心</h1>
-          <p>快速找到您需要的帮助信息</p>
-        </div>
-      </header>
       <div class="container">
+        <button class="back-btn" @click="goBack">返回</button>
         <div class="help-layout">
           <!-- 侧边栏导航 -->
           <aside class="sidebar">
@@ -247,6 +241,10 @@ const guides = [
   }
 ]
 
+const goBack = () => {
+  router.back()
+}
+
 const filteredFaqs = computed(() => {
   let result = faqs.filter(faq => faq.category === activeCategory.value)
   
@@ -297,6 +295,27 @@ const getCategoryName = (categoryId) => {
 .help-page {
   min-height: 100vh;
   background: #f5f7fb;
+}
+
+.back-btn {
+  position: fixed;
+  top: 80px;
+  right: 40px;
+  z-index: 100;
+  padding: 10px 22px;
+  border-radius: 999px;
+  border: none;
+  background: linear-gradient(120deg, #0c5fe7, #2fb7ff);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(12, 95, 231, 0.25);
+}
+
+.back-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(12, 95, 231, 0.35);
 }
 
 .page-header {

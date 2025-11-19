@@ -2,13 +2,7 @@
   <div class="about-page">
     <!-- 整个页面内容都在一个滚动容器中 -->
     <div class="page-content">
-      <!-- 顶部banner -->
-      <header class="page-header">
-        <div class="header-content">
-          <h1>关于我们</h1>
-          <p>连接高校与企业，共创未来</p>
-        </div>
-      </header>
+      <button class="back-btn" @click="goBack">返回</button>
       <section class="intro-section">
         <div class="container">
           <div class="intro-content">
@@ -96,7 +90,12 @@
 </template>
 
 <script setup>
-// 关于我们页面逻辑
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+const goBack = () => {
+  router.back()
+}
 </script>
 
 <style scoped>
@@ -105,22 +104,25 @@
   background: #f5f7fb;
 }
 
-.page-header {
-  background: linear-gradient(135deg, #1b51da, #2ee4ff);
-  color: white;
-  padding: 80px 0 60px;
-  text-align: center;
+.back-btn {
+  position: fixed;
+  top: 80px;
+  right: 40px;
+  z-index: 100;
+  padding: 10px 22px;
+  border-radius: 999px;
+  border: none;
+  background: linear-gradient(120deg, #0c5fe7, #2fb7ff);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(12, 95, 231, 0.25);
 }
 
-.header-content h1 {
-  font-size: 48px;
-  font-weight: 700;
-  margin-bottom: 16px;
-}
-
-.header-content p {
-  font-size: 18px;
-  opacity: 0.9;
+.back-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(12, 95, 231, 0.35);
 }
 
 .page-content {

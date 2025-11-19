@@ -1,34 +1,84 @@
 <template>
   <div class="user-container">
     <!-- 顶部导航栏 -->
-    <header class="header">
-      <div class="header-content">
-        <div class="logo-section">
-          <img src="../assets/Logo.png" alt="产教融合平台" class="logo" />
-          <span class="platform-name">产教融合项目揭榜平台</span>
+    <header class="main-header">
+      <div class="header-inner">
+        <div class="brand">
+          <img src="../assets/Logo.png" alt="产教融合平台" class="brand-logo" />
+          <span class="brand-name">产教融合项目揭榜平台</span>
         </div>
         
-        <nav class="nav-menu">
-          <router-link to="/home" class="nav-item">首页</router-link>
-          <router-link to="/projects" class="nav-item">项目大厅</router-link>
-          <router-link to="/statistics" class="nav-item">数据中心</router-link>
-          <router-link to="/messages" class="nav-item">
-            消息
-            <span class="badge">2</span>
-          </router-link>
+        <!-- 学生端导航 -->
+        <nav class="main-nav" v-if="userInfo.role === 'student'">
+          <router-link to="/home" class="nav-link" active-class="active">首页</router-link>
+          <router-link to="/smart-match" class="nav-link" active-class="active">智能匹配</router-link>
+          <router-link to="/growth-center" class="nav-link" active-class="active">成长中心</router-link>
+          <router-link to="/my-projects" class="nav-link" active-class="active">我的项目</router-link>
+          <router-link to="/tracker" class="nav-link" active-class="active">项目进度跟踪</router-link>
         </nav>
         
-        <div class="auth-section">
-          <div class="user-menu">
-            <div class="user-avatar">
-              <img :src="userInfo.avatar || 'https://picsum.photos/seed/user123/40/40.jpg'" alt="用户头像" />
+        <!-- 企业端导航 -->
+        <nav class="main-nav" v-else-if="userInfo.role === 'enterprise'">
+          <router-link to="/pre-review" class="nav-link" active-class="active">项目评审页面</router-link>
+          <router-link to="/final-review" class="nav-link" active-class="active">项目发布与终审页面</router-link>
+          <router-link to="/agreement-processing" class="nav-link" active-class="active">协议签署与支付归档</router-link>
+          <router-link to="/tracker" class="nav-link" active-class="active">项目进度跟踪</router-link>
+        </nav>
+        
+        <!-- 默认导航（未登录或其他角色） -->
+        <nav class="main-nav" v-else>
+          <router-link to="/home" class="nav-link" active-class="active">首页</router-link>
+          <router-link to="/projects" class="nav-link" active-class="active">项目大厅</router-link>
+          <router-link to="/my-projects" class="nav-link" active-class="active">我的项目</router-link>
+          <router-link to="/statistics" class="nav-link" active-class="active">数据中心</router-link>
+          <router-link to="/messages" class="nav-link" active-class="active">消息</router-link>
+        </nav>
+        
+        <div class="auth-area">
+          <template v-if="!isLoggedIn">
+            <router-link to="/login" class="auth-btn solid">登录</router-link>
+          </template>
+          <div v-else class="user-panel">
+            <!-- 角色切换按钮 -->
+            <div class="role-switch" @click="toggleRole">
+              <span class="role-label">{{ userInfo.role === 'student' ? '学生' : '企业' }}</span>
+              <span class="role-icon">🔄</span>
             </div>
-            <div class="user-info">
-              <span class="username">{{ userInfo.username || '用户' }}</span>
-              <div class="dropdown-menu">
-                <router-link to="/home" class="dropdown-item">系统首页</router-link>
-                <router-link to="/my-projects" class="dropdown-item">我的项目</router-link>
-                <button class="dropdown-item logout-btn" @click="handleLogout">退出登录</button>
+            
+            <div class="user-avatar-container" @click="toggleDropdown">
+              <img :src="userInfo.avatar || 'https://picsum.photos/seed/user123/40/40.jpg'" :alt="userInfo.username" class="user-avatar" />
+              <div class="user-dropdown" :class="{ active: showDropdown }">
+                <span class="user-name">{{ userInfo.username || '用户' }}</span>
+                <span class="user-role-display">当前身份：{{ userInfo.role === 'student' ? '学生' : '企业用户' }}</span>
+                
+                <!-- 学生端菜单 -->
+                <template v-if="userInfo.role === 'student'">
+                  <button class="dropdown-link" @click.stop="goHome">首页</button>
+                  <button class="dropdown-link" @click.stop="goSmartMatch">智能匹配</button>
+                  <button class="dropdown-link" @click.stop="goGrowthCenter">成长中心</button>
+                  <button class="dropdown-link" @click.stop="goMyProjects">我的项目</button>
+                  <button class="dropdown-link" @click.stop="goTracker">项目进度跟踪</button>
+                  <div class="dropdown-divider"></div>
+                  <button class="dropdown-link" @click.stop="goUserCenter">个人中心</button>
+                  <button class="dropdown-link danger" @click.stop="handleLogout">退出登录</button>
+                </template>
+                
+                <!-- 企业端菜单 -->
+                <template v-else-if="userInfo.role === 'enterprise'">
+                  <button class="dropdown-link" @click.stop="goPreReview">项目评审页面</button>
+                  <button class="dropdown-link" @click.stop="goFinalReview">项目发布与终审</button>
+                  <button class="dropdown-link" @click.stop="goAgreementProcessing">协议签署与归档</button>
+                  <button class="dropdown-link" @click.stop="goTracker">项目进度跟踪</button>
+                  <div class="dropdown-divider"></div>
+                  <button class="dropdown-link" @click.stop="goUserCenter">个人中心</button>
+                  <button class="dropdown-link danger" @click.stop="handleLogout">退出登录</button>
+                </template>
+                
+                <!-- 默认菜单 -->
+                <template v-else>
+                  <button class="dropdown-link" @click.stop="goUserCenter">个人中心</button>
+                  <button class="dropdown-link danger" @click.stop="handleLogout">退出登录</button>
+                </template>
               </div>
             </div>
           </div>
@@ -39,61 +89,125 @@
 
     <!-- 主要内容区域 -->
     <main class="main-content">
-      <!-- 用户信息Banner区 -->
-      <section class="user-banner-section">
-        <div class="banner-content">
-          <div class="user-avatar-section">
-            <div class="avatar-upload" @click="editMode ? $refs.avatarInput.click() : null">
-              <div class="user-avatar-large">
-                <img :src="userInfo.avatar || 'https://picsum.photos/seed/user123/120/120.jpg'" alt="用户头像" />
-                <div v-if="editMode" class="avatar-edit-overlay">
-                  <span>更换头像</span>
+      <div class="user-layout">
+        <!-- 侧边栏 -->
+        <aside class="user-sidebar">
+          <div class="sidebar-title">个人中心</div>
+          <button
+            class="sidebar-item"
+            :class="{ active: activeSection === 'profile' }"
+            @click="activeSection = 'profile'"
+          >
+            个人资料
+          </button>
+          <button
+            class="sidebar-item"
+            :class="{ active: activeSection === 'skills' }"
+            @click="activeSection = 'skills'"
+          >
+            技能标签管理
+          </button>
+          <button
+            class="sidebar-item"
+            :class="{ active: activeSection === 'account' }"
+            @click="activeSection = 'account'"
+          >
+            账号设置
+          </button>
+          <button
+            class="sidebar-item"
+            :class="{ active: activeSection === 'achievements' }"
+            @click="activeSection = 'achievements'"
+          >
+            我的成果
+          </button>
+          <button
+            class="sidebar-item"
+            :class="{ active: activeSection === 'rewards' }"
+            @click="activeSection = 'rewards'"
+          >
+            我的奖金
+          </button>
+          <button
+            class="sidebar-item"
+            :class="{ active: activeSection === 'ability' }"
+            @click="activeSection = 'ability'"
+          >
+            能力评估
+          </button>
+          <button
+            class="sidebar-item"
+            :class="{ active: activeSection === 'certificates' }"
+            @click="activeSection = 'certificates'"
+          >
+            我的证书
+          </button>
+          <button
+            class="sidebar-item"
+            :class="{ active: activeSection === 'privacy' }"
+            @click="activeSection = 'privacy'"
+          >
+            隐私设置
+          </button>
+        </aside>
+
+        <!-- 主内容区 -->
+        <div class="user-main">
+          <!-- 用户信息Banner区 -->
+          <section class="user-banner-section">
+            <div class="banner-content">
+              <div class="user-avatar-section">
+                <div class="avatar-upload" @click="editMode ? $refs.avatarInput.click() : null">
+                  <div class="user-avatar-large">
+                    <img :src="userInfo.avatar || 'https://picsum.photos/seed/user123/120/120.jpg'" alt="用户头像" />
+                    <div v-if="editMode" class="avatar-edit-overlay">
+                      <span>更换头像</span>
+                    </div>
+                  </div>
+                  <input 
+                    ref="avatarInput" 
+                    type="file" 
+                    accept="image/*" 
+                    style="display: none" 
+                    @change="handleAvatarUpload"
+                  >
+                </div>
+                <div class="user-info-main">
+                  <h1 class="user-name">{{ userInfo.username || '用户' }}</h1>
+                  <p class="user-role">
+                    <span class="role-tag" :class="userInfo.role === 'admin' ? 'admin' : 'user'">
+                      {{ userInfo.role === 'admin' ? '管理员' : '普通用户' }}
+                    </span>
+                  </p>
+                  <p class="user-description">欢迎来到个人中心，管理您的个人信息和项目</p>
                 </div>
               </div>
-              <input 
-                ref="avatarInput" 
-                type="file" 
-                accept="image/*" 
-                style="display: none" 
-                @change="handleAvatarUpload"
-              >
+              
+              <div class="user-stats-overview">
+                <div class="stat-item">
+                  <span class="stat-number">{{ userStats.createdProjects || 0 }}</span>
+                  <span class="stat-label">创建项目</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-number">{{ userStats.participatedBids || 0 }}</span>
+                  <span class="stat-label">参与竞标</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-number">{{ userStats.completedProjects || 0 }}</span>
+                  <span class="stat-label">完成项目</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-number">{{ userStats.successRate || 0 }}%</span>
+                  <span class="stat-label">成功率</span>
+                </div>
+              </div>
             </div>
-            <div class="user-info-main">
-              <h1 class="user-name">{{ userInfo.username || '用户' }}</h1>
-              <p class="user-role">
-                <span class="role-tag" :class="userInfo.role === 'admin' ? 'admin' : 'user'">
-                  {{ userInfo.role === 'admin' ? '管理员' : '普通用户' }}
-                </span>
-              </p>
-              <p class="user-description">欢迎来到个人中心，管理您的个人信息和项目</p>
-            </div>
-          </div>
-          
-          <div class="user-stats-overview">
-            <div class="stat-item">
-              <span class="stat-number">{{ userStats.createdProjects || 0 }}</span>
-              <span class="stat-label">创建项目</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-number">{{ userStats.participatedBids || 0 }}</span>
-              <span class="stat-label">参与竞标</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-number">{{ userStats.completedProjects || 0 }}</span>
-              <span class="stat-label">完成项目</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-number">{{ userStats.successRate || 0 }}%</span>
-              <span class="stat-label">成功率</span>
-            </div>
-          </div>
-        </div>
-      </section>
+          </section>
 
-      <!-- 个人信息编辑区 -->
-      <section class="info-section">
+          <!-- 个人资料 -->
+          <section v-if="activeSection === 'profile'" class="info-section">
         <div class="section-header">
-          <h2 class="section-title">个人信息</h2>
+          <h2 class="section-title">个人资料</h2>
           <button class="edit-btn" @click="editMode = !editMode">
             {{ editMode ? '取消编辑' : '编辑信息' }}
           </button>
@@ -136,38 +250,134 @@
             </div>
           </div>
         </div>
-      </section>
+          </section>
 
-      <!-- 最近活动区 -->
-      <section class="activity-section">
+          <!-- 技能标签管理 -->
+          <section v-else-if="activeSection === 'skills'" class="info-section">
         <div class="section-header">
-          <h2 class="section-title">最近活动</h2>
+          <h2 class="section-title">技能标签管理</h2>
         </div>
-        
-        <div class="activity-list">
-          <div v-for="log in userLogs" :key="log.id" class="activity-item">
-            <div class="activity-icon">{{ getLogIcon(log.type) }}</div>
-            <div class="activity-content">
-              <div class="activity-text">{{ log.action }}</div>
-              <div class="activity-time">{{ formatTime(log.time) }}</div>
+        <div class="info-grid">
+          <div class="info-card">
+            <div class="skills-input-row">
+              <input
+                v-model="newSkillTag"
+                class="info-input"
+                placeholder="输入技能标签，如：Vue、Python"
+                @keyup.enter="addSkillTag"
+              />
+              <button class="save-btn" @click="addSkillTag">添加标签</button>
+            </div>
+            <div class="skills-tags">
+              <span
+                v-for="(tag, index) in skillTags"
+                :key="tag + index"
+                class="skill-tag"
+              >
+                {{ tag }}
+                <button class="tag-remove" @click="removeSkillTag(index)">×</button>
+              </span>
+              <p v-if="!skillTags.length" class="empty-hint">暂未添加任何技能标签</p>
             </div>
           </div>
-          <div v-if="userLogs.length === 0" class="empty-activity">
-            <div class="empty-icon">📝</div>
-            <p>暂无活动记录</p>
+        </div>
+          </section>
+
+          <!-- 账号设置 -->
+          <section v-else-if="activeSection === 'account'" class="info-section">
+        <div class="section-header">
+          <h2 class="section-title">账号设置</h2>
+        </div>
+        <div class="info-grid">
+          <div class="info-card">
+            <div class="info-item">
+              <label class="info-label">登录账号：</label>
+              <span class="info-value">{{ userInfo.username }}</span>
+            </div>
+            <div class="info-item">
+              <label class="info-label">绑定手机号：</label>
+              <span class="info-value">{{ userInfo.phone || '未设置' }}</span>
+            </div>
+            <div class="info-item">
+              <label class="info-label">绑定邮箱：</label>
+              <span class="info-value">{{ userInfo.email || '未设置' }}</span>
+            </div>
+            <p class="empty-hint">密码修改、二次验证等功能可在此扩展。</p>
           </div>
         </div>
-      </section>
+          </section>
+
+          <!-- 我的成果 -->
+          <section v-else-if="activeSection === 'achievements'" class="info-section">
+        <div class="section-header">
+          <h2 class="section-title">我的成果</h2>
+        </div>
+        <div class="info-grid">
+          <div class="info-card">
+            <p class="empty-hint">这里可以展示你在项目中的成果、作品链接等内容。</p>
+          </div>
+        </div>
+          </section>
+
+          <!-- 我的奖金 -->
+          <section v-else-if="activeSection === 'rewards'" class="info-section">
+        <div class="section-header">
+          <h2 class="section-title">我的奖金</h2>
+        </div>
+        <div class="info-grid">
+          <div class="info-card">
+            <p class="empty-hint">这里可以展示项目奖金统计、收益明细等信息。</p>
+          </div>
+        </div>
+          </section>
+
+          <!-- 能力评估 -->
+          <section v-else-if="activeSection === 'ability'" class="info-section">
+            <div class="section-header">
+              <h2 class="section-title">能力评估</h2>
+            </div>
+            <div class="info-grid">
+              <div class="info-card">
+                <p class="empty-hint">这里可以展示能力雷达图和综合评分。</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- 我的证书 -->
+          <section v-else-if="activeSection === 'certificates'" class="info-section">
+        <div class="section-header">
+          <h2 class="section-title">我的证书</h2>
+        </div>
+        <div class="info-grid">
+          <div class="info-card">
+            <p class="empty-hint">这里可以展示平台颁发的项目证书、荣誉证明等。</p>
+          </div>
+        </div>
+          </section>
+
+          <!-- 隐私设置 -->
+          <section v-else-if="activeSection === 'privacy'" class="info-section">
+            <div class="section-header">
+              <h2 class="section-title">隐私设置</h2>
+            </div>
+            <div class="info-grid">
+              <div class="info-card">
+                <p class="empty-hint">这里可以配置资料公开范围、消息通知等隐私选项。</p>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
     </main>
 
     <!-- 底部信息区 -->
     <footer class="footer">
       <div class="footer-content">
         <div class="footer-links">
-          <a href="#" class="footer-link">关于我们</a>
-          <a href="#" class="footer-link">联系我们</a>
-          <a href="#" class="footer-link">帮助中心</a>
-          <a href="#" class="footer-link">隐私政策</a>
+          <router-link to="/about" class="footer-link">关于我们</router-link>
+          <router-link to="/contact" class="footer-link">联系我们</router-link>
+          <router-link to="/help" class="footer-link">帮助中心</router-link>
+          <router-link to="/privacy" class="footer-link">隐私政策</router-link>
         </div>
         <div class="copyright">
           Copyright © 2025 产教融合平台 All Rights Reserved
@@ -178,29 +388,55 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../store/user'
-import { ElMessage } from 'element-plus'
+  import { ElMessage } from 'element-plus'
+  
+  const router = useRouter()
+  const userStore = useUserStore()
 
-const router = useRouter()
-const userStore = useUserStore()
+  // 顶部导航登录状态
+  const isLoggedIn = ref(false)
+  const showDropdown = ref(false)
 
-// 编辑模式
-const editMode = ref(false)
-const avatarInput = ref(null)
+  // 个人中心内部菜单
+  const activeSection = ref('profile')
+
+  // 编辑模式
+  const editMode = ref(false)
+  const avatarInput = ref(null)
 
 // 用户信息
 const userInfo = reactive({
   username: userStore.username || '用户',
-  role: 'user',
+  role: 'student', // student / enterprise
   phone: '138****1234',
   email: 'user@example.com',
   registerTime: new Date('2024-01-01'),
   lastLoginTime: new Date(),
   address: '北京市朝阳区',
   avatar: ''
-})
+  })
+  
+  const userRole = computed(() => userInfo.role || 'student')
+
+  // 技能标签管理
+  const skillTags = ref(['Vue', 'JavaScript', 'Python'])
+  const newSkillTag = ref('')
+
+  const addSkillTag = () => {
+    const value = newSkillTag.value.trim()
+    if (!value) return
+    if (!skillTags.value.includes(value)) {
+      skillTags.value.push(value)
+    }
+    newSkillTag.value = ''
+  }
+
+  const removeSkillTag = (index) => {
+    skillTags.value.splice(index, 1)
+  }
 
 // 用户统计信息
 const userStats = reactive({
@@ -218,6 +454,102 @@ const userLogs = reactive([
   { id: 4, type: 'login', action: '上次登录', time: new Date(Date.now() - 1000 * 60 * 60 * 24) }
 ])
 
+// 检查登录状态
+const checkLoginStatus = () => {
+  const token = localStorage.getItem('token')
+  if (token) {
+    isLoggedIn.value = true
+    const userData = localStorage.getItem('userData')
+    if (userData) {
+      const parsed = JSON.parse(userData)
+      userInfo.username = parsed.username || userInfo.username
+      userInfo.role = parsed.role || userInfo.role
+      userInfo.avatar = parsed.avatar || userInfo.avatar
+    }
+  } else {
+    isLoggedIn.value = false
+  }
+}
+
+// 切换下拉菜单
+const toggleDropdown = () => {
+  showDropdown.value = !showDropdown.value
+}
+
+// 隐藏下拉菜单
+const hideDropdown = () => {
+  showDropdown.value = false
+}
+
+// 导航到成长中心
+const goGrowthCenter = () => {
+  hideDropdown()
+  router.push('/growth-center')
+}
+
+// 导航到智能匹配
+const goSmartMatch = () => {
+  hideDropdown()
+  router.push('/smart-match')
+}
+
+// 导航到个人中心
+const goUserCenter = () => {
+  hideDropdown()
+  router.push('/user')
+}
+
+// 角色切换功能
+const toggleRole = () => {
+  userInfo.role = userInfo.role === 'student' ? 'enterprise' : 'student'
+  ElMessage.success(`已切换到${userInfo.role === 'student' ? '学生' : '企业'}身份`)
+  
+  // 保存角色到本地存储
+  const userData = localStorage.getItem('userData')
+  if (userData) {
+    const parsed = JSON.parse(userData)
+    parsed.role = userInfo.role
+    localStorage.setItem('userData', JSON.stringify(parsed))
+  }
+}
+
+// 导航功能
+const goHome = () => {
+  hideDropdown()
+  router.push('/home')
+}
+
+const goMyProjects = () => {
+  hideDropdown()
+  router.push('/my-projects')
+}
+
+const goTracker = () => {
+  hideDropdown()
+  router.push('/tracker')
+}
+
+const goPreReview = () => {
+  hideDropdown()
+  router.push('/pre-review')
+}
+
+const goFinalReview = () => {
+  hideDropdown()
+  router.push('/final-review')
+}
+
+const goAgreementProcessing = () => {
+  hideDropdown()
+  router.push('/agreement-processing')
+}
+
+// 导航到项目评审
+const goProjectReview = () => {
+  hideDropdown()
+  router.push('/pre-review')
+}
+
 // 当前菜单
 const currentMenu = ref('')
 
@@ -231,7 +563,13 @@ const handleMenuSelect = (index) => {
 
 // 登出处理
 const handleLogout = () => {
-  userStore.logout()
+  localStorage.removeItem('token')
+  localStorage.removeItem('userData')
+  isLoggedIn.value = false
+  showDropdown.value = false
+  userInfo.username = '用户'
+  userInfo.role = 'student'
+  userInfo.avatar = ''
   router.push('/login')
   ElMessage.success('已退出登录')
 }
@@ -326,148 +664,169 @@ onMounted(() => {
 }
 
 /* 顶部导航栏 */
-.header {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid #e8e8e8;
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.1);
-  animation: slideDown 0.5s ease-out;
+.main-header {
+  position: relative;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 6px 30px rgba(15, 39, 106, 0.1);
+  z-index: 10;
 }
 
-.header-content {
+.header-inner {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 16px 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 64px;
+  gap: 24px;
 }
 
-.logo-section {
+.brand {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.logo {
-  height: 40px;
-  width: auto;
-  border-radius: 4px;
+.brand-logo {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  object-fit: cover;
+  box-shadow: 0 10px 20px rgba(12, 80, 194, 0.2);
 }
 
-.platform-name {
+.brand-name {
   font-size: 18px;
-  font-weight: 600;
-  color: #1890FF;
-  letter-spacing: 1px;
+  font-weight: 700;
+  color: #0f2c85;
 }
 
-.nav-menu {
+.main-nav {
+  flex: 1;
   display: flex;
+  justify-content: center;
   gap: 32px;
 }
 
-.nav-item {
-  padding: 8px 16px;
-  text-decoration: none;
-  color: #666;
-  font-weight: 500;
-  border-radius: 6px;
-  transition: all 0.3s ease;
+.nav-link {
   position: relative;
+  text-decoration: none;
+  color: #5a6486;
+  font-weight: 600;
 }
 
-.nav-item:hover,
-.nav-item.active {
-  color: #1890FF;
-  background: rgba(24, 144, 255, 0.1);
-  transform: translateY(-1px);
+.nav-link.active,
+.nav-link:hover {
+  color: #0c5fe7;
 }
 
-.nav-item.active::after {
+.nav-link.active::after {
   content: '';
   position: absolute;
-  bottom: -2px;
-  left: 16px;
-  right: 16px;
-  height: 2px;
-  background: #1890FF;
-  border-radius: 1px;
+  left: 0;
+  bottom: -8px;
+  width: 100%;
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(120deg, #0c5fe7, #2fb7ff);
 }
 
-.badge {
-  background: #F5222D;
-  color: white;
-  border-radius: 10px;
-  padding: 2px 6px;
-  font-size: 12px;
-  margin-left: 4px;
-}
-
-.auth-section {
-  display: flex;
-  gap: 16px;
-}
-
-/* 用户菜单样式 */
-.user-menu {
+.auth-area {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.auth-btn {
+  padding: 8px 22px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-weight: 600;
+  text-decoration: none;
+  transition: transform 0.2s;
+}
+
+.auth-btn.solid {
+  background: linear-gradient(120deg, #0c5fe7, #2fb7ff);
+  color: #fff;
+  box-shadow: 0 12px 24px rgba(12, 95, 231, 0.25);
+}
+
+.auth-btn:hover {
+  transform: translateY(-2px);
+}
+
+.user-panel {
+  display: flex;
+  align-items: center;
+  gap: 16px;
   position: relative;
 }
 
-.user-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 2px solid #e8e8e8;
+.role-switch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(12, 95, 231, 0.1);
+  border-radius: 20px;
+  cursor: pointer;
   transition: all 0.3s ease;
+  border: 1px solid rgba(12, 95, 231, 0.2);
 }
 
-.user-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.role-switch:hover {
+  background: rgba(12, 95, 231, 0.15);
+  transform: translateY(-1px);
 }
 
-.user-menu:hover .user-avatar {
-  border-color: #1890FF;
-  transform: scale(1.05);
+.role-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0c5fe7;
 }
 
-.user-info {
+.role-icon {
+  font-size: 12px;
+  transition: transform 0.3s ease;
+}
+
+.role-switch:hover .role-icon {
+  transform: rotate(180deg);
+}
+
+.user-avatar-container {
   position: relative;
   cursor: pointer;
 }
 
-.username {
-  color: #333;
-  font-weight: 500;
-  padding: 8px 12px;
-  border-radius: 6px;
-  transition: all 0.3s ease;
+.user-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 2px solid rgba(12, 95, 231, 0.2);
+  object-fit: cover;
+  transition: transform 0.2s;
 }
 
-.user-info:hover .username {
-  background: rgba(24, 144, 255, 0.1);
-  color: #1890FF;
+.user-avatar-container:hover .user-avatar {
+  transform: scale(1.05);
 }
 
-.dropdown-menu {
+.user-dropdown {
   position: absolute;
   top: 100%;
   right: 0;
-  background: white;
-  border: 1px solid #e8e8e8;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  min-width: 120px;
+  margin-top: 8px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 10px 30px rgba(15, 39, 106, 0.15);
+  border: 1px solid #e0e6f2;
+  min-width: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   opacity: 0;
   visibility: hidden;
   transform: translateY(-10px);
@@ -475,38 +834,57 @@ onMounted(() => {
   z-index: 1000;
 }
 
-.user-info:hover .dropdown-menu {
+.user-dropdown.active {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
 }
 
-.dropdown-item {
-  display: block;
-  padding: 10px 16px;
-  text-decoration: none;
-  color: #333;
-  border-bottom: 1px solid #f0f0f0;
-  transition: all 0.3s ease;
+.user-name {
+  font-weight: 600;
+  color: #1f274b;
+  margin-bottom: 4px;
 }
 
-.dropdown-item:last-child {
-  border-bottom: none;
+.user-role-display {
+  font-size: 12px;
+  color: #8a94a6;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f0f3fa;
 }
 
-.dropdown-item:hover {
-  background: rgba(24, 144, 255, 0.1);
-  color: #1890FF;
+.dropdown-divider {
+  height: 1px;
+  background: #f0f3fa;
+  margin: 8px 0;
 }
 
-.logout-btn {
+.dropdown-link {
   background: none;
   border: none;
-  width: 100%;
-  text-align: left;
-  font-family: inherit;
-  font-size: inherit;
+  padding: 8px 12px;
+  color: #5a6486;
+  text-decoration: none;
+  font-size: 14px;
   cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.dropdown-link:hover {
+  background: #f5f7fb;
+  color: #0c5fe7;
+}
+
+.dropdown-link.danger {
+  color: #ff4d4f;
+}
+
+.dropdown-link.danger:hover {
+  background: #fff2f0;
+  color: #ff4d4f;
 }
 
 /* 主要内容区域 */
@@ -529,34 +907,73 @@ onMounted(() => {
   display: none;
 }
 
-/* 用户Banner区 */
-.user-banner-section {
-  background: linear-gradient(135deg, #1890FF 0%, #40a9ff 100%);
-  border-radius: 12px;
-  padding: 40px 32px;
-  margin-bottom: 24px;
-  color: white;
-  position: relative;
-  overflow: hidden;
-  animation: bannerSlideIn 1s ease-out;
+.user-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 24px;
 }
 
-.user-banner-section::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+.user-sidebar {
+  align-self: flex-start;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 16px 14px;
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.08);
+  border: 1px solid #f0f3fa;
+}
+
+.sidebar-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #9aa5c2;
+  margin-bottom: 8px;
+  padding: 4px 8px;
+}
+
+.sidebar-item {
+  display: block;
+  width: 100%;
+  padding: 8px 10px;
+  margin-bottom: 4px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  font-size: 14px;
+  color: #4a5676;
+  cursor: pointer;
+}
+
+.sidebar-item:hover {
+  background: #f5f7ff;
+}
+
+.sidebar-item.active {
+  background: #e6f4ff;
+  color: #1890ff;
+}
+
+.user-main {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 用户信息卡片区域 */
+.user-banner-section {
+  border-radius: 12px;
+  padding: 24px 24px;
+  margin-bottom: 24px;
+  background: #ffffff;
+  border: 1px dashed #d9d9d9;
+  position: relative;
 }
 
 .banner-content {
   position: relative;
-  z-index: 1;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  gap: 32px;
 }
 
 .user-avatar-section {
@@ -570,7 +987,7 @@ onMounted(() => {
   height: 120px;
   border-radius: 50%;
   overflow: hidden;
-  border: 4px solid rgba(255, 255, 255, 0.3);
+  border: 2px solid #d9d9d9;
   position: relative;
 }
 
@@ -615,7 +1032,7 @@ onMounted(() => {
 }
 
 .user-name {
-  font-size: 2.5rem;
+  font-size: 2rem;
   font-weight: 600;
   margin-bottom: 8px;
   letter-spacing: 1px;
@@ -651,9 +1068,9 @@ onMounted(() => {
 
 .user-stats-overview {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 24px;
-  text-align: center;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  text-align: left;
 }
 
 .stat-item {
@@ -702,6 +1119,27 @@ onMounted(() => {
   background: #40a9ff;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+}
+
+/* 个人中心内部菜单 */
+.user-tabs {
+  display: none;
+}
+
+.user-tab {
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid #e0e6f2;
+  background: #f5f7fb;
+  font-size: 13px;
+  cursor: pointer;
+  color: #4a5676;
+}
+
+.user-tab.active {
+  background: #1890FF;
+  border-color: #1890FF;
+  color: #fff;
 }
 
 /* 个人信息编辑区 */
@@ -780,6 +1218,43 @@ onMounted(() => {
 .info-textarea:focus {
   outline: none;
   border-color: #1890FF;
+}
+
+.skills-input-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.skills-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.skill-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #f0f5ff;
+  color: #1d39c4;
+  font-size: 12px;
+}
+
+.tag-remove {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #8c8c8c;
+  font-size: 12px;
+}
+
+.empty-hint {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #999;
 }
 
 .form-actions {

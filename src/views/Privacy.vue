@@ -2,13 +2,7 @@
   <div class="privacy-page">
     <!-- 整个页面内容都在一个滚动容器中 -->
     <div class="page-content">
-      <!-- 顶部banner -->
-      <header class="page-header">
-        <div class="header-content">
-          <h1>隐私政策</h1>
-          <p>保护您的个人信息是我们的首要任务</p>
-        </div>
-      </header>
+      <button class="back-btn" @click="goBack">返回</button>
       <div class="container">
         <div class="privacy-content">
           <!-- 目录导航 -->
@@ -232,6 +226,10 @@ const sections = [
   { id: 'contact', title: '联系我们' }
 ]
 
+const goBack = () => {
+  router.back()
+}
+
 const scrollToSection = (sectionId) => {
   const element = document.getElementById(sectionId)
   if (element) {
@@ -272,6 +270,27 @@ onMounted(() => {
 .privacy-page {
   min-height: 100vh;
   background: #f5f7fb;
+}
+
+.back-btn {
+  position: fixed;
+  top: 80px;
+  right: 40px;
+  z-index: 100;
+  padding: 10px 22px;
+  border-radius: 999px;
+  border: none;
+  background: linear-gradient(120deg, #0c5fe7, #2fb7ff);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(12, 95, 231, 0.25);
+}
+
+.back-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(12, 95, 231, 0.35);
 }
 
 .page-header {

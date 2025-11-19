@@ -132,11 +132,11 @@
         </div>
 
         <div v-if="pagedProjects.length" class="project-list">
-          <router-link
+          <article
             v-for="project in pagedProjects"
             :key="project.id"
-            :to="`/projects/${project.id}`"
             class="project-card"
+            @click="goToDetail(project.id)"
           >
             <div class="project-card-main">
               <div class="project-card-left">
@@ -180,14 +180,14 @@
                 </div>
               </div>
 
-              <div class="project-card-right">
-                <div class="reward">￥{{ project.reward.toLocaleString() }}</div>
-                <div class="status-tag" :class="project.status">
-                  {{ statusTextMap[project.status] }}
+                <div class="project-card-right">
+                  <div class="reward">￥{{ project.reward.toLocaleString() }}</div>
+                  <div class="status-tag" :class="project.status">
+                    {{ statusTextMap[project.status] }}
+                  </div>
                 </div>
-              </div>
             </div>
-          </router-link>
+          </article>
         </div>
 
         <div v-else class="empty-state">
@@ -605,6 +605,10 @@ const goToPage = (page) => {
 const goToApply = (id) => {
   // 直接跳转到揭榜申请页，由 Apply 页面自行处理登录校验
   router.push(`/apply/${id}`)
+}
+
+const goToDetail = (id) => {
+  router.push(`/projects/${id}`)
 }
 
 onMounted(() => {
