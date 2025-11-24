@@ -76,7 +76,8 @@ const router = createRouter({
 })
 
 // 配置路由守卫
-setupGuards(router)
+// TODO: 开发阶段暂时注释，便于开发调试
+// setupGuards(router)
 
 // 导出路由实例
 export default router

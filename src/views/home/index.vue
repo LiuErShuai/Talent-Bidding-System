@@ -460,13 +460,9 @@
               </ul>
             </div>
 
-            <!-- 小程序/公众号 -->
+            <!-- 公众号 -->
             <div class="footer-col">
-              <h4 class="footer-title">小程序</h4>
-              <div class="qr-code">
-                <div class="qr-placeholder"></div>
-              </div>
-              <h4 class="footer-title" style="margin-top: 16px;">公众号</h4>
+              <h4 class="footer-title">公众号</h4>
               <div class="qr-code">
                 <div class="qr-placeholder"></div>
               </div>
@@ -1031,10 +1027,20 @@ onMounted(() => {
 .hero-section {
   background: #ffffff;
   margin-bottom: 32px;
+  /* 突破父容器宽度限制，实现全屏宽度 */
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
 }
 
 .hero-container {
   width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 48px 24px;
 }
 
 .hero-grid {
