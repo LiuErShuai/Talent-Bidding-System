@@ -406,15 +406,86 @@
       </section>
 
       <footer class="page-footer">
-        <div class="footer-links">
-          <router-link to="/about" class="footer-link">关于我们</router-link>
-          <router-link to="/contact" class="footer-link">联系我们</router-link>
-          <router-link to="/help" class="footer-link">帮助中心</router-link>
-          <router-link to="/privacy" class="footer-link">隐私政策</router-link>
+        <div class="footer-content">
+          <div class="footer-grid">
+            <!-- Logo区域 -->
+            <div class="footer-col">
+              <div class="footer-brand">
+                <div class="footer-brand-logo">
+                  <img src="../../../assets/Logo.png" alt="产教融合平台" class="footer-logo-img" />
+                </div>
+                <div class="footer-brand-text">
+                  <div class="footer-brand-name">产教融合平台</div>
+                  <div class="footer-brand-subtitle">创客空间</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 关于我们 -->
+            <div class="footer-col">
+              <h4 class="footer-title">关于我们</h4>
+              <ul class="footer-list">
+                <li><router-link to="/about" class="footer-link">平台简介</router-link></li>
+                <li><router-link to="/about" class="footer-link">友情链接</router-link></li>
+                <li><router-link to="/about" class="footer-link">加入我们</router-link></li>
+              </ul>
+            </div>
+
+            <!-- 使用条款 -->
+            <div class="footer-col">
+              <h4 class="footer-title">使用条款</h4>
+              <ul class="footer-list">
+                <li><router-link to="/privacy" class="footer-link">平台服务协议</router-link></li>
+                <li><router-link to="/privacy" class="footer-link">创客应征投稿协议</router-link></li>
+              </ul>
+            </div>
+
+            <!-- 用户手册 -->
+            <div class="footer-col">
+              <h4 class="footer-title">用户手册</h4>
+              <ul class="footer-list">
+                <li><router-link to="/projects" class="footer-link">项目大厅</router-link></li>
+                <li><router-link to="/smart-match" class="footer-link">智能匹配</router-link></li>
+                <li><router-link to="/help" class="footer-link">帮助中心</router-link></li>
+                <li><router-link to="/help" class="footer-link">API文档</router-link></li>
+              </ul>
+            </div>
+
+            <!-- 开源科普 -->
+            <div class="footer-col">
+              <h4 class="footer-title">开源科普</h4>
+              <ul class="footer-list">
+                <li><router-link to="/about" class="footer-link">开源合规科普</router-link></li>
+                <li><router-link to="/about" class="footer-link">专家观点</router-link></li>
+              </ul>
+            </div>
+
+            <!-- 小程序/公众号 -->
+            <div class="footer-col">
+              <h4 class="footer-title">小程序</h4>
+              <div class="qr-code">
+                <div class="qr-placeholder"></div>
+              </div>
+              <h4 class="footer-title" style="margin-top: 16px;">公众号</h4>
+              <div class="qr-code">
+                <div class="qr-placeholder"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 底部信息栏 -->
+          <div class="footer-bottom">
+            <div class="footer-info">
+              <span>📍 地址：北京市海淀区西三环北路72号</span>
+              <span>✉️ support@talent-platform.com</span>
+            </div>
+            <div class="footer-copyright">
+              <span>Copyright © 产教融合平台</span>
+              <span>京ICP备2021005060</span>
+              <span>🔒 京公网安备11010802034576号</span>
+            </div>
+          </div>
         </div>
-        <p class="copyright">
-          Copyright © 2025 产教融合平台 All Rights Reserved
-        </p>
       </footer>
     </main>
   </div>
@@ -839,11 +910,121 @@ onMounted(() => {
 
 .page-footer {
   margin-top: auto;
-  border-top: 1px solid #e0e6f2;
-  padding: 32px 16px 40px;
-  text-align: center;
-  color: #7b89a9;
-  background: #fff;
+  background: #22336b;
+  color: #ffffff;
+  padding: 48px 0;
+}
+
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 32px;
+  margin-bottom: 32px;
+}
+
+.footer-col {
+  /* 占据一列 */
+}
+
+.footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.footer-brand-logo {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(to bottom right, #fb923c, #fbbf24);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.footer-logo-img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.footer-brand-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.footer-brand-name {
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.footer-brand-subtitle {
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+.footer-title {
+  font-weight: bold;
+  margin-bottom: 16px;
+}
+
+.footer-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.footer-link {
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 14px;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.footer-link:hover {
+  opacity: 1;
+  color: #60a5fa;
+}
+
+.qr-code {
+  margin-top: 8px;
+}
+
+.qr-placeholder {
+  width: 96px;
+  height: 96px;
+  background: #ffffff;
+  border-radius: 8px;
+}
+
+.footer-bottom {
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  padding-top: 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+.footer-info {
+  display: flex;
+  gap: 32px;
+}
+
+.footer-copyright {
+  display: flex;
+  gap: 32px;
 }
 
 /* Hero Section */
@@ -1591,27 +1772,6 @@ onMounted(() => {
   color: #4f5d7a;
   font-weight: 600;
   background: #f8faff;
-}
-
-.page-footer {
-  border-top: 1px solid #e0e6f2;
-  padding: 32px 16px 40px;
-  text-align: center;
-  color: #7b89a9;
-}
-
-.footer-links {
-  display: flex;
-  justify-content: center;
-  gap: 32px;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-}
-
-.footer-link {
-  color: inherit;
-  text-decoration: none;
-  font-weight: 600;
 }
 
 @media (max-width: 1024px) {
