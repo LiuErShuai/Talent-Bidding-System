@@ -169,6 +169,201 @@
         </div>
       </section>
 
+      <!-- 主内容区 -->
+      <section class="main-content-section">
+        <div class="main-content-grid">
+          <!-- 左侧任务列表（2/3宽度） -->
+          <div class="task-list-section">
+            <div class="task-list-card">
+              <div class="task-list-header">
+                <h2 class="task-list-title">
+                  <span class="title-icon">≡</span> 任务列表
+                </h2>
+                <div class="task-list-search">
+                  <div class="search-wrapper">
+                    <svg class="search-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <input
+                      v-model="searchKeyword"
+                      type="text"
+                      placeholder="输入任务编号/名称或描述（我的？）"
+                      class="search-input"
+                    />
+                  </div>
+                </div>
+                <div class="task-list-sort">
+                  <button class="sort-btn">任务模式 ▼</button>
+                  <button class="sort-btn">任务时限 ▼</button>
+                  <button class="sort-btn">综合排序 ▼</button>
+                </div>
+              </div>
+              <div class="task-list-empty">
+                <div class="empty-icon">📋</div>
+                <p class="empty-text">暂无任务数据</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 右侧侧边栏（1/3宽度） -->
+          <div class="sidebar-section">
+            <!-- 最新发布 -->
+            <div class="sidebar-card">
+              <div class="sidebar-header">
+                <div class="header-line"></div>
+                <h3 class="sidebar-title">最新发布</h3>
+                <div class="header-line"></div>
+              </div>
+              <div class="latest-list">
+                <div
+                  v-for="(item, index) in latestReleases"
+                  :key="index"
+                  class="latest-item"
+                >
+                  <div class="latest-date">{{ item.date }}</div>
+                  <div class="latest-content">
+                    <p class="latest-text">{{ item.title }}</p>
+                    <span v-if="item.isNew" class="new-badge">NEW</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 创客统计总览 -->
+            <div class="sidebar-card">
+              <div class="sidebar-header">
+                <div class="header-line"></div>
+                <h3 class="sidebar-title">创客统计总览</h3>
+                <div class="header-line"></div>
+              </div>
+
+              <!-- 发布任务数柱状图 -->
+              <div class="chart-section">
+                <h4 class="chart-title">发布任务数</h4>
+                <p class="chart-subtitle">任务数据一目了然，改善流程并可见</p>
+                <div class="bar-chart">
+                  <div class="bar-item">
+                    <div class="bar" style="height: 30%; background: #dbeafe;"></div>
+                    <div class="bar-value">58</div>
+                    <div class="bar-label">2023年</div>
+                  </div>
+                  <div class="bar-item">
+                    <div class="bar" style="height: 60%; background: #93c5fd;"></div>
+                    <div class="bar-value">229</div>
+                    <div class="bar-label">2024年</div>
+                  </div>
+                  <div class="bar-item">
+                    <div class="bar" style="height: 100%; background: #3b82f6;"></div>
+                    <div class="bar-value">346</div>
+                    <div class="bar-label">2025年</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 任务总金额柱状图 -->
+              <div class="chart-section">
+                <h4 class="chart-title">任务总金额</h4>
+                <p class="chart-subtitle">任务数据一目了然，改善流程并可见</p>
+                <div class="bar-chart">
+                  <div class="bar-item">
+                    <div class="bar" style="height: 40%; background: #dbeafe;"></div>
+                    <div class="bar-value">877w</div>
+                    <div class="bar-label">2023年</div>
+                  </div>
+                  <div class="bar-item">
+                    <div class="bar" style="height: 70%; background: #93c5fd;"></div>
+                    <div class="bar-value">1289w</div>
+                    <div class="bar-label">2024年</div>
+                  </div>
+                  <div class="bar-item">
+                    <div class="bar" style="height: 100%; background: #3b82f6;"></div>
+                    <div class="bar-value">5128w</div>
+                    <div class="bar-label">2025年</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 饼图 -->
+              <div class="chart-section">
+                <div class="donut-chart">
+                  <svg viewBox="0 0 200 200" class="donut-svg">
+                    <circle cx="100" cy="100" r="80" fill="none" stroke="#4e7cff" stroke-width="40" stroke-dasharray="352 528" transform="rotate(-90 100 100)" />
+                    <circle cx="100" cy="100" r="80" fill="none" stroke="#2dd4bf" stroke-width="40" stroke-dasharray="57 528" stroke-dashoffset="-352" transform="rotate(-90 100 100)" />
+                    <circle cx="100" cy="100" r="80" fill="none" stroke="#a78bfa" stroke-width="40" stroke-dasharray="27 528" stroke-dashoffset="-409" transform="rotate(-90 100 100)" />
+                    <circle cx="100" cy="100" r="80" fill="none" stroke="#fbbf24" stroke-width="40" stroke-dasharray="25 528" stroke-dashoffset="-436" transform="rotate(-90 100 100)" />
+                    <circle cx="100" cy="100" r="80" fill="none" stroke="#f87171" stroke-width="40" stroke-dasharray="21 528" stroke-dashoffset="-461" transform="rotate(-90 100 100)" />
+                    <circle cx="100" cy="100" r="80" fill="none" stroke="#34d399" stroke-width="40" stroke-dasharray="18 528" stroke-dashoffset="-482" transform="rotate(-90 100 100)" />
+                  </svg>
+                </div>
+                <h4 class="chart-title center">任务热门领域分布</h4>
+                <div class="legend-grid">
+                  <div class="legend-item">
+                    <div class="legend-color" style="background: #4e7cff;"></div>
+                    <span class="legend-label">军事历史</span>
+                    <span class="legend-value">70.0%</span>
+                  </div>
+                  <div class="legend-item">
+                    <div class="legend-color" style="background: #2dd4bf;"></div>
+                    <span class="legend-label">软件工程</span>
+                    <span class="legend-value">11.3%</span>
+                  </div>
+                  <div class="legend-item">
+                    <div class="legend-color" style="background: #a78bfa;"></div>
+                    <span class="legend-label">文武翻译</span>
+                    <span class="legend-value">5.4%</span>
+                  </div>
+                  <div class="legend-item">
+                    <div class="legend-color" style="background: #fbbf24;"></div>
+                    <span class="legend-label">其他</span>
+                    <span class="legend-value">5.1%</span>
+                  </div>
+                  <div class="legend-item">
+                    <div class="legend-color" style="background: #f87171;"></div>
+                    <span class="legend-label">通信工程</span>
+                    <span class="legend-value">4.3%</span>
+                  </div>
+                  <div class="legend-item">
+                    <div class="legend-color" style="background: #34d399;"></div>
+                    <span class="legend-label">电子元器件</span>
+                    <span class="legend-value">4.0%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 最新动态 -->
+            <div class="sidebar-card">
+              <div class="sidebar-header">
+                <div class="header-line"></div>
+                <h3 class="sidebar-title">最新动态</h3>
+                <div class="header-line"></div>
+              </div>
+              <div class="activities-list">
+                <div
+                  v-for="(item, index) in latestActivities"
+                  :key="index"
+                  class="activity-item"
+                >
+                  <div class="activity-avatar">{{ item.user[0] }}</div>
+                  <div class="activity-content">
+                    <p class="activity-text">
+                      <span class="activity-user">{{ item.user }}</span> {{ item.action }}
+                      <span v-if="item.id" class="activity-id">{{ item.id }}</span>
+                    </p>
+                    <div class="activity-time">
+                      <svg class="time-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span>{{ item.time }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section class="module">
         <div class="module-header">
           <h2>热门项目推荐</h2>
@@ -194,20 +389,6 @@
             </div>
           </router-link>
         </div>
-      </section>
-
-      <section class="module">
-        <div class="module-header">
-          <h2>最新动态</h2>
-          <router-link to="/news" class="more-link">更多 &gt;</router-link>
-        </div>
-        <ul class="news-list">
-          <li class="news-item" v-for="item in latestNews" :key="item.id">
-            <span class="dot">•</span>
-            <span class="news-text">{{ item.content }}</span>
-            <span class="news-time">{{ item.time }}</span>
-          </li>
-        </ul>
       </section>
 
       <!-- 合作企业：展示合作企业，增强信任感 -->
@@ -293,6 +474,29 @@ const processSteps = ref([
   }
 ])
 
+// 任务列表搜索关键词
+const searchKeyword = ref('')
+
+// 最新发布数据
+const latestReleases = ref([
+  { date: '7\n10月', title: '风寒软件普法自适应选择与参数', isNew: true },
+  { date: '7\n10月', title: '小型舟桥搭建套件', isNew: true },
+  { date: '7\n10月', title: '航天器智能交互式双敏感协诊断工具', isNew: true },
+  { date: '7\n10月', title: '信息系统资源合调度模型及评估软件', isNew: false },
+  { date: '7\n10月', title: '穿越机/大载重无人机智群系统', isNew: false },
+  { date: '7\n10月', title: '面向USB主机控制器驱动芯片级模拟测试的虚拟总线设备', isNew: false }
+])
+
+// 最新动态数据
+const latestActivities = ref([
+  { user: 'Hzxdata', action: '在创客任务 利用窗函数人员主管测系统 下提交了成果', id: '39271087', time: '15小时前' },
+  { user: '木国', action: '在创客任务 即插即用式应急高速网络通信装备 下提交了成果', id: '54419956', time: '16小时前' },
+  { user: '远费叶·帆', action: '已通过该创任务 空间两高无人机（二次）的评选依据材料', time: '20小时前' },
+  { user: '系统管理员-维翼', action: '已通过创客任务 小型舟跨搭建套件 下提交了成果', id: '86782660', time: '20小时前' },
+  { user: '芜湖等星', action: '在创客任务 小型舟跨搭建套件 下提交了成果', id: '86782660', time: '23小时前' },
+  { user: '姜航', action: '在创客任务 即插即用式应急高速网络通信装备 下提交了成果', id: '35397049', time: '1天前' }
+])
+
 const hotProjects = ref([
   {
     id: 1,
@@ -326,12 +530,6 @@ const hotProjects = ref([
     statusText: '揭榜中',
     description: '跨平台移动应用开发'
   }
-])
-
-const latestNews = ref([
-  { id: 1, content: '某某学生团队成功中标"XX系统开发"项目', time: '2小时前' },
-  { id: 2, content: 'XX公司发布"智能客服机器人"项目', time: '3小时前' },
-  { id: 3, content: '恭喜张三同学获得本月"最佳创客"称号', time: '1天前' }
 ])
 
 const partners = ref([
@@ -933,6 +1131,364 @@ onMounted(() => {
   line-height: 1.5;
 }
 
+/* 主内容区 */
+.main-content-section {
+  margin-bottom: 24px;
+}
+
+.main-content-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+}
+
+/* 左侧任务列表 */
+.task-list-card {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 24px;
+}
+
+.task-list-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.task-list-title {
+  font-size: 24px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.title-icon {
+  color: #2563eb;
+}
+
+.task-list-search {
+  flex: 1;
+}
+
+.search-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  color: #9ca3af;
+}
+
+.search-input {
+  width: 100%;
+  padding: 8px 12px 8px 40px;
+  background: #f9fafb;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.search-input:focus {
+  outline: none;
+  background: #f3f4f6;
+}
+
+.task-list-sort {
+  display: flex;
+  gap: 8px;
+}
+
+.sort-btn {
+  padding: 6px 12px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.sort-btn:hover {
+  background: #f9fafb;
+}
+
+.task-list-empty {
+  text-align: center;
+  padding: 80px 0;
+  color: #9ca3af;
+}
+
+.empty-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+}
+
+.empty-text {
+  font-size: 16px;
+}
+
+/* 右侧侧边栏 */
+.sidebar-section {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.sidebar-card {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 24px;
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+  position: relative;
+}
+
+.header-line {
+  position: absolute;
+  width: 32px;
+  height: 4px;
+  background: #2563eb;
+  border-radius: 2px;
+}
+
+.header-line:first-child {
+  left: 0;
+}
+
+.header-line:last-child {
+  right: 0;
+}
+
+.sidebar-title {
+  font-weight: bold;
+  font-size: 18px;
+}
+
+/* 最新发布 */
+.latest-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.latest-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.latest-item:last-child {
+  border-bottom: none;
+}
+
+.latest-date {
+  color: #2563eb;
+  font-weight: bold;
+  font-size: 14px;
+  white-space: pre-line;
+  line-height: 1.2;
+  text-align: center;
+  min-width: 30px;
+}
+
+.latest-content {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.latest-text {
+  font-size: 14px;
+  color: #374151;
+  flex: 1;
+}
+
+.new-badge {
+  background: #ef4444;
+  color: #ffffff;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+/* 统计图表 */
+.chart-section {
+  margin-bottom: 24px;
+}
+
+.chart-section:last-child {
+  margin-bottom: 0;
+}
+
+.chart-title {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: #111827;
+}
+
+.chart-title.center {
+  text-align: center;
+  margin-top: 16px;
+}
+
+.chart-subtitle {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 12px;
+}
+
+.bar-chart {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  height: 96px;
+  gap: 16px;
+}
+
+.bar-item {
+  flex: 1;
+  text-align: center;
+}
+
+.bar {
+  border-radius: 4px 4px 0 0;
+  margin-bottom: 8px;
+}
+
+.bar-value {
+  font-weight: bold;
+  color: #2563eb;
+  margin-bottom: 4px;
+}
+
+.bar-label {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.donut-chart {
+  width: 192px;
+  height: 192px;
+  margin: 0 auto 16px;
+}
+
+.donut-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.legend-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  font-size: 12px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.legend-label {
+  flex: 1;
+}
+
+.legend-value {
+  color: #6b7280;
+}
+
+/* 最新动态 */
+.activities-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.activity-item {
+  display: flex;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.activity-item:last-child {
+  border-bottom: none;
+}
+
+.activity-avatar {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(to bottom right, #60a5fa, #2563eb);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.activity-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.activity-text {
+  font-size: 14px;
+  color: #374151;
+  margin-bottom: 4px;
+}
+
+.activity-user {
+  color: #2563eb;
+  font-weight: 500;
+}
+
+.activity-id {
+  color: #2563eb;
+}
+
+.activity-time {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.time-icon {
+  width: 12px;
+  height: 12px;
+}
+
 .module {
   background: #fff;
   border-radius: 24px;
@@ -1019,37 +1575,6 @@ onMounted(() => {
   display: flex;
   justify-content: flex-end;
   margin-top: auto;
-}
-
-.news-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-
-.news-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: #415070;
-}
-
-.dot {
-  font-size: 24px;
-  color: #0c5fe7;
-  line-height: 1;
-}
-
-.news-text {
-  flex: 1;
-}
-
-.news-time {
-  color: #9aa5c2;
-  font-size: 14px;
 }
 
 .partners-grid {
