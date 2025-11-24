@@ -132,6 +132,43 @@
         </div>
       </section>
 
+      <!-- 流程展示区域 -->
+      <section class="process-section">
+        <div class="process-card">
+          <div class="process-grid">
+            <!-- 连接线 -->
+            <div class="process-line line-1"></div>
+            <div class="process-line line-2"></div>
+            <div class="process-line line-3"></div>
+
+            <!-- 流程步骤 -->
+            <div
+              v-for="(step, index) in processSteps"
+              :key="index"
+              class="process-item"
+            >
+              <div :class="['process-icon', `icon-${index + 1}`]">
+                <svg
+                  class="process-svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    :d="step.iconPath"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                  />
+                </svg>
+              </div>
+              <h3 class="process-title">{{ step.title }}</h3>
+              <p class="process-description">{{ step.description }}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section class="module">
         <div class="module-header">
           <h2>热门项目推荐</h2>
@@ -231,6 +268,30 @@ const taskStatuses = ref([
 
 const selectedField = ref('全部')
 const selectedStatus = ref('全部')
+
+// 流程步骤数据
+const processSteps = ref([
+  {
+    title: '任务应征',
+    description: '根据产生任务发布的任务，进行应征许可',
+    iconPath: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'
+  },
+  {
+    title: '成果生成',
+    description: '针对拟题任务各种解答和出版协议成果',
+    iconPath: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z'
+  },
+  {
+    title: '成果提交',
+    description: '根据提出平台个一键提交技术成果',
+    iconPath: 'M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12'
+  },
+  {
+    title: '成果发表',
+    description: '平台评审核评后征选最，用户按需求资源',
+    iconPath: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'
+  }
+])
 
 const hotProjects = ref([
   {
@@ -779,6 +840,97 @@ onMounted(() => {
 .more-btn:hover {
   color: #1d4ed8;
   background: transparent;
+}
+
+/* 流程展示区域 */
+.process-section {
+  margin-bottom: 24px;
+}
+
+.process-card {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 32px;
+}
+
+.process-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  position: relative;
+}
+
+.process-line {
+  position: absolute;
+  top: 32px;
+  height: 2px;
+  background: #e5e7eb;
+  z-index: 0;
+}
+
+.line-1 {
+  left: 22%;
+  right: 78%;
+}
+
+.line-2 {
+  left: 47%;
+  right: 53%;
+}
+
+.line-3 {
+  left: 72%;
+  right: 28%;
+}
+
+.process-item {
+  text-align: center;
+  position: relative;
+  z-index: 10;
+}
+
+.process-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 16px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-1 {
+  background: linear-gradient(to bottom right, #60a5fa, #2563eb);
+}
+
+.icon-2 {
+  background: linear-gradient(to bottom right, #22d3ee, #0891b2);
+}
+
+.icon-3 {
+  background: linear-gradient(to bottom right, #a78bfa, #7c3aed);
+}
+
+.icon-4 {
+  background: linear-gradient(to bottom right, #f472b6, #db2777);
+}
+
+.process-svg {
+  width: 32px;
+  height: 32px;
+  color: #ffffff;
+}
+
+.process-title {
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: #111827;
+}
+
+.process-description {
+  font-size: 14px;
+  color: #6b7280;
+  line-height: 1.5;
 }
 
 .module {
