@@ -97,6 +97,41 @@
         </div>
       </section>
 
+      <!-- 筛选器区域 -->
+      <section class="filter-section">
+        <div class="filter-card">
+          <!-- 任务领域筛选 -->
+          <div class="filter-row">
+            <span class="filter-label">任务领域:</span>
+            <div class="filter-buttons">
+              <button
+                v-for="field in taskFields"
+                :key="field"
+                :class="['filter-btn', { active: selectedField === field }]"
+                @click="selectedField = field"
+              >
+                {{ field }}
+              </button>
+              <button class="filter-btn more-btn">更多 ≡</button>
+            </div>
+          </div>
+          <!-- 任务状态筛选 -->
+          <div class="filter-row">
+            <span class="filter-label">任务状态:</span>
+            <div class="filter-buttons">
+              <button
+                v-for="status in taskStatuses"
+                :key="status"
+                :class="['filter-btn', { active: selectedStatus === status }]"
+                @click="selectedStatus = status"
+              >
+                {{ status }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section class="module">
         <div class="module-header">
           <h2>热门项目推荐</h2>
@@ -182,6 +217,20 @@ const userInfo = ref({
 })
 
 const userRole = computed(() => userInfo.value.role || 'student')
+
+// 筛选器数据
+const taskFields = ref([
+  '全部', '理论研究', '政策法规', '医学', '电子信息',
+  '通信工程', '计算机科学', '软件工程', '人工智能', '知识'
+])
+
+const taskStatuses = ref([
+  '全部', '成果征集中', '成果评选中', '公示中',
+  '协议签订中', '支付中', '已完成', '已关闭'
+])
+
+const selectedField = ref('全部')
+const selectedStatus = ref('全部')
 
 const hotProjects = ref([
   {
@@ -666,6 +715,70 @@ onMounted(() => {
   font-size: 18px;
   opacity: 0.9;
   line-height: 1.6;
+}
+
+/* 筛选器区域 */
+.filter-section {
+  margin-bottom: 24px;
+}
+
+.filter-card {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 24px;
+}
+
+.filter-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.filter-row:last-child {
+  margin-bottom: 0;
+}
+
+.filter-label {
+  color: #374151;
+  font-weight: 500;
+  white-space: nowrap;
+  min-width: 80px;
+}
+
+.filter-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.filter-btn {
+  padding: 6px 16px;
+  border-radius: 4px;
+  border: none;
+  background: transparent;
+  color: #4b5563;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+}
+
+.filter-btn:hover {
+  background: #f9fafb;
+}
+
+.filter-btn.active {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.more-btn {
+  color: #2563eb;
+}
+
+.more-btn:hover {
+  color: #1d4ed8;
+  background: transparent;
 }
 
 .module {
