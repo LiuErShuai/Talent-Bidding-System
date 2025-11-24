@@ -1774,6 +1774,7 @@ onMounted(() => {
   background: #f8faff;
 }
 
+/* 响应式适配 */
 @media (max-width: 1024px) {
   .header-inner {
     flex-direction: column;
@@ -1783,13 +1784,88 @@ onMounted(() => {
     flex-wrap: wrap;
   }
 
+  /* Hero Section */
+  .hero-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* 流程展示 */
+  .process-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .process-line {
+    display: none;
+  }
+
+  /* 主内容区 */
+  .main-content-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .task-list-header {
+    flex-wrap: wrap;
+  }
+
+  /* 项目网格 */
   .project-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .stats-section,
   .partners-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* Footer */
+  .footer-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .footer-bottom {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+
+  .footer-info,
+  .footer-copyright {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Hero Section */
+  .hero-title {
+    font-size: 28px;
+  }
+
+  .hero-card-title {
+    font-size: 36px;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* 筛选器 */
+  .filter-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  /* 流程展示 */
+  .process-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Footer */
+  .footer-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
@@ -1798,18 +1874,80 @@ onMounted(() => {
     padding: 32px 16px 48px;
   }
 
-  .hero {
-    padding: 32px 20px;
+  /* Hero Section */
+  .hero-title {
+    font-size: 24px;
   }
 
+  .hero-description {
+    font-size: 14px;
+  }
+
+  .stat-value {
+    font-size: 28px;
+  }
+
+  .hero-card {
+    padding: 32px;
+    min-height: 300px;
+  }
+
+  .hero-card-title {
+    font-size: 28px;
+  }
+
+  .hero-card-text {
+    font-size: 14px;
+  }
+
+  /* 筛选器 */
+  .filter-label {
+    min-width: auto;
+  }
+
+  /* 流程展示 */
+  .process-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .process-svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  /* 主内容区 */
+  .task-list-title {
+    font-size: 20px;
+  }
+
+  .task-list-search {
+    order: 3;
+    width: 100%;
+  }
+
+  .task-list-sort {
+    flex-wrap: wrap;
+  }
+
+  .sort-btn {
+    font-size: 12px;
+    padding: 4px 8px;
+  }
+
+  /* 项目网格 */
   .project-grid,
-  .stats-section,
   .partners-grid {
     grid-template-columns: 1fr;
   }
 
-  .project-actions {
-    flex-direction: column;
+  /* Footer */
+  .footer-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .footer-bottom {
+    font-size: 12px;
   }
 }
 </style>
