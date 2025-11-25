@@ -1,7 +1,5 @@
 <template>
   <div class="project-hall-page">
-    <AppHeader />
-
     <main class="page-body">
       <!-- 搜索与筛选区 -->
       <section class="search-filter-section">

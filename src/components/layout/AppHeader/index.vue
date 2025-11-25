@@ -1,55 +1,87 @@
 <template>
-  <header class="main-header">
+  <header class="main-header" :class="{ transparent: variant === 'transparent' }">
     <div class="header-inner">
+      <!-- Logo 区域 -->
       <div class="brand">
         <router-link to="/home" class="brand-logo-link">
-          <img src="@/assets/images/logo/桂电透明背景logo.png" alt="创客平台" style="height: 45px; width: auto; max-width: 180px; object-fit: contain; border-radius: 8px;" />
+          <img
+            src="@/assets/images/logo/桂电透明背景logo.png"
+            alt="创客平台"
+            style="height: 45px; width: auto; max-width: 180px; object-fit: contain; border-radius: 8px;"
+          />
         </router-link>
         <router-link to="/home" class="brand-name-link">
           <span class="brand-name">创客平台</span>
         </router-link>
       </div>
+
+      <!-- 导航区域 -->
       <nav class="main-nav">
-        <!-- 根据登录状态显示不同的导航栏 -->
-        <router-link to="/home" class="nav-link" active-class="active">首页</router-link>
-        <el-dropdown trigger="hover" class="nav-dropdown">
-          <span class="nav-link dropdown-trigger">
-            创客空间
-            <el-icon class="dropdown-icon"><ArrowDown /></el-icon>
-          </span>
-          <template #dropdown>
-            <el-dropdown-menu>
-              <el-dropdown-item>
-                <router-link to="/projects" class="dropdown-item-link">项目大厅</router-link>
-              </el-dropdown-item>
-              <el-dropdown-item>
-                <router-link to="/projects?sort=hot" class="dropdown-item-link">热门项目</router-link>
-              </el-dropdown-item>
-              <el-dropdown-item>
-                <router-link to="/projects" class="dropdown-item-link">项目详情</router-link>
-              </el-dropdown-item>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
-        <router-link to="/projects" class="nav-link" active-class="active">项目大厅</router-link>
-        <template v-if="!isLoggedIn">
-          <span class="nav-link" @click="handleRequireLogin('/growth-center', '成长中心')">成长中心</span>
-          <span class="nav-link" @click="handleRequireLogin('/messages', '消息')">消息</span>
-        </template>
-        <template v-else>
-          <router-link to="/growth-center" class="nav-link" active-class="active">成长中心</router-link>
-          <router-link to="/messages" class="nav-link messages" active-class="active">
-            <span>消息</span>
-            <span v-if="unreadCount > 0" class="badge">{{ unreadCount }}</span>
-          </router-link>
+        <template v-for="(item, index) in navItems" :key="index">
+          <!-- 下拉菜单类型 -->
+          <el-dropdown
+            v-if="item.type === 'dropdown'"
+            trigger="hover"
+            class="nav-dropdown"
+          >
+            <span class="nav-link dropdown-trigger">
+              {{ item.label }}
+              <el-icon class="dropdown-icon"><ArrowDown /></el-icon>
+            </span>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item
+                  v-for="(child, childIndex) in item.children"
+                  :key="childIndex"
+                >
+                  <router-link :to="child.path" class="dropdown-item-link">
+                    {{ child.label }}
+                  </router-link>
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+
+          <!-- 普通链接类型 -->
+          <component
+            v-else
+            :is="item.requireLogin && !isLoggedIn ? 'span' : 'router-link'"
+            :to="item.path"
+            class="nav-link"
+            :class="{
+              active: isNavActive(item),
+              messages: item.badgeKey === 'messages'
+            }"
+            active-class="active"
+            @click="handleNavClick(item, $event)"
+          >
+            <span>{{ item.label }}</span>
+            <!-- 未读徽章 -->
+            <span
+              v-if="item.badgeKey && unreadCount[item.badgeKey] > 0"
+              class="badge"
+            >
+              {{ unreadCount[item.badgeKey] }}
+            </span>
+          </component>
         </template>
       </nav>
-      <div class="auth-area">
+
+      <!-- 登录/用户区域 -->
+      <div v-if="showAuthArea" class="auth-area">
+        <!-- 未登录状态 -->
         <template v-if="!isLoggedIn">
           <router-link to="/login" class="auth-btn">登录</router-link>
           <router-link to="/register" class="auth-btn solid">注册</router-link>
         </template>
-        <UserPanel v-else :user-info="userInfo" :user-role="userRole" />
+
+        <!-- 已登录状态 -->
+        <UserPanel
+          v-else
+          :user-info="userInfo"
+          :user-role="userRole"
+          :quick-actions="quickActions"
+        />
       </div>
     </div>
   </header>
@@ -57,13 +89,51 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/store/modules/auth'
 import { ArrowDown } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import UserPanel from './UserPanel.vue'
 
+// ========================================
+// Props 定义
+// ========================================
+
+const props = defineProps({
+  // 导航项数组
+  navItems: {
+    type: Array,
+    default: () => []
+  },
+  // 快捷操作（传递给 UserPanel）
+  quickActions: {
+    type: Array,
+    default: () => []
+  },
+  // 样式变体：default（白色背景） | transparent（透明背景）
+  variant: {
+    type: String,
+    default: 'default',
+    validator: (value) => ['default', 'transparent'].includes(value)
+  },
+  // 未读消息数量映射 { messages: 2, ... }
+  unreadCount: {
+    type: Object,
+    default: () => ({})
+  },
+  // 是否显示登录/用户区域
+  showAuthArea: {
+    type: Boolean,
+    default: true
+  }
+})
+
+// ========================================
+// 组合式 API
+// ========================================
+
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 
 // 初始化认证状态
@@ -71,24 +141,64 @@ onMounted(() => {
   authStore.initAuth()
 })
 
+// ========================================
+// 计算属性
+// ========================================
+
 const isLoggedIn = computed(() => authStore.isLoggedIn)
 const userInfo = computed(() => authStore.userInfo || {})
 const userRole = computed(() => authStore.userRole || '')
-const unreadCount = ref(2)
 
-// 处理需要登录的功能
-const handleRequireLogin = (redirectPath, feature) => {
-  ElMessage.warning(`请先登录后再使用${feature}功能`)
-  router.push(`/login?redirect=${encodeURIComponent(redirectPath)}`)
+// ========================================
+// 方法
+// ========================================
+
+/**
+ * 判断导航项是否激活
+ * @param {object} item - 导航项配置
+ * @returns {boolean}
+ */
+const isNavActive = (item) => {
+  // 如果有自定义匹配函数，使用自定义逻辑
+  if (item.matchRoute && typeof item.matchRoute === 'function') {
+    return item.matchRoute(route)
+  }
+
+  // 默认使用路径匹配
+  return route.path === item.path
+}
+
+/**
+ * 处理导航项点击
+ * @param {object} item - 导航项配置
+ * @param {Event} event - 点击事件
+ */
+const handleNavClick = (item, event) => {
+  // 如果需要登录但未登录，拦截跳转
+  if (item.requireLogin && !isLoggedIn.value) {
+    event.preventDefault()
+    ElMessage.warning(`请先登录后再使用${item.label}功能`)
+    router.push(`/login?redirect=${encodeURIComponent(item.path)}`)
+  }
 }
 </script>
 
 <style scoped>
+/* ========================================
+   主容器样式
+   ======================================== */
+
 .main-header {
   position: relative;
   background: rgba(255, 255, 255, 0.96);
   box-shadow: 0 6px 30px rgba(15, 39, 106, 0.1);
   z-index: 10;
+}
+
+/* 透明变体（仅首页使用） */
+.main-header.transparent {
+  background: transparent;
+  box-shadow: none;
 }
 
 .header-inner {
@@ -100,6 +210,10 @@ const handleRequireLogin = (redirectPath, feature) => {
   justify-content: space-between;
   gap: 24px;
 }
+
+/* ========================================
+   品牌区域
+   ======================================== */
 
 .brand {
   display: flex;
@@ -127,6 +241,10 @@ const handleRequireLogin = (redirectPath, feature) => {
   font-weight: 700;
   color: #0f2c85;
 }
+
+/* ========================================
+   导航区域
+   ======================================== */
 
 .main-nav {
   flex: 1;
@@ -162,6 +280,7 @@ const handleRequireLogin = (redirectPath, feature) => {
   background: linear-gradient(120deg, #0c5fe7, #2fb7ff);
 }
 
+/* 下拉菜单 */
 .nav-dropdown {
   cursor: pointer;
 }
@@ -188,12 +307,14 @@ const handleRequireLogin = (redirectPath, feature) => {
   color: inherit;
 }
 
+/* 消息导航项 */
 .messages {
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
+/* 未读徽章 */
 .badge {
   display: inline-flex;
   min-width: 18px;
@@ -206,6 +327,10 @@ const handleRequireLogin = (redirectPath, feature) => {
   justify-content: center;
   align-items: center;
 }
+
+/* ========================================
+   登录/用户区域
+   ======================================== */
 
 .auth-area {
   display: flex;
@@ -234,7 +359,10 @@ const handleRequireLogin = (redirectPath, feature) => {
   transform: translateY(-2px);
 }
 
-/* Element Plus 下拉菜单样式覆盖 */
+/* ========================================
+   Element Plus 下拉菜单样式覆盖
+   ======================================== */
+
 :deep(.el-dropdown-menu__item) {
   padding: 0;
 }
@@ -250,6 +378,10 @@ const handleRequireLogin = (redirectPath, feature) => {
   color: #0c5fe7;
   background-color: #f5f7fb;
 }
+
+/* ========================================
+   响应式适配
+   ======================================== */
 
 @media (max-width: 1024px) {
   .header-inner {

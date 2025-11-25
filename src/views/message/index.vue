@@ -1,7 +1,5 @@
 <template>
   <div class="message-page">
-    <AppHeader />
-
     <div class="message-container">
       <div class="message-content">
         <el-empty description="暂无消息" />
@@ -11,7 +9,6 @@
 </template>
 
 <script setup>
-import AppHeader from '@/components/layout/AppHeader/index.vue'
 </script>
 
 <style scoped>

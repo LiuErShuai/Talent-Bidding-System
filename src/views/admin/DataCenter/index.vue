@@ -1,7 +1,5 @@
 <template>
   <div class="data-page">
-    <AppHeader />
-
     <main class="data-container">
       <div class="stats-grid">
         <el-card class="stat-card">
@@ -66,7 +64,6 @@
 </template>
 
 <script setup>
-import AppHeader from '@/components/layout/AppHeader/index.vue'
 </script>
 
 <style scoped>
