@@ -3,40 +3,60 @@
     <header class="main-header">
       <div class="header-inner">
         <div class="brand">
-          <img src="../../../assets/Logo.png" alt="产教融合平台" class="brand-logo" />
-          <span class="brand-name">产教融合项目揭榜平台</span>
+          <router-link to="/home" class="brand-logo-link">
+            <img src="@/assets/images/logo/桂电透明背景logo.png" alt="创客平台" style="height: 45px; width: auto; max-width: 180px; object-fit: contain; border-radius: 8px;" />
+          </router-link>
+          <router-link to="/home" class="brand-name-link">
+            <span class="brand-name">创客平台</span>
+          </router-link>
         </div>
         <nav class="main-nav">
+          <!-- 根据登录状态显示不同的导航栏 -->
           <router-link to="/home" class="nav-link" active-class="active">首页</router-link>
+          <el-dropdown trigger="hover" class="nav-dropdown">
+            <span class="nav-link dropdown-trigger">
+              创客空间
+              <el-icon class="dropdown-icon"><ArrowDown /></el-icon>
+            </span>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item>
+                  <router-link to="/projects" class="dropdown-item-link">项目大厅</router-link>
+                </el-dropdown-item>
+                <el-dropdown-item>
+                  <router-link to="/projects?sort=hot" class="dropdown-item-link">热门项目</router-link>
+                </el-dropdown-item>
+                <el-dropdown-item>
+                  <router-link to="/projects" class="dropdown-item-link">项目详情</router-link>
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
           <router-link to="/projects" class="nav-link" active-class="active">项目大厅</router-link>
-          <router-link to="/my-projects" class="nav-link" active-class="active">我的项目</router-link>
-          <router-link to="/statistics" class="nav-link" active-class="active">数据中心</router-link>
-          <router-link to="/messages" class="nav-link messages" active-class="active">
-            <span>消息</span>
-            <span v-if="isLoggedIn && unreadCount > 0" class="badge">{{ unreadCount }}</span>
-          </router-link>
+          <template v-if="!isLoggedIn">
+            <span class="nav-link" @click="handleRequireLogin('/growth-center', '成长中心')">成长中心</span>
+            <span class="nav-link" @click="handleRequireLogin('/messages', '消息')">消息</span>
+          </template>
+          <template v-else>
+            <router-link to="/growth-center" class="nav-link" active-class="active">成长中心</router-link>
+            <router-link to="/messages" class="nav-link messages" active-class="active">
+              <span>消息</span>
+              <span v-if="unreadCount > 0" class="badge">{{ unreadCount }}</span>
+            </router-link>
+          </template>
         </nav>
         <div class="auth-area">
           <template v-if="!isLoggedIn">
-            <router-link to="/login" class="auth-btn solid">登录</router-link>
+            <router-link to="/login" class="auth-btn">登录</router-link>
+            <router-link to="/register" class="auth-btn solid">注册</router-link>
           </template>
           <div v-else class="user-panel" @click="toggleDropdown">
-            <img :src="userInfo.avatar" :alt="userInfo.username" class="user-avatar" />
+            <img :src="userInfo.avatar || defaultAvatar" :alt="userInfo.username" class="user-avatar" />
             <div class="user-dropdown" :class="{ active: showDropdown }">
-              <span class="user-name">{{ userInfo.username }}</span>
-              <!-- 学生端菜单 -->
-              <template v-if="userRole === 'student'">
-                <button class="dropdown-link" @click.stop="goGrowthCenter">成长中心</button>
-                <button class="dropdown-link" @click.stop="goSmartMatch">智能匹配</button>
-                <button class="dropdown-link" @click.stop="goUserCenter">个人中心</button>
-                <button class="dropdown-link danger" @click.stop="handleLogout">退出登录</button>
-              </template>
-              <!-- 企业端菜单 -->
-              <template v-else>
-                <button class="dropdown-link" @click.stop="goProjectReview">项目评审</button>
-                <button class="dropdown-link" @click.stop="goUserCenter">个人中心</button>
-                <button class="dropdown-link danger" @click.stop="handleLogout">退出登录</button>
-              </template>
+              <span class="user-name">{{ userInfo.username || '用户' }}</span>
+              <button class="dropdown-link" @click.stop="goUserCenter">个人中心</button>
+              <button class="dropdown-link" @click.stop="goSettings">设置</button>
+              <button class="dropdown-link danger" @click.stop="handleLogout">退出登录</button>
             </div>
           </div>
         </div>
@@ -66,10 +86,6 @@
                 <div class="stat-item">
                   <div class="stat-value">9510.4<span class="stat-unit">w</span></div>
                   <div class="stat-label">当前悬金池总额(元)</div>
-                </div>
-                <div class="stat-item">
-                  <div class="stat-value">4973.3<span class="stat-unit">w</span></div>
-                  <div class="stat-label">已支付悬金额(元)</div>
                 </div>
                 <div class="stat-item">
                   <div class="stat-value">23+</div>
@@ -136,35 +152,34 @@
       <section class="process-section">
         <div class="process-card">
           <div class="process-grid">
-            <!-- 连接线 -->
-            <div class="process-line line-1"></div>
-            <div class="process-line line-2"></div>
-            <div class="process-line line-3"></div>
-
             <!-- 流程步骤 -->
-            <div
-              v-for="(step, index) in processSteps"
-              :key="index"
-              class="process-item"
-            >
-              <div :class="['process-icon', `icon-${index + 1}`]">
-                <svg
-                  class="process-svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    :d="step.iconPath"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                  />
-                </svg>
+            <template v-for="(step, index) in processSteps" :key="index">
+              <div class="process-item">
+                <div :class="['process-icon', `icon-${index + 1}`]">
+                  <svg
+                    class="process-svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      :d="step.iconPath"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                    />
+                  </svg>
+                </div>
+                <div class="process-content">
+                  <h3 class="process-title">{{ step.title }}</h3>
+                  <p class="process-description">{{ step.description }}</p>
+                </div>
               </div>
-              <h3 class="process-title">{{ step.title }}</h3>
-              <p class="process-description">{{ step.description }}</p>
-            </div>
+              <!-- 流程箭头 -->
+              <div v-if="index < processSteps.length - 1" class="process-arrow">
+                <img src="@/assets/images/icons/流程箭头.png" alt="下一步" />
+              </div>
+            </template>
           </div>
         </div>
       </section>
@@ -187,15 +202,36 @@
                     <input
                       v-model="searchKeyword"
                       type="text"
-                      placeholder="输入任务编号/名称或描述（我的？）"
+                      placeholder="输入任务编号/名称"
                       class="search-input"
                     />
                   </div>
                 </div>
                 <div class="task-list-sort">
-                  <button class="sort-btn">任务模式 ▼</button>
-                  <button class="sort-btn">任务时限 ▼</button>
-                  <button class="sort-btn">综合排序 ▼</button>
+                  <el-select v-model="selectedTaskMode" placeholder="任务模式" class="filter-select">
+                    <el-option
+                      v-for="item in taskModeOptions"
+                      :key="item.value"
+                      :label="item.label"
+                      :value="item.value"
+                    />
+                  </el-select>
+                  <el-select v-model="selectedTaskDuration" placeholder="任务时限" class="filter-select">
+                    <el-option
+                      v-for="item in taskDurationOptions"
+                      :key="item.value"
+                      :label="item.label"
+                      :value="item.value"
+                    />
+                  </el-select>
+                  <el-select v-model="selectedProjectStatus" placeholder="项目状态" class="filter-select">
+                    <el-option
+                      v-for="item in projectStatusOptions"
+                      :key="item.value"
+                      :label="item.label"
+                      :value="item.value"
+                    />
+                  </el-select>
                 </div>
               </div>
               <div class="task-list-empty">
@@ -411,11 +447,9 @@
             <!-- Logo区域 -->
             <div class="footer-col">
               <div class="footer-brand">
-                <div class="footer-brand-logo">
-                  <img src="../../../assets/Logo.png" alt="产教融合平台" class="footer-logo-img" />
-                </div>
+                <img src="@/assets/images/logo/桂电透明背景logo.png" alt="桂电创客空间" class="footer-logo-img" />
                 <div class="footer-brand-text">
-                  <div class="footer-brand-name">产教融合平台</div>
+                  <div class="footer-brand-name">桂电创客空间</div>
                   <div class="footer-brand-subtitle">创客空间</div>
                 </div>
               </div>
@@ -490,18 +524,58 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/store/modules/auth'
+import { ArrowDown } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
 
 const router = useRouter()
-const isLoggedIn = ref(false)
-const showDropdown = ref(false)
-const unreadCount = ref(2)
-const userInfo = ref({
-  username: '张三',
-  role: 'student',
-  avatar: 'https://picsum.photos/seed/user123/40/40.jpg'
+const authStore = useAuthStore()
+
+// 初始化认证状态
+onMounted(() => {
+  authStore.initAuth()
 })
 
-const userRole = computed(() => userInfo.value.role || 'student')
+const isLoggedIn = computed(() => authStore.isLoggedIn)
+const userInfo = computed(() => authStore.userInfo || {})
+const userRole = computed(() => authStore.userRole || '')
+const showDropdown = ref(false)
+const unreadCount = ref(2)
+const defaultAvatar = 'https://picsum.photos/seed/user123/40/40.jpg'
+
+// 处理需要登录的功能
+const handleRequireLogin = (redirectPath, feature) => {
+  ElMessage.warning(`请先登录后再使用${feature}功能`)
+  router.push(`/login?redirect=${encodeURIComponent(redirectPath)}`)
+}
+
+const toggleDropdown = () => {
+  showDropdown.value = !showDropdown.value
+}
+
+const hideDropdown = () => {
+  showDropdown.value = false
+}
+
+const goUserCenter = () => {
+  hideDropdown()
+  router.push('/user')
+}
+
+const goSettings = () => {
+  hideDropdown()
+  router.push('/user?tab=settings')
+}
+
+const handleLogout = () => {
+  hideDropdown()
+  authStore.logout()
+  localStorage.removeItem('token')
+  localStorage.removeItem('userRole')
+  localStorage.removeItem('userData')
+  ElMessage.success('已退出登录')
+  router.push('/login')
+}
 
 // 筛选器数据
 const taskFields = ref([
@@ -543,6 +617,41 @@ const processSteps = ref([
 
 // 任务列表搜索关键词
 const searchKeyword = ref('')
+
+// 任务列表筛选选项
+const selectedTaskMode = ref('')
+const selectedTaskDuration = ref('')
+const selectedProjectStatus = ref('')
+
+// 任务模式选项
+const taskModeOptions = ref([
+  { label: '全部', value: '' },
+  { label: '个人任务', value: 'individual' },
+  { label: '团队任务', value: 'team' }
+])
+
+// 任务时限选项
+const taskDurationOptions = ref([
+  { label: '全部', value: '' },
+  { label: '7天内', value: '7days' },
+  { label: '1个月内', value: '1month' },
+  { label: '3个月内', value: '3months' },
+  { label: '6个月内', value: '6months' },
+  { label: '长期项目', value: 'longterm' }
+])
+
+// 项目状态选项
+const projectStatusOptions = ref([
+  { label: '全部', value: '' },
+  { label: '揭榜中', value: 'bidding' },
+  { label: '方案提交中', value: 'proposal' },
+  { label: '项目进行中', value: 'executing' },
+  { label: '中期答辩中', value: 'midterm' },
+  { label: '成果评选中', value: 'reviewing' },
+  { label: '项目公示中', value: 'publicizing' },
+  { label: '已完成', value: 'completed' },
+  { label: '已关闭', value: 'closed' }
+])
 
 // 最新发布数据
 const latestReleases = ref([
@@ -680,8 +789,36 @@ onMounted(() => {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #f5f7fb;
+  background: transparent; /* 背景透明，让背景图显示 */
   color: #1f274b;
+  position: relative;
+}
+
+/* 背景图片样式 - 放在最底层，淡一点，从上到下渐变，跟随页面滚动 */
+.home-page::before {
+  content: '';
+  position: absolute; /* absolute 定位，跟随页面滚动 */
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0; /* 使用 top/bottom 让背景图完全跟随父元素高度 */
+  width: 100%;
+  background-image: url('@/assets/images/backgrounds/home_bg.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.15; /* 淡一点 */
+  z-index: 0;
+  pointer-events: none; /* 不阻挡交互 */
+  /* 从上到下渐变，渐变提前一点，下半部分看不见 */
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.8) 30%, rgba(0, 0, 0, 0.4) 50%, rgba(0, 0, 0, 0) 100%);
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.8) 30%, rgba(0, 0, 0, 0.4) 50%, rgba(0, 0, 0, 0) 100%);
+}
+
+/* 确保内容在背景之上 */
+.home-page > * {
+  position: relative;
+  z-index: 1;
 }
 
 
@@ -709,12 +846,28 @@ onMounted(() => {
   gap: 12px;
 }
 
+.brand-logo-link {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
+  flex-shrink: 0;
+}
+
 .brand-logo {
-  width: 50px;
-  height: 50px;
+  width: auto;
+  height: 60px;
+  max-width: 120px;
   border-radius: 12px;
-  object-fit: cover;
+  object-fit: contain;
   box-shadow: 0 10px 20px rgba(12, 80, 194, 0.2);
+}
+
+.brand-name-link {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
 }
 
 .brand-name {
@@ -727,7 +880,8 @@ onMounted(() => {
   flex: 1;
   display: flex;
   justify-content: center;
-  gap: 32px;
+  align-items: center;
+  gap: 24px;
 }
 
 .nav-link {
@@ -735,6 +889,9 @@ onMounted(() => {
   text-decoration: none;
   color: #5a6486;
   font-weight: 600;
+  transition: color 0.2s;
+  cursor: pointer;
+  white-space: nowrap;
 }
 
 .nav-link.active,
@@ -751,6 +908,32 @@ onMounted(() => {
   height: 3px;
   border-radius: 999px;
   background: linear-gradient(120deg, #0c5fe7, #2fb7ff);
+}
+
+.nav-dropdown {
+  cursor: pointer;
+}
+
+.dropdown-trigger {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dropdown-icon {
+  font-size: 12px;
+  transition: transform 0.2s;
+}
+
+.nav-dropdown:hover .dropdown-icon {
+  transform: rotate(180deg);
+}
+
+.dropdown-item-link {
+  display: block;
+  width: 100%;
+  text-decoration: none;
+  color: inherit;
 }
 
 .messages {
@@ -785,9 +968,9 @@ onMounted(() => {
   font-weight: 600;
   text-decoration: none;
   transition: transform 0.2s;
+  color: #5a6486;
+  background: transparent;
 }
-
-
 
 .auth-btn.solid {
   background: linear-gradient(120deg, #0c5fe7, #2fb7ff);
@@ -797,6 +980,23 @@ onMounted(() => {
 
 .auth-btn:hover {
   transform: translateY(-2px);
+}
+
+/* Element Plus 下拉菜单样式覆盖 */
+:deep(.el-dropdown-menu__item) {
+  padding: 0;
+}
+
+:deep(.el-dropdown-menu__item a) {
+  display: block;
+  padding: 8px 20px;
+  color: #606266;
+  text-decoration: none;
+}
+
+:deep(.el-dropdown-menu__item:hover a) {
+  color: #0c5fe7;
+  background-color: #f5f7fb;
 }
 
 .user-panel {
@@ -919,40 +1119,43 @@ onMounted(() => {
 
 .footer-grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: 2fr repeat(5, 1fr);
   gap: 32px;
   margin-bottom: 32px;
 }
 
-.footer-col {
-  /* 占据一列 */
+/* .footer-col 使用默认样式，占据一列 */
+.footer-col:first-child {
+  min-width: 0;
+  overflow: visible;
+  width: auto;
 }
 
 .footer-brand {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
-}
-
-.footer-brand-logo {
-  width: 48px;
-  height: 48px;
-  background: linear-gradient(to bottom right, #fb923c, #fbbf24);
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  gap: 12px;
+  min-width: 0;
+  overflow: visible;
 }
 
 .footer-logo-img {
-  width: 32px;
-  height: 32px;
+  width: auto;
+  height: 60px;
+  max-width: none;
+  max-height: 60px;
   object-fit: contain;
+  display: block;
+  flex-shrink: 0;
+  overflow: visible;
 }
 
 .footer-brand-text {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  text-align: center;
 }
 
 .footer-brand-name {
@@ -1025,8 +1228,8 @@ onMounted(() => {
 
 /* Hero Section */
 .hero-section {
-  background: #ffffff;
-  margin-bottom: 32px;
+  background: transparent; /* 背景透明，让背景图显示 */
+  margin-bottom: 16px;
   /* 突破父容器宽度限制，实现全屏宽度 */
   width: 100vw;
   position: relative;
@@ -1040,7 +1243,8 @@ onMounted(() => {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 48px 24px;
+  padding: 24px 24px;
+  background: transparent; /* 背景透明 */
 }
 
 .hero-grid {
@@ -1104,8 +1308,8 @@ onMounted(() => {
   overflow: hidden;
   border-radius: 16px;
   background: linear-gradient(to bottom right, #3b82f6, #60a5fa, #93c5fd);
-  padding: 48px;
-  min-height: 400px;
+  padding: 24px 48px;
+  min-height: 300px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1165,7 +1369,7 @@ onMounted(() => {
 
 /* 筛选器区域 */
 .filter-section {
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
 .filter-card {
@@ -1229,7 +1433,7 @@ onMounted(() => {
 
 /* 流程展示区域 */
 .process-section {
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
 .process-card {
@@ -1239,49 +1443,28 @@ onMounted(() => {
 }
 
 .process-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 24px;
-  position: relative;
-}
-
-.process-line {
-  position: absolute;
-  top: 32px;
-  height: 2px;
-  background: #e5e7eb;
-  z-index: 0;
-}
-
-.line-1 {
-  left: 22%;
-  right: 78%;
-}
-
-.line-2 {
-  left: 47%;
-  right: 53%;
-}
-
-.line-3 {
-  left: 72%;
-  right: 28%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
 }
 
 .process-item {
-  text-align: center;
-  position: relative;
-  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
 }
 
 .process-icon {
-  width: 64px;
-  height: 64px;
-  margin: 0 auto 16px;
+  width: 48px;
+  height: 48px;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .icon-1 {
@@ -1301,26 +1484,53 @@ onMounted(() => {
 }
 
 .process-svg {
-  width: 32px;
-  height: 32px;
+  width: 24px;
+  height: 24px;
   color: #ffffff;
+}
+
+.process-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
 }
 
 .process-title {
   font-weight: bold;
-  margin-bottom: 8px;
+  font-size: 16px;
   color: #111827;
+  line-height: 1;
+  margin-top: 5px; 
+  margin-bottom: 2px;
 }
 
 .process-description {
-  font-size: 14px;
+  font-size: 13px;
   color: #6b7280;
-  line-height: 1.5;
+  line-height: 1;
+  margin-top: 5px; 
+  margin-bottom: 5px;
+}
+
+.process-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 24px;
+}
+
+.process-arrow img {
+  width: 100%;
+  height: auto;
+  display: block;
 }
 
 /* 主内容区 */
 .main-content-section {
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
 .main-content-grid {
@@ -1357,12 +1567,12 @@ onMounted(() => {
 }
 
 .task-list-search {
-  flex: 1;
+  /* 移除 flex: 1，让搜索框宽度适应内容 */
 }
 
 .search-wrapper {
   position: relative;
-  width: 100%;
+  width: auto;
 }
 
 .search-icon {
@@ -1376,7 +1586,7 @@ onMounted(() => {
 }
 
 .search-input {
-  width: 100%;
+  width: 180px;
   padding: 8px 12px 8px 40px;
   background: #f9fafb;
   border: none;
@@ -1392,20 +1602,69 @@ onMounted(() => {
 .task-list-sort {
   display: flex;
   gap: 8px;
+  margin-left: auto;
+}
+
+.filter-select {
+  width: 130px;
+}
+
+/* Element Plus 下拉框自定义样式 */
+.task-list-card :deep(.el-select) {
+  --el-select-border-color-hover: #000000;
+  --el-select-input-focus-border-color: #000000;
+}
+
+.task-list-card :deep(.el-select .el-input__wrapper) {
+  background: transparent;
+  border: 1px solid #000000;
+  box-shadow: none;
+  border-radius: 4px;
+  padding: 0 10px;
+  height: 32px;
+}
+
+.task-list-card :deep(.el-select .el-input__wrapper:hover) {
+  border-color: #000000;
+  box-shadow: none;
+}
+
+.task-list-card :deep(.el-select .el-input__wrapper.is-focus) {
+  border-color: #000000;
+  box-shadow: none;
+}
+
+.task-list-card :deep(.el-select .el-input__inner) {
+  color: #000000;
+  font-size: 14px;
+  height: 30px;
+  line-height: 30px;
+}
+
+.task-list-card :deep(.el-select .el-input__suffix) {
+  color: #000000;
+}
+
+.task-list-card :deep(.el-select .el-select__placeholder) {
+  color: #000000;
+  font-size: 14px;
 }
 
 .sort-btn {
   padding: 6px 12px;
-  border: 1px solid #e5e7eb;
-  background: #ffffff;
+  border: 1px solid #000000;
+  background: transparent;
+  color: #000000;
   border-radius: 4px;
   font-size: 14px;
   cursor: pointer;
   white-space: nowrap;
+  transition: background 0.2s, color 0.2s;
 }
 
 .sort-btn:hover {
-  background: #f9fafb;
+  background: #000000;
+  color: #ffffff;
 }
 
 .task-list-empty {
@@ -1801,10 +2060,14 @@ onMounted(() => {
 
   /* 流程展示 */
   .process-grid {
-    grid-template-columns: repeat(2, 1fr);
+    flex-wrap: wrap;
   }
 
-  .process-line {
+  .process-item {
+    min-width: calc(50% - 20px);
+  }
+
+  .process-arrow {
     display: none;
   }
 
@@ -1866,7 +2129,16 @@ onMounted(() => {
 
   /* 流程展示 */
   .process-grid {
-    grid-template-columns: 1fr;
+    flex-direction: column;
+  }
+
+  .process-item {
+    width: 100%;
+    min-width: 100%;
+  }
+
+  .process-arrow {
+    display: none;
   }
 
   /* Footer */
@@ -1894,8 +2166,8 @@ onMounted(() => {
   }
 
   .hero-card {
-    padding: 32px;
-    min-height: 300px;
+    padding: 16px 32px;
+    min-height: 250px;
   }
 
   .hero-card-title {
@@ -1913,13 +2185,21 @@ onMounted(() => {
 
   /* 流程展示 */
   .process-icon {
-    width: 48px;
-    height: 48px;
+    width: 40px;
+    height: 40px;
   }
 
   .process-svg {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
+  }
+
+  .process-title {
+    font-size: 14px;
+  }
+
+  .process-description {
+    font-size: 12px;
   }
 
   /* 主内容区 */

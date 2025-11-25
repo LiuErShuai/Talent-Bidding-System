@@ -4,8 +4,8 @@
     <header class="main-header">
       <div class="header-inner">
         <div class="brand">
-          <img src="../assets/Logo.png" alt="产教融合平台" class="brand-logo" />
-          <span class="brand-name">产教融合项目揭榜平台</span>
+          <img src="@/assets/images/logo/桂电透明背景logo.png" alt="桂电创客空间" class="brand-logo" />
+          <span class="brand-name">桂电创客空间</span>
         </div>
         
         <!-- 学生端导航 -->

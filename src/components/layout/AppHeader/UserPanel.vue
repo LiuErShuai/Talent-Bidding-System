@@ -1,38 +1,12 @@
 <template>
-  <div class="user-panel" @click="toggleDropdown" v-click-outside="hideDropdown">
-    <img :src="userInfo.avatar || defaultAvatar" :alt="userInfo.username" class="user-avatar" />
+  <div class="user-panel" v-click-outside="hideDropdown">
+    <img :src="userInfo.avatar || defaultAvatar" :alt="userInfo.username" class="user-avatar" @click="toggleDropdown" />
     <div class="user-dropdown" :class="{ active: showDropdown }">
       <span class="user-name">{{ userInfo.username || '用户' }}</span>
-      <!-- 学生端菜单 -->
-      <template v-if="userRole === 'student'">
-        <button class="dropdown-link" @click.stop="goGrowthCenter">成长中心</button>
-        <button class="dropdown-link" @click.stop="goSmartMatch">智能匹配</button>
-        <button class="dropdown-link" @click.stop="goUserCenter">个人中心</button>
-        <button class="dropdown-link danger" @click.stop="handleLogout">退出登录</button>
-      </template>
-      <!-- 企业端菜单 -->
-      <template v-else-if="userRole === 'enterprise'">
-        <button class="dropdown-link" @click.stop="goProjectReview">项目评审</button>
-        <button class="dropdown-link" @click.stop="goUserCenter">个人中心</button>
-        <button class="dropdown-link danger" @click.stop="handleLogout">退出登录</button>
-      </template>
-      <!-- 教师端菜单 -->
-      <template v-else-if="userRole === 'teacher'">
-        <button class="dropdown-link" @click.stop="goEvaluation">成果评审</button>
-        <button class="dropdown-link" @click.stop="goUserCenter">个人中心</button>
-        <button class="dropdown-link danger" @click.stop="handleLogout">退出登录</button>
-      </template>
-      <!-- 管理员菜单 -->
-      <template v-else-if="userRole === 'admin'">
-        <button class="dropdown-link" @click.stop="goDataCenter">数据中心</button>
-        <button class="dropdown-link" @click.stop="goUserCenter">个人中心</button>
-        <button class="dropdown-link danger" @click.stop="handleLogout">退出登录</button>
-      </template>
-      <!-- 默认菜单 -->
-      <template v-else>
-        <button class="dropdown-link" @click.stop="goUserCenter">个人中心</button>
-        <button class="dropdown-link danger" @click.stop="handleLogout">退出登录</button>
-      </template>
+      <!-- 所有角色的通用菜单 -->
+      <button class="dropdown-link" @click.stop="goUserCenter">个人中心</button>
+      <button class="dropdown-link" @click.stop="goSettings">设置</button>
+      <button class="dropdown-link danger" @click.stop="handleLogout">退出登录</button>
     </div>
   </div>
 </template>
@@ -40,7 +14,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useUserStore } from '@/store/user'
+import { useAuthStore } from '@/store/modules/auth'
 
 const props = defineProps({
   userInfo: {
@@ -54,7 +28,7 @@ const props = defineProps({
 })
 
 const router = useRouter()
-const userStore = useUserStore()
+const authStore = useAuthStore()
 
 const showDropdown = ref(false)
 const defaultAvatar = 'https://picsum.photos/seed/user123/40/40.jpg'
@@ -67,39 +41,23 @@ const hideDropdown = () => {
   showDropdown.value = false
 }
 
-const goGrowthCenter = () => {
-  hideDropdown()
-  router.push('/growth-center')
-}
-
-const goSmartMatch = () => {
-  hideDropdown()
-  router.push('/smart-match')
-}
-
 const goUserCenter = () => {
   hideDropdown()
   router.push('/user')
 }
 
-const goProjectReview = () => {
+const goSettings = () => {
   hideDropdown()
-  router.push('/my-projects')
-}
-
-const goEvaluation = () => {
-  hideDropdown()
-  router.push('/evaluation')
-}
-
-const goDataCenter = () => {
-  hideDropdown()
-  router.push('/statistics')
+  router.push('/user?tab=settings')
 }
 
 const handleLogout = () => {
   hideDropdown()
-  userStore.logout()
+  authStore.logout()
+  // 清除旧的localStorage数据
+  localStorage.removeItem('token')
+  localStorage.removeItem('userRole')
+  localStorage.removeItem('userData')
   router.push('/login')
 }
 

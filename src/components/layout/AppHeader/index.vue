@@ -2,24 +2,52 @@
   <header class="main-header">
     <div class="header-inner">
       <div class="brand">
-        <router-link to="/home" class="brand-link">
-          <img src="@/assets/Logo.png" alt="产教融合平台" class="brand-logo" />
-          <span class="brand-name">产教融合项目揭榜平台</span>
+        <router-link to="/home" class="brand-logo-link">
+          <img src="@/assets/images/logo/桂电透明背景logo.png" alt="创客平台" style="height: 45px; width: auto; max-width: 180px; object-fit: contain; border-radius: 8px;" />
+        </router-link>
+        <router-link to="/home" class="brand-name-link">
+          <span class="brand-name">创客平台</span>
         </router-link>
       </div>
       <nav class="main-nav">
+        <!-- 根据登录状态显示不同的导航栏 -->
         <router-link to="/home" class="nav-link" active-class="active">首页</router-link>
+        <el-dropdown trigger="hover" class="nav-dropdown">
+          <span class="nav-link dropdown-trigger">
+            创客空间
+            <el-icon class="dropdown-icon"><ArrowDown /></el-icon>
+          </span>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item>
+                <router-link to="/projects" class="dropdown-item-link">项目大厅</router-link>
+              </el-dropdown-item>
+              <el-dropdown-item>
+                <router-link to="/projects?sort=hot" class="dropdown-item-link">热门项目</router-link>
+              </el-dropdown-item>
+              <el-dropdown-item>
+                <router-link to="/projects" class="dropdown-item-link">项目详情</router-link>
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
         <router-link to="/projects" class="nav-link" active-class="active">项目大厅</router-link>
-        <router-link to="/my-projects" class="nav-link" active-class="active">我的项目</router-link>
-        <router-link to="/statistics" class="nav-link" active-class="active">数据中心</router-link>
-        <router-link to="/messages" class="nav-link messages" active-class="active">
-          <span>消息</span>
-          <span v-if="isLoggedIn && unreadCount > 0" class="badge">{{ unreadCount }}</span>
-        </router-link>
+        <template v-if="!isLoggedIn">
+          <span class="nav-link" @click="handleRequireLogin('/growth-center', '成长中心')">成长中心</span>
+          <span class="nav-link" @click="handleRequireLogin('/messages', '消息')">消息</span>
+        </template>
+        <template v-else>
+          <router-link to="/growth-center" class="nav-link" active-class="active">成长中心</router-link>
+          <router-link to="/messages" class="nav-link messages" active-class="active">
+            <span>消息</span>
+            <span v-if="unreadCount > 0" class="badge">{{ unreadCount }}</span>
+          </router-link>
+        </template>
       </nav>
       <div class="auth-area">
         <template v-if="!isLoggedIn">
-          <router-link to="/login" class="auth-btn solid">登录</router-link>
+          <router-link to="/login" class="auth-btn">登录</router-link>
+          <router-link to="/register" class="auth-btn solid">注册</router-link>
         </template>
         <UserPanel v-else :user-info="userInfo" :user-role="userRole" />
       </div>
@@ -29,23 +57,30 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useUserStore } from '@/store/user'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/store/modules/auth'
+import { ArrowDown } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
 import UserPanel from './UserPanel.vue'
 
-const userStore = useUserStore()
+const router = useRouter()
+const authStore = useAuthStore()
 
-const isLoggedIn = computed(() => userStore.isLoggedIn)
-const userInfo = computed(() => userStore.userInfo || {})
-const userRole = computed(() => userInfo.value.role || 'student')
-const unreadCount = ref(0)
-
-// 获取未读消息数（后续从store或API获取）
+// 初始化认证状态
 onMounted(() => {
-  // TODO: 从store或API获取未读消息数
-  if (isLoggedIn.value) {
-    unreadCount.value = 2 // 示例数据
-  }
+  authStore.initAuth()
 })
+
+const isLoggedIn = computed(() => authStore.isLoggedIn)
+const userInfo = computed(() => authStore.userInfo || {})
+const userRole = computed(() => authStore.userRole || '')
+const unreadCount = ref(2)
+
+// 处理需要登录的功能
+const handleRequireLogin = (redirectPath, feature) => {
+  ElMessage.warning(`请先登录后再使用${feature}功能`)
+  router.push(`/login?redirect=${encodeURIComponent(redirectPath)}`)
+}
 </script>
 
 <style scoped>
@@ -72,20 +107,19 @@ onMounted(() => {
   gap: 12px;
 }
 
-.brand-link {
+.brand-logo-link {
   display: flex;
   align-items: center;
-  gap: 12px;
   text-decoration: none;
   color: inherit;
+  flex-shrink: 0;
 }
 
-.brand-logo {
-  width: 50px;
-  height: 50px;
-  border-radius: 12px;
-  object-fit: cover;
-  box-shadow: 0 10px 20px rgba(12, 80, 194, 0.2);
+.brand-name-link {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
 }
 
 .brand-name {
@@ -98,7 +132,8 @@ onMounted(() => {
   flex: 1;
   display: flex;
   justify-content: center;
-  gap: 32px;
+  align-items: center;
+  gap: 24px;
 }
 
 .nav-link {
@@ -107,6 +142,8 @@ onMounted(() => {
   color: #5a6486;
   font-weight: 600;
   transition: color 0.2s;
+  cursor: pointer;
+  white-space: nowrap;
 }
 
 .nav-link.active,
@@ -123,6 +160,32 @@ onMounted(() => {
   height: 3px;
   border-radius: 999px;
   background: linear-gradient(120deg, #0c5fe7, #2fb7ff);
+}
+
+.nav-dropdown {
+  cursor: pointer;
+}
+
+.dropdown-trigger {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dropdown-icon {
+  font-size: 12px;
+  transition: transform 0.2s;
+}
+
+.nav-dropdown:hover .dropdown-icon {
+  transform: rotate(180deg);
+}
+
+.dropdown-item-link {
+  display: block;
+  width: 100%;
+  text-decoration: none;
+  color: inherit;
 }
 
 .messages {
@@ -157,6 +220,8 @@ onMounted(() => {
   font-weight: 600;
   text-decoration: none;
   transition: transform 0.2s;
+  color: #5a6486;
+  background: transparent;
 }
 
 .auth-btn.solid {
@@ -169,6 +234,23 @@ onMounted(() => {
   transform: translateY(-2px);
 }
 
+/* Element Plus 下拉菜单样式覆盖 */
+:deep(.el-dropdown-menu__item) {
+  padding: 0;
+}
+
+:deep(.el-dropdown-menu__item a) {
+  display: block;
+  padding: 8px 20px;
+  color: #606266;
+  text-decoration: none;
+}
+
+:deep(.el-dropdown-menu__item:hover a) {
+  color: #0c5fe7;
+  background-color: #f5f7fb;
+}
+
 @media (max-width: 1024px) {
   .header-inner {
     flex-direction: column;
@@ -176,7 +258,7 @@ onMounted(() => {
 
   .main-nav {
     flex-wrap: wrap;
+    gap: 16px;
   }
 }
 </style>
-

@@ -1,47 +1,6 @@
 <template>
   <div class="project-hall-page">
-    <header class="main-header">
-      <div class="header-inner">
-        <div class="brand">
-          <img src="../assets/Logo.png" alt="产教融合平台" class="brand-logo" />
-          <span class="brand-name">产教融合项目揭榜平台</span>
-        </div>
-        <nav class="main-nav">
-          <router-link to="/home" class="nav-link" active-class="active">首页</router-link>
-          <router-link to="/projects" class="nav-link" active-class="active">项目大厅</router-link>
-          <router-link to="/my-projects" class="nav-link" active-class="active">我的项目</router-link>
-          <router-link to="/statistics" class="nav-link" active-class="active">数据中心</router-link>
-          <router-link to="/messages" class="nav-link messages" active-class="active">
-            <span>消息</span>
-            <span v-if="isLoggedIn && unreadCount > 0" class="badge">{{ unreadCount }}</span>
-          </router-link>
-        </nav>
-        <div class="auth-area">
-          <template v-if="!isLoggedIn">
-            <router-link to="/login" class="auth-btn solid">登录</router-link>
-          </template>
-          <div v-else class="user-panel" @click="toggleDropdown">
-            <img :src="userInfo.avatar" :alt="userInfo.username" class="user-avatar" />
-            <div class="user-dropdown" :class="{ active: showDropdown }">
-              <span class="user-name">{{ userInfo.username }}</span>
-              <!-- 学生端菜单 -->
-              <template v-if="userRole === 'student'">
-                <button class="dropdown-link" @click.stop="goGrowthCenter">成长中心</button>
-                <button class="dropdown-link" @click.stop="goSmartMatch">智能匹配</button>
-                <button class="dropdown-link" @click.stop="goUserCenter">个人中心</button>
-                <button class="dropdown-link danger" @click.stop="handleLogout">退出登录</button>
-              </template>
-              <!-- 企业端菜单 -->
-              <template v-else>
-                <button class="dropdown-link" @click.stop="goProjectReview">项目评审</button>
-                <button class="dropdown-link" @click.stop="goUserCenter">个人中心</button>
-                <button class="dropdown-link danger" @click.stop="handleLogout">退出登录</button>
-              </template>
-            </div>
-          </div>
-        </div>
-      </div>
-    </header>
+    <AppHeader />
 
     <main class="page-body">
       <!-- 搜索与筛选区 -->
