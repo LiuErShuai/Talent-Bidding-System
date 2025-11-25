@@ -1,36 +1,31 @@
 <template>
-  <div class="user-panel" @click="toggleDropdown" v-click-outside="hideDropdown">
-    <img :src="userInfo.avatar || defaultAvatar" :alt="userInfo.username" class="user-avatar" />
+  <div class="user-panel" v-click-outside="hideDropdown">
+    <img
+      :src="userInfo.avatar || defaultAvatar"
+      :alt="userInfo.username"
+      class="user-avatar"
+      @click="toggleDropdown"
+    />
     <div class="user-dropdown" :class="{ active: showDropdown }">
       <span class="user-name">{{ userInfo.username || '用户' }}</span>
-      <!-- 学生端菜单 -->
-      <template v-if="userRole === 'student'">
-        <button class="dropdown-link" @click.stop="goGrowthCenter">成长中心</button>
-        <button class="dropdown-link" @click.stop="goSmartMatch">智能匹配</button>
-        <button class="dropdown-link" @click.stop="goUserCenter">个人中心</button>
-        <button class="dropdown-link danger" @click.stop="handleLogout">退出登录</button>
+
+      <!-- 快捷操作菜单（从配置读取） -->
+      <template v-if="quickActions && quickActions.length > 0">
+        <button
+          v-for="(action, index) in quickActions"
+          :key="index"
+          class="dropdown-link"
+          :class="{ danger: action.type === 'danger' }"
+          @click.stop="handleAction(action)"
+        >
+          {{ action.label }}
+        </button>
       </template>
-      <!-- 企业端菜单 -->
-      <template v-else-if="userRole === 'enterprise'">
-        <button class="dropdown-link" @click.stop="goProjectReview">项目评审</button>
-        <button class="dropdown-link" @click.stop="goUserCenter">个人中心</button>
-        <button class="dropdown-link danger" @click.stop="handleLogout">退出登录</button>
-      </template>
-      <!-- 教师端菜单 -->
-      <template v-else-if="userRole === 'teacher'">
-        <button class="dropdown-link" @click.stop="goEvaluation">成果评审</button>
-        <button class="dropdown-link" @click.stop="goUserCenter">个人中心</button>
-        <button class="dropdown-link danger" @click.stop="handleLogout">退出登录</button>
-      </template>
-      <!-- 管理员菜单 -->
-      <template v-else-if="userRole === 'admin'">
-        <button class="dropdown-link" @click.stop="goDataCenter">数据中心</button>
-        <button class="dropdown-link" @click.stop="goUserCenter">个人中心</button>
-        <button class="dropdown-link danger" @click.stop="handleLogout">退出登录</button>
-      </template>
-      <!-- 默认菜单 -->
+
+      <!-- 默认菜单（兜底，当没有传递 quickActions 时使用） -->
       <template v-else>
         <button class="dropdown-link" @click.stop="goUserCenter">个人中心</button>
+        <button class="dropdown-link" @click.stop="goSettings">设置</button>
         <button class="dropdown-link danger" @click.stop="handleLogout">退出登录</button>
       </template>
     </div>
@@ -40,7 +35,12 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useUserStore } from '@/store/user'
+import { useAuthStore } from '@/store/modules/auth'
+import { ElMessage } from 'element-plus'
+
+// ========================================
+// Props 定义
+// ========================================
 
 const props = defineProps({
   userInfo: {
@@ -50,14 +50,27 @@ const props = defineProps({
   userRole: {
     type: String,
     default: 'student'
+  },
+  // 新增：快捷操作配置数组
+  quickActions: {
+    type: Array,
+    default: () => []
   }
 })
 
+// ========================================
+// 组合式 API
+// ========================================
+
 const router = useRouter()
-const userStore = useUserStore()
+const authStore = useAuthStore()
 
 const showDropdown = ref(false)
 const defaultAvatar = 'https://picsum.photos/seed/user123/40/40.jpg'
+
+// ========================================
+// 方法
+// ========================================
 
 const toggleDropdown = () => {
   showDropdown.value = !showDropdown.value
@@ -67,43 +80,54 @@ const hideDropdown = () => {
   showDropdown.value = false
 }
 
-const goGrowthCenter = () => {
+/**
+ * 处理快捷操作点击
+ * @param {object} action - 快捷操作配置 { label, path, type }
+ */
+const handleAction = (action) => {
   hideDropdown()
-  router.push('/growth-center')
+
+  // 特殊处理退出登录（type 为 'danger' 且没有 path）
+  if (action.type === 'danger' && !action.path) {
+    handleLogout()
+    return
+  }
+
+  // 普通跳转操作
+  if (action.path) {
+    router.push(action.path)
+  }
 }
 
-const goSmartMatch = () => {
-  hideDropdown()
-  router.push('/smart-match')
-}
+// ========================================
+// 默认操作方法（兜底使用）
+// ========================================
 
 const goUserCenter = () => {
   hideDropdown()
   router.push('/user')
 }
 
-const goProjectReview = () => {
+const goSettings = () => {
   hideDropdown()
-  router.push('/my-projects')
-}
-
-const goEvaluation = () => {
-  hideDropdown()
-  router.push('/evaluation')
-}
-
-const goDataCenter = () => {
-  hideDropdown()
-  router.push('/statistics')
+  router.push('/user?tab=settings')
 }
 
 const handleLogout = () => {
   hideDropdown()
-  userStore.logout()
+  authStore.logout()
+  // 清除旧的 localStorage 数据
+  localStorage.removeItem('token')
+  localStorage.removeItem('userRole')
+  localStorage.removeItem('userData')
+  ElMessage.success('已退出登录')
   router.push('/login')
 }
 
-// 点击外部关闭下拉菜单的指令
+// ========================================
+// 自定义指令：点击外部关闭下拉菜单
+// ========================================
+
 const vClickOutside = {
   mounted(el, binding) {
     el.clickOutsideEvent = (event) => {
@@ -187,6 +211,7 @@ const vClickOutside = {
   border-radius: 6px;
   transition: all 0.2s ease;
   text-align: left;
+  width: 100%;
 }
 
 .dropdown-link:hover {
@@ -203,4 +228,3 @@ const vClickOutside = {
   color: #ff4d4f;
 }
 </style>
-

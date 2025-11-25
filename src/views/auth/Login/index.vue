@@ -20,6 +20,24 @@
           size="large"
           class="auth-form"
         >
+          <!-- 【测试功能】角色选择下拉框 - 用于快速切换不同角色进行测试 -->
+          <!-- 正式环境需要删除此选项，恢复用户名密码登录 -->
+          <el-form-item label="选择角色（测试用）" prop="testRole">
+            <el-select
+              v-model="form.testRole"
+              placeholder="请选择角色"
+              style="width: 100%"
+              clearable
+            >
+              <el-option label="学生" value="student" />
+              <el-option label="企业" value="enterprise" />
+              <el-option label="教师" value="teacher" />
+              <el-option label="管理员" value="admin" />
+            </el-select>
+          </el-form-item>
+
+          <!-- 【已注释 - 测试用】以下为正式登录表单，测试阶段已注释，正式环境需要恢复 -->
+          <!-- 
           <el-form-item label="账号" prop="identifier">
             <el-input
               v-model="form.identifier"
@@ -55,12 +73,14 @@
           <div class="aux-line">
             <el-checkbox v-model="rememberMe" label="记住用户名" aria-label="记住用户名" />
           </div>
+          -->
 
           <el-button
             type="primary"
             :loading="loading"
             class="auth-submit"
             @click="handleLogin"
+            :disabled="!form.testRole"
           >
             登录
           </el-button>
@@ -77,105 +97,142 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
+// 【已注释 - 测试用】正式环境可能需要恢复 onMounted
+// import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { useRouter } from 'vue-router'
-import { useUserStore } from '../../../store/user'
-import { loginAPI } from '../../../api/user'
+import { useRouter, useRoute } from 'vue-router'
+import { useAuthStore } from '../../../store/modules/auth'
+// 【已注释 - 测试用】正式环境需要恢复以下导入
+// import { useUserStore } from '../../../store/user'
+// import { loginAPI } from '../../../api/user'
 import { ArrowRight } from '@element-plus/icons-vue'
 
 const router = useRouter()
-const userStore = useUserStore()
+const route = useRoute()
+// 【已注释 - 测试用】正式环境需要恢复
+// const userStore = useUserStore()
+const authStore = useAuthStore()
 
 const loading = ref(false)
 const loginForm = ref(null)
-const rememberMe = ref(false)
+// 【已注释 - 测试用】正式环境需要恢复
+// const rememberMe = ref(false)
 
 const form = ref({
-  identifier: '',
-  credential: ''
+  // 【测试功能】角色选择，正式环境需要删除
+  testRole: '',
+  // 【已注释 - 测试用】正式环境需要恢复
+  // identifier: '',
+  // credential: ''
 })
 
+// 【已注释 - 测试用】正式环境需要恢复
 // 组件加载时检查是否有记住的用户名
-onMounted(() => {
-  const rememberedUsername = localStorage.getItem('rememberedUsername')
-  if (rememberedUsername) {
-    form.value.identifier = rememberedUsername
-    rememberMe.value = true
-  }
-})
+// onMounted(() => {
+//   const rememberedUsername = localStorage.getItem('rememberedUsername')
+//   if (rememberedUsername) {
+//     form.value.identifier = rememberedUsername
+//     rememberMe.value = true
+//   }
+// })
 
+// 【已注释 - 测试用】正式环境需要恢复原有验证规则
+// const rules = {
+//   identifier: [{ required: true, message: '请输入账号', trigger: 'blur' }],
+//   credential: [{ required: true, message: '请输入密码', trigger: 'blur' }]
+// }
+
+// 【测试功能】简化的验证规则，仅验证角色选择
 const rules = {
-  identifier: [{ required: true, message: '请输入账号', trigger: 'blur' }],
-  credential: [{ required: true, message: '请输入密码', trigger: 'blur' }]
+  testRole: [{ required: true, message: '请选择角色', trigger: 'change' }]
 }
 
+// 【已注释 - 测试用】正式环境需要恢复此函数
 // 自动识别标识符类型
-const detectIdentityType = (identifier) => {
-  if (!identifier) return 'username'
-  
-  // 判断是否为手机号（11位数字，以1开头）
-  const phoneRegex = /^1[3-9]\d{9}$/
-  if (phoneRegex.test(identifier)) {
-    return 'phone'
-  }
-  
-  // 判断是否为邮箱（包含@符号）
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  if (emailRegex.test(identifier)) {
-    return 'email'
-  }
-  
-  // 默认为用户名
-  return 'username'
-}
+// const detectIdentityType = (identifier) => {
+//   if (!identifier) return 'username'
+//   
+//   // 判断是否为手机号（11位数字，以1开头）
+//   const phoneRegex = /^1[3-9]\d{9}$/
+//   if (phoneRegex.test(identifier)) {
+//     return 'phone'
+//   }
+//   
+//   // 判断是否为邮箱（包含@符号）
+//   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+//   if (emailRegex.test(identifier)) {
+//     return 'email'
+//   }
+//   
+//   // 默认为用户名
+//   return 'username'
+// }
 
+// 【测试功能】简化的登录处理，直接跳转，不调用API
+// 正式环境需要恢复原有的API调用逻辑
 const handleLogin = () => {
   loginForm.value.validate(async (valid) => {
     if (!valid) return
     loading.value = true
 
     try {
-      // 自动识别标识符类型
-      const identityType = detectIdentityType(form.value.identifier)
-      
-      // 与后端接口约定：请求体 { identityType, identifier, credential }
-      const res = await loginAPI({
-        identityType,
-        identifier: form.value.identifier,
-        credential: form.value.credential
-      })
-      
-      // 响应拦截器已保证 code === 200，这里假定返回结构 { code, message, data }
-      const { data } = res || {}
-      const token = data?.token
-      const username = data?.username || data?.nickname || data?.userId || form.value.identifier
-      if (!token) {
-        throw new Error('登录失败：未获取到token')
+      // 【测试功能】根据选择的角色生成测试数据
+      const testRole = form.value.testRole
+      if (!testRole) {
+        ElMessage.warning('请选择角色')
+        loading.value = false
+        return
       }
 
-      ElMessage.success('登录成功！')
+      // 【测试功能】生成测试用的用户数据和token
+      const roleNames = {
+        student: '学生',
+        enterprise: '企业',
+        teacher: '教师',
+        admin: '管理员'
+      }
+      
+      const testUserData = {
+        username: `测试${roleNames[testRole]}`,
+        role: testRole,
+        userId: `test_${testRole}_${Date.now()}`,
+        avatar: `https://picsum.photos/seed/${testRole}/40/40.jpg`
+      }
+      
+      // 【测试功能】生成测试token（实际环境应该从后端获取）
+      const testToken = `test_token_${testRole}_${Date.now()}`
 
-      // 保存登录状态（同时写入 pinia 与 localStorage）
-      localStorage.setItem('token', token)
-      userStore.login(username, token)
+      ElMessage.success(`登录成功！欢迎，${testUserData.username}`)
 
+      // 【测试功能】保存测试登录状态
+      // 正式环境需要恢复：localStorage.setItem('token', token) 和 userStore.login(username, token)
+      localStorage.setItem('token', testToken)
+      localStorage.setItem('userRole', testRole)
+      localStorage.setItem('userData', JSON.stringify(testUserData))
+      
+      // 使用 authStore 保存登录状态
+      authStore.login(testUserData, testToken)
+
+      // 【已注释 - 测试用】正式环境需要恢复
       // 记住用户名功能
-      if (rememberMe.value) {
-        localStorage.setItem('rememberedUsername', form.value.identifier)
-      } else {
-        localStorage.removeItem('rememberedUsername')
-      }
+      // if (rememberMe.value) {
+      //   localStorage.setItem('rememberedUsername', form.value.identifier)
+      // } else {
+      //   localStorage.removeItem('rememberedUsername')
+      // }
+
+      // 【测试功能】登录后统一跳转到 home 页面
+      const targetPath = '/home'
 
       // 添加页面切换动画效果
-      loading.value = true
       setTimeout(() => {
-        router.push('/home')
+        router.push(targetPath)
+        loading.value = false
       }, 300)
     } catch (err) {
       console.error('登录错误:', err)
-      ElMessage.error(err?.response?.data?.message || err?.message || '用户名或密码错误')
-    } finally {
+      ElMessage.error(err?.response?.data?.message || err?.message || '登录失败')
       loading.value = false
     }
   })
