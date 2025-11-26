@@ -65,13 +65,15 @@ const unreadCount = computed(() => ({
 
 <style scoped>
 .default-layout {
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
+  min-height: 100vh;
+  height: auto;
 }
 
 .layout-main {
-  flex: 1;
+  flex: 1 1 auto;
   width: 100%;
+  min-height: 0;
 }
 </style>

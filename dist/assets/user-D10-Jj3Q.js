@@ -1,1 +1,0 @@
-import{W as e}from"./index-DnkofVqd.js";const l=e("user",{state:()=>({profile:null,skills:[],projects:[],teams:[]}),getters:{fullUserInfo:s=>s.profile,skillCount:s=>s.skills.length,projectCount:s=>s.projects.length},actions:{setProfile(s){this.profile=s},setSkills(s){this.skills=s},setProjects(s){this.projects=s},setTeams(s){this.teams=s}}});export{l as u};
