@@ -2,6 +2,14 @@
   <div class="project-details-container">
     <!-- 主要内容区域 -->
     <div class="main-content">
+      <!-- ========== 开始：面包屑导航部分 (BREADCRUMB_NAVIGATION_SECTION) ========== -->
+      <div class="breadcrumb-section mb20">
+        <router-link class="color-deep-blue" to="/home">首页 &gt; </router-link>
+        <router-link class="color-deep-blue" to="/projects">项目大厅 &gt; </router-link>
+        <span>项目详情</span>
+      </div>
+      <!-- ========== 结束：面包屑导航部分 (BREADCRUMB_NAVIGATION_SECTION) ========== -->
+      
       <!-- 双栏布局 -->
       <div class="content-row">
         <!-- 左侧：项目主要信息区 -->
@@ -134,6 +142,42 @@
     </div>
       </div>
       
+      <!-- ========== 开始：项目进度条部分 (PROJECT_STEPS_PROGRESS_SECTION) ========== -->
+      <div class="project-steps-container mt15">
+        <div class="ant-steps ant-steps-horizontal project-steps ant-steps-label-vertical">
+          <div 
+            v-for="(step, index) in projectSteps" 
+            :key="step.code"
+            :class="[
+              'ant-steps-item',
+              'ant-steps-item-custom',
+              {
+                'ant-steps-item-finish': step.status === 'finish',
+                'ant-steps-item-process': step.status === 'process',
+                'ant-steps-item-wait': step.status === 'wait'
+              }
+            ]"
+          >
+            <div class="ant-steps-item-container">
+              <div class="ant-steps-item-tail"/>
+              <div class="ant-steps-item-icon">
+                <span class="ant-steps-icon">
+                  <el-icon v-if="step.status === 'finish'" class="icon-check"><Check /></el-icon>
+                  <div v-else class="circle-icon"/>
+                </span>
+              </div>
+              <div class="ant-steps-item-content">
+                <div class="ant-steps-item-title">{{ step.title }}</div>
+                <div v-if="step.timeInfo" class="ant-steps-item-description">
+                  <span class="color-grey-6 font-12">{{ step.timeInfo }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- ========== 结束：项目进度条部分 (PROJECT_STEPS_PROGRESS_SECTION) ========== -->
+      
       <!-- 标签页切换 -->
       <div class="tab-section">
         <el-tabs v-model="activeTab" class="detail-tabs">
@@ -228,23 +272,774 @@
           <el-tab-pane label="企业介绍" name="company">
             <div class="tab-content">企业介绍内容将在这里显示</div>
           </el-tab-pane>
+          
+          <!-- ========== 开始：项目里程碑跟踪标签页 (PROJECT_MILESTONE_TRACKING_SECTION) ========== -->
+          <el-tab-pane label="项目里程碑" name="milestones">
+            <div class="milestone-tracking-content">
+              <!-- 权限提示 -->
+              <div v-if="!isProjectParticipant" class="permission-notice">
+                <el-alert
+                  type="info"
+                  :closable="false"
+                  show-icon
+                >
+                  <template #title>
+                    <span>您当前以访客身份查看，部分敏感信息仅对项目参与者（发布方和承接方）可见</span>
+                  </template>
+                </el-alert>
+              </div>
+              
+              <!-- 里程碑时间轴 -->
+              <div class="milestone-timeline">
+                <div 
+                  v-for="(milestone, index) in milestones" 
+                  :key="milestone.id"
+                  class="milestone-item"
+                  :class="{
+                    'milestone-completed': milestone.status === 'completed',
+                    'milestone-in-progress': milestone.status === 'in-progress',
+                    'milestone-pending': milestone.status === 'pending',
+                    'milestone-delayed': milestone.status === 'delayed'
+                  }"
+                >
+                  <!-- 时间轴连接线 -->
+                  <div v-if="index < milestones.length - 1" class="timeline-connector"></div>
+                  
+                  <!-- 里程碑标记 -->
+                  <div class="milestone-marker">
+                    <el-icon v-if="milestone.status === 'completed'" class="marker-icon completed">
+                      <Check />
+                    </el-icon>
+                    <div v-else-if="milestone.status === 'in-progress'" class="marker-icon in-progress">
+                      <div class="pulse-dot"></div>
+                    </div>
+                    <div v-else class="marker-icon pending"></div>
+                  </div>
+                  
+                  <!-- 里程碑内容卡片 -->
+                  <div class="milestone-card">
+                    <div class="milestone-header">
+                      <div class="milestone-title-row">
+                        <h3 class="milestone-title">{{ milestone.title }}</h3>
+                        <el-tag 
+                          :type="getMilestoneTagType(milestone.status)"
+                          size="small"
+                        >
+                          {{ getMilestoneStatusText(milestone.status) }}
+                        </el-tag>
+                      </div>
+                      <div class="milestone-meta">
+                        <span class="milestone-date">
+                          <el-icon><Calendar /></el-icon>
+                          {{ milestone.plannedDate }}
+                        </span>
+                        <span v-if="milestone.actualDate" class="milestone-actual-date">
+                          实际完成：{{ milestone.actualDate }}
+                        </span>
+                        <span v-if="milestone.delayDays && milestone.delayDays > 0" class="milestone-delay">
+                          延迟 {{ milestone.delayDays }} 天
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <!-- 公开信息：里程碑描述 -->
+                    <div class="milestone-description">
+                      <p>{{ milestone.description }}</p>
+                    </div>
+                    
+                    <!-- 公开信息：交付物列表 -->
+                    <div v-if="milestone.deliverables && milestone.deliverables.length > 0" class="milestone-deliverables">
+                      <div class="section-title">交付物</div>
+                      <ul class="deliverables-list">
+                        <li v-for="(deliverable, idx) in milestone.deliverables" :key="idx">
+                          <el-icon><Document /></el-icon>
+                          <span>{{ deliverable }}</span>
+                        </li>
+                      </ul>
+                    </div>
+                    
+                    <!-- 敏感信息区域：仅项目参与者可见 -->
+                    <div v-if="isProjectParticipant" class="milestone-sensitive-info">
+                      <el-divider>
+                        <el-icon><Lock /></el-icon>
+                        <span>项目参与者信息</span>
+                      </el-divider>
+                      
+                      <!-- 详细进度信息 -->
+                      <div v-if="milestone.progressDetail" class="sensitive-section">
+                        <div class="section-title">详细进度</div>
+                        <div class="progress-detail">
+                          <el-progress 
+                            :percentage="milestone.progressDetail.percentage" 
+                            :status="milestone.progressDetail.status"
+                            :stroke-width="8"
+                          />
+                          <p class="progress-note">{{ milestone.progressDetail.note }}</p>
+                        </div>
+                      </div>
+                      
+                      <!-- 内部沟通记录 -->
+                      <div v-if="milestone.communications && milestone.communications.length > 0" class="sensitive-section">
+                        <div class="section-title">沟通记录</div>
+                        <div class="communications-list">
+                          <div 
+                            v-for="(comm, idx) in milestone.communications" 
+                            :key="idx"
+                            class="communication-item"
+                          >
+                            <div class="comm-header">
+                              <span class="comm-author">{{ comm.author }}</span>
+                              <span class="comm-time">{{ comm.time }}</span>
+                            </div>
+                            <p class="comm-content">{{ comm.content }}</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <!-- 内部备注 -->
+                      <div v-if="milestone.internalNotes" class="sensitive-section">
+                        <div class="section-title">内部备注</div>
+                        <div class="internal-notes">
+                          <p>{{ milestone.internalNotes }}</p>
+                        </div>
+                      </div>
+                      
+                      <!-- 附件（敏感） -->
+                      <div v-if="milestone.sensitiveAttachments && milestone.sensitiveAttachments.length > 0" class="sensitive-section">
+                        <div class="section-title">内部附件</div>
+                        <div class="attachments-list">
+                          <div 
+                            v-for="(attachment, idx) in milestone.sensitiveAttachments" 
+                            :key="idx"
+                            class="attachment-item"
+                          >
+                            <el-icon><Document /></el-icon>
+                            <span>{{ attachment.name }} ({{ attachment.size }})</span>
+                            <el-link type="primary" :underline="false">[下载]</el-link>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <!-- 非参与者提示 -->
+                    <div v-else class="sensitive-info-placeholder">
+                      <el-alert
+                        type="info"
+                        :closable="false"
+                        show-icon
+                      >
+                        <template #title>
+                          <span>此里程碑包含项目参与者专属信息，仅项目发布方和承接方可查看</span>
+                        </template>
+                      </el-alert>
+                    </div>
+                    
+                    <!-- 操作按钮区域：仅承接方可操作 -->
+                    <div v-if="isProjectParticipant && canOperateMilestone(milestone)" class="milestone-actions">
+                      <el-button 
+                        v-if="isSimpleMilestone(milestone)"
+                        type="primary" 
+                        size="default"
+                        @click="openMilestoneDialog(milestone)"
+                      >
+                        <el-icon><Edit /></el-icon>
+                        更新进度
+                      </el-button>
+                      <el-button 
+                        v-else
+                        type="primary" 
+                        size="default"
+                        @click="goToMilestoneSubmit(milestone)"
+                      >
+                        <el-icon><Upload /></el-icon>
+                        提交{{ milestone.title }}
+                        <el-icon><ArrowRight /></el-icon>
+                      </el-button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- 空状态 -->
+              <el-empty v-if="milestones.length === 0" description="暂无里程碑信息" />
+            </div>
+          </el-tab-pane>
+          <!-- ========== 结束：项目里程碑跟踪标签页 (PROJECT_MILESTONE_TRACKING_SECTION) ========== -->
         </el-tabs>
       </div>
     </div>
+    
+    <!-- ========== 开始：里程碑操作弹窗 (MILESTONE_OPERATION_DIALOG) ========== -->
+    <el-dialog
+      v-model="milestoneDialogVisible"
+      :title="currentMilestone ? currentMilestone.title + ' - 更新进度' : '里程碑操作'"
+      width="800px"
+      :close-on-click-modal="false"
+      destroy-on-close
+    >
+      <el-form 
+        v-if="currentMilestone"
+        ref="milestoneFormRef"
+        :model="milestoneForm" 
+        :rules="milestoneRules" 
+        label-width="120px"
+      >
+        <!-- 完成进度 -->
+        <el-form-item label="完成进度" prop="progress">
+          <div class="progress-input-group">
+            <el-slider 
+              v-model="milestoneForm.progress" 
+              :min="0" 
+              :max="100"
+              :show-tooltip="true"
+            />
+            <span class="progress-text">{{ milestoneForm.progress }}%</span>
+          </div>
+        </el-form-item>
+        
+        <!-- 完成说明 -->
+        <el-form-item label="完成说明" prop="description">
+          <el-input
+            v-model="milestoneForm.description"
+            type="textarea"
+            :rows="4"
+            placeholder="请描述本里程碑的完成情况、遇到的问题、解决方案等..."
+            show-word-limit
+            maxlength="1000"
+          />
+        </el-form-item>
+        
+        <!-- 交付物上传 -->
+        <el-form-item label="交付物" prop="deliverables">
+          <el-upload
+            v-model:file-list="milestoneForm.deliverables"
+            action="#"
+            multiple
+            :auto-upload="false"
+            :limit="10"
+          >
+            <el-button type="primary">
+              <el-icon><Upload /></el-icon>
+              上传文件
+            </el-button>
+            <template #tip>
+              <div class="el-upload__tip">
+                支持上传多个文件，单个文件不超过 100MB，最多10个文件
+              </div>
+            </template>
+          </el-upload>
+        </el-form-item>
+        
+        <!-- 问题与风险（可选） -->
+        <el-form-item label="问题与风险">
+          <el-input
+            v-model="milestoneForm.risks"
+            type="textarea"
+            :rows="3"
+            placeholder="如有问题或风险，请在此说明..."
+            show-word-limit
+            maxlength="500"
+          />
+        </el-form-item>
+      </el-form>
+      
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="milestoneDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="submitMilestone" :loading="submitting">
+            提交
+          </el-button>
+        </div>
+      </template>
+    </el-dialog>
+    <!-- ========== 结束：里程碑操作弹窗 (MILESTONE_OPERATION_DIALOG) ========== -->
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Star, ChatDotRound, Document, Trophy, View, User } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
+import { Star, ChatDotRound, Document, Trophy, View, User, Check, Calendar, Lock, Edit, Upload, ArrowRight } from '@element-plus/icons-vue'
+import { useAuthStore } from '@/store/modules/auth'
 
 const route = useRoute()
 const router = useRouter()
+const authStore = useAuthStore()
 const activeTab = ref('details')
-const project = ref({
-  rating: 4.5
+
+// 根据项目ID初始化项目数据（模拟数据，后续从API获取）
+const initProjectData = () => {
+  const projectId = route.params.id
+  
+  // 项目1的承接方包含测试学生用户
+  const bidderIdsMap = {
+    '1': ['test_student_001', 'student-001', 'student-002'], // project/1 包含测试学生用户
+    '2': ['student-001', 'student-002'],
+    '3': ['student-002', 'student-003']
+  }
+  
+  return {
+    rating: 4.5,
+    publisherId: 'enterprise-001', // 发布方ID（模拟数据，后续从API获取）
+    bidderIds: bidderIdsMap[projectId] || ['student-001', 'student-002'] // 承接方ID列表（根据项目ID设置，project/1包含测试学生用户）
+  }
+}
+
+const project = ref(initProjectData())
+
+// ========== 开始：项目里程碑跟踪数据 (PROJECT_MILESTONE_TRACKING_DATA) ==========
+// 从store获取当前用户信息
+const currentUser = computed(() => {
+  return {
+    id: authStore.userInfo?.id || '', // 当前用户ID
+    role: authStore.userRole || 'visitor', // 当前用户角色：'student' | 'enterprise' | 'teacher' | 'admin' | 'visitor'
+    isLoggedIn: authStore.isAuthenticated // 是否已登录
+  }
 })
+
+// 判断当前用户是否是项目参与者（发布方或承接方）
+const isProjectParticipant = computed(() => {
+  if (!currentUser.value.isLoggedIn) return false
+  
+  const userId = currentUser.value.id
+  const userRole = currentUser.value.role
+  
+  // 判断是否是发布方
+  if (userRole === 'enterprise' && userId === project.value.publisherId) {
+    return true
+  }
+  
+  // 判断是否是承接方（学生角色且在承接方列表中）
+  if (userRole === 'student' && project.value.bidderIds && project.value.bidderIds.includes(userId)) {
+    return true
+  }
+  
+  // 管理员和教师也可以查看（可选，根据需求调整）
+  // if (userRole === 'admin' || userRole === 'teacher') {
+  //   return true
+  // }
+  
+  return false
+})
+
+// 里程碑数据（当前使用模拟数据，后续接入后端）
+// 里程碑与项目阶段对应关系：
+// - PROPOSAL_SUBMIT: 方案提交阶段
+// - PROJECT_START: 项目执行阶段 - 项目启动
+// - REQUIREMENT_ANALYSIS: 项目执行阶段 - 需求分析
+// - SYSTEM_DESIGN: 项目执行阶段 - 系统设计
+// - CORE_DEVELOPMENT: 项目执行阶段 - 核心功能开发
+// - WEEKLY_REPORT: 项目执行阶段 - 周报/月报（可多次）
+// - MIDTERM_DEFENSE: 中期答辩阶段
+// - FINAL_DELIVERY: 成果提交阶段
+const milestones = ref([
+  {
+    id: 'milestone-proposal',
+    code: 'PROPOSAL_SUBMIT',
+    title: '方案提交完成',
+    description: '提交项目实施方案，包括技术方案、实施计划、团队分工等',
+    status: 'completed',
+    plannedDate: '2025-11-21',
+    actualDate: '2025-11-20',
+    delayDays: -1,
+    deliverables: ['项目实施方案', '技术方案文档', '实施计划（甘特图）', '团队分工说明'],
+    // 以下为敏感信息，仅项目参与者可见
+    progressDetail: {
+      percentage: 100,
+      status: 'success',
+      note: '会议顺利召开，所有团队成员参与，明确了项目目标和分工'
+    },
+    communications: [
+      {
+        author: '李经理（企业方）',
+        time: '2025-11-16 14:30',
+        content: '项目启动顺利，期待团队的表现'
+      },
+      {
+        author: '张同学（团队负责人）',
+        time: '2025-11-16 15:00',
+        content: '收到，我们会按照计划推进项目'
+      }
+    ],
+    internalNotes: '项目启动顺利，团队积极性高，预计可以提前完成',
+    sensitiveAttachments: [
+      { name: '项目启动会录音.mp3', size: '12.5MB' },
+      { name: '内部讨论记录.docx', size: '856KB' }
+    ]
+  },
+  {
+    id: 'milestone-requirement',
+    code: 'REQUIREMENT_ANALYSIS',
+    title: '需求分析完成',
+    description: '完成详细需求分析，输出需求规格说明书',
+    status: 'completed',
+    plannedDate: '2025-11-25',
+    actualDate: '2025-11-24',
+    delayDays: -1,
+    deliverables: ['需求规格说明书v1.0', '需求分析报告'],
+    progressDetail: {
+      percentage: 100,
+      status: 'success',
+      note: '提前1天完成，需求分析全面细致'
+    },
+    communications: [
+      {
+        author: '王同学（需求分析师）',
+        time: '2025-11-24 18:00',
+        content: '需求分析已完成，请企业方审核'
+      }
+    ],
+    internalNotes: '需求分析质量较高，企业方反馈良好',
+    sensitiveAttachments: []
+  },
+  {
+    id: 'milestone-design',
+    code: 'SYSTEM_DESIGN',
+    title: '系统设计完成',
+    description: '完成系统架构设计和详细设计，输出设计文档',
+    status: 'in-progress',
+    plannedDate: '2025-12-05',
+    actualDate: null,
+    delayDays: 0,
+    deliverables: ['系统架构设计文档', '数据库设计文档', '接口设计文档'],
+    progressDetail: {
+      percentage: 75,
+      status: null,
+      note: '架构设计已完成，正在进行详细设计，预计12月4日完成'
+    },
+    communications: [
+      {
+        author: '赵同学（架构师）',
+        time: '2025-11-30 16:20',
+        content: '架构设计已完成，正在完善详细设计文档'
+      },
+      {
+        author: '李经理（企业方）',
+        time: '2025-11-30 17:00',
+        content: '架构设计思路清晰，请继续完善详细设计'
+      }
+    ],
+    internalNotes: '设计进度正常，团队协作良好',
+    sensitiveAttachments: [
+      { name: '架构设计评审记录.pdf', size: '2.3MB' }
+    ]
+  },
+  {
+    id: 'milestone-development',
+    code: 'CORE_DEVELOPMENT',
+    title: '核心功能开发完成',
+    description: '完成系统核心功能模块的开发',
+    status: 'pending',
+    plannedDate: '2025-12-20',
+    actualDate: null,
+    delayDays: null,
+    deliverables: ['核心功能代码', '单元测试报告', '功能演示视频'],
+    progressDetail: null,
+    communications: [],
+    internalNotes: null,
+    sensitiveAttachments: []
+  },
+  {
+    id: 'milestone-weekly',
+    code: 'WEEKLY_REPORT',
+    title: '周报/月报提交',
+    description: '定期提交项目进度报告，包括本周完成、下周计划、问题与风险',
+    status: 'in-progress',
+    plannedDate: '2025-12-15',
+    actualDate: null,
+    delayDays: null,
+    deliverables: ['周报/月报文档'],
+    progressDetail: {
+      percentage: 0,
+      status: null,
+      note: '请定期提交周报/月报，记录项目进展'
+    },
+    communications: [],
+    internalNotes: null,
+    sensitiveAttachments: []
+  },
+  {
+    id: 'milestone-midterm',
+    code: 'MIDTERM_DEFENSE',
+    title: '中期答辩',
+    description: '项目中期检查，展示项目进展和阶段性成果',
+    status: 'pending',
+    plannedDate: '2025-12-28',
+    actualDate: null,
+    delayDays: null,
+    deliverables: ['中期答辩PPT', '阶段性成果展示', '演练视频'],
+    progressDetail: null,
+    communications: [],
+    internalNotes: null,
+    sensitiveAttachments: []
+  },
+  {
+    id: 'milestone-delivery',
+    code: 'FINAL_DELIVERY',
+    title: '成果提交',
+    description: '提交最终项目成果，包括代码包、文档、测试报告等',
+    status: 'pending',
+    plannedDate: '2026-01-15',
+    actualDate: null,
+    delayDays: null,
+    deliverables: ['最终代码包', '产品说明书', '测试报告', '用户手册', '演示视频'],
+    progressDetail: null,
+    communications: [],
+    internalNotes: null,
+    sensitiveAttachments: []
+  }
+])
+
+// 获取里程碑状态标签类型
+const getMilestoneTagType = (status) => {
+  const typeMap = {
+    'completed': 'success',
+    'in-progress': 'warning',
+    'pending': 'info',
+    'delayed': 'danger'
+  }
+  return typeMap[status] || 'info'
+}
+
+// 获取里程碑状态文本
+const getMilestoneStatusText = (status) => {
+  const textMap = {
+    'completed': '已完成',
+    'in-progress': '进行中',
+    'pending': '待开始',
+    'delayed': '已延迟'
+  }
+  return textMap[status] || '未知'
+}
+
+// ========== 开始：里程碑操作相关 (MILESTONE_OPERATION_LOGIC) ==========
+// 判断是否可以操作里程碑
+const canOperateMilestone = (milestone) => {
+  // 1. 必须是项目参与者
+  if (!isProjectParticipant.value) return false
+  
+  // 2. 必须是承接方（学生角色）
+  if (currentUser.value.role !== 'student') return false
+  
+  // 3. 必须在承接方列表中
+  if (!project.value.bidderIds?.includes(currentUser.value.id)) {
+    return false
+  }
+  
+  // 4. 里程碑状态必须是"进行中"或"待开始"
+  if (milestone.status !== 'in-progress' && milestone.status !== 'pending') {
+    return false
+  }
+  
+  return true
+}
+
+// 判断是否是简单里程碑（使用弹窗操作）
+const isSimpleMilestone = (milestone) => {
+  // 简单里程碑：项目启动会、需求分析、系统设计、核心功能开发、周报/月报
+  const simpleMilestones = [
+    'PROJECT_START',
+    'REQUIREMENT_ANALYSIS',
+    'SYSTEM_DESIGN',
+    'CORE_DEVELOPMENT',
+    'WEEKLY_REPORT'
+  ]
+  return simpleMilestones.includes(milestone.code)
+}
+
+// 里程碑操作弹窗相关
+const milestoneDialogVisible = ref(false)
+const currentMilestone = ref(null)
+const milestoneFormRef = ref(null)
+const submitting = ref(false)
+
+const milestoneForm = ref({
+  progress: 0,
+  description: '',
+  deliverables: [],
+  risks: ''
+})
+
+const milestoneRules = {
+  progress: [
+    { required: true, message: '请设置完成进度', trigger: 'change' }
+  ],
+  description: [
+    { required: true, message: '请填写完成说明', trigger: 'blur' },
+    { min: 10, message: '完成说明至少10个字符', trigger: 'blur' }
+  ]
+}
+
+// 打开里程碑操作弹窗
+const openMilestoneDialog = (milestone) => {
+  currentMilestone.value = milestone
+  // 初始化表单数据
+  milestoneForm.value = {
+    progress: milestone.progressDetail?.percentage || 0,
+    description: milestone.progressDetail?.note || '',
+    deliverables: [],
+    risks: ''
+  }
+  milestoneDialogVisible.value = true
+}
+
+// 提交里程碑操作
+const submitMilestone = async () => {
+  if (!milestoneFormRef.value) return
+  
+  try {
+    await milestoneFormRef.value.validate()
+    submitting.value = true
+    
+    // TODO: 调用API提交数据
+    // const response = await submitMilestoneProgress(currentMilestone.value.id, milestoneForm.value)
+    
+    // 模拟API调用
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    
+    // 更新本地里程碑状态
+    const index = milestones.value.findIndex(m => m.id === currentMilestone.value.id)
+    if (index !== -1) {
+      milestones.value[index] = {
+        ...milestones.value[index],
+        status: milestoneForm.value.progress === 100 ? 'completed' : 'in-progress',
+        actualDate: milestoneForm.value.progress === 100 ? new Date().toISOString().split('T')[0] : null,
+        progressDetail: {
+          percentage: milestoneForm.value.progress,
+          status: milestoneForm.value.progress === 100 ? 'success' : null,
+          note: milestoneForm.value.description
+        }
+      }
+    }
+    
+    ElMessage.success('提交成功')
+    milestoneDialogVisible.value = false
+  } catch (error) {
+    if (error !== false) { // 表单验证失败时不显示错误
+      ElMessage.error('提交失败：' + (error.message || '未知错误'))
+    }
+  } finally {
+    submitting.value = false
+  }
+}
+
+// 跳转到里程碑提交页面
+const goToMilestoneSubmit = (milestone) => {
+  const projectId = route.params.id
+  const milestoneCode = milestone.code
+  
+  // 根据里程碑类型跳转到不同的提交页面
+  const routeMap = {
+    'PROPOSAL_SUBMIT': `/project/${projectId}/milestone/proposal`,
+    'MIDTERM_DEFENSE': `/project/${projectId}/milestone/midterm`,
+    'FINAL_DELIVERY': `/project/${projectId}/milestone/delivery`
+  }
+  
+  const targetRoute = routeMap[milestoneCode] || `/student/Submit?id=${projectId}&milestone=${milestoneCode}`
+  router.push(targetRoute)
+}
+// ========== 结束：里程碑操作相关 (MILESTONE_OPERATION_LOGIC) ==========
+// ========== 结束：项目里程碑跟踪数据 (PROJECT_MILESTONE_TRACKING_DATA) ==========
+
+// ========== 开始：项目阶段数据 (PROJECT_STEPS_DATA) ==========
+// 项目阶段数据（当前使用模拟数据，后续接入后端）
+const projectSteps = ref([
+  {
+    code: 'BIDDING',
+    title: '揭榜征集',
+    status: 'finish',
+    timeInfo: '2025-11-03',
+    startDate: '2025-11-01',
+    endDate: '2025-11-15',
+    deadline: '2025-11-15'
+  },
+  {
+    code: 'PROPOSAL',
+    title: '方案提交',
+    status: 'process',  // 当前进行中
+    timeInfo: '剩余5天',
+    startDate: '2025-11-16',
+    endDate: '2025-11-21',
+    deadline: '2025-11-21'
+  },
+  {
+    code: 'EXECUTION',
+    title: '项目执行',
+    status: 'wait',
+    timeInfo: '预计30天',
+    startDate: null,
+    endDate: null,
+    deadline: null
+  },
+  {
+    code: 'MIDTERM',
+    title: '中期答辩',
+    status: 'wait',
+    timeInfo: '预计7天',
+    startDate: null,
+    endDate: null,
+    deadline: null
+  },
+  {
+    code: 'DELIVERY',
+    title: '成果提交',
+    status: 'wait',
+    timeInfo: '预计5天',
+    startDate: null,
+    endDate: null,
+    deadline: null
+  },
+  {
+    code: 'REVIEW',
+    title: '成果评审',
+    status: 'wait',
+    timeInfo: '预计7天',
+    startDate: null,
+    endDate: null,
+    deadline: null
+  },
+  {
+    code: 'ANNOUNCEMENT',
+    title: '结项公示',
+    status: 'wait',
+    timeInfo: '预计7天',
+    startDate: null,
+    endDate: null,
+    deadline: null
+  }
+])
+
+/**
+ * 格式化项目阶段数据（预留函数，后续接入后端时使用）
+ * @param {Object} data - 后端返回的项目数据
+ * @returns {Array} 格式化后的阶段数组
+ */
+const formatProjectSteps = (data) => {
+  // TODO: 根据后端数据结构格式化阶段数据
+  // 计算每个阶段的状态和时间信息
+  return projectSteps.value
+}
+
+/**
+ * 计算剩余时间（预留函数，后续接入后端时使用）
+ * @param {String} deadline - 截止日期
+ * @returns {String} 剩余时间文本
+ */
+const calculateRemainingTime = (deadline) => {
+  if (!deadline) return ''
+  const now = new Date()
+  const end = new Date(deadline)
+  const diff = Math.ceil((end - now) / (1000 * 60 * 60 * 24))
+  if (diff > 0) {
+    return `剩余${diff}天`
+  } else if (diff === 0) {
+    return '今天截止'
+  } else {
+    return `已逾期${Math.abs(diff)}天`
+  }
+}
+// ========== 结束：项目阶段数据 (PROJECT_STEPS_DATA) ==========
 
 const goBackToHall = () => {
   router.push('/projects')
@@ -261,8 +1056,34 @@ onMounted(() => {
   const projectId = route.params.id
   if (projectId) {
     // 根据项目ID加载数据
+    // TODO: 后续接入后端API获取真实数据
+    // loadProjectSteps(projectId)
+    // loadMilestones(projectId)
+    // loadProjectInfo(projectId) // 加载项目信息，包括发布方ID和承接方ID列表
   }
 })
+
+// TODO: 后续接入后端API时使用
+// 加载项目里程碑数据
+// const loadMilestones = async (projectId) => {
+//   try {
+//     // const response = await getProjectMilestones(projectId)
+//     // milestones.value = formatMilestones(response.data)
+//   } catch (error) {
+//     console.error('加载项目里程碑失败:', error)
+//     ElMessage.error('加载项目里程碑失败，请稍后重试')
+//   }
+// }
+
+// TODO: 后续接入后端API时使用
+// const loadProjectSteps = async (projectId) => {
+//   try {
+//     // const response = await getProjectSteps(projectId)
+//     // projectSteps.value = formatProjectSteps(response.data)
+//   } catch (error) {
+//     console.error('加载项目进度失败:', error)
+//   }
+// }
 </script>
 
 <style scoped>
@@ -287,6 +1108,26 @@ onMounted(() => {
 .main-content::-webkit-scrollbar {
   display: none;
 }
+
+/* ========== 开始：面包屑导航样式 (BREADCRUMB_NAVIGATION_STYLES) ========== */
+.breadcrumb-section {
+  font-size: 14px;
+  color: #666;
+}
+
+.mb20 {
+  margin-bottom: 20px;
+}
+
+.color-deep-blue {
+  color: #4a7cdd;
+  text-decoration: none;
+}
+
+.color-deep-blue:hover {
+  text-decoration: underline;
+}
+/* ========== 结束：面包屑导航样式 (BREADCRUMB_NAVIGATION_STYLES) ========== */
 
 .content-row {
   display: flex;
@@ -534,6 +1375,138 @@ onMounted(() => {
   gap: 8px;
 }
 
+/* ========== 开始：项目进度条样式 (PROJECT_STEPS_PROGRESS_STYLES) ========== */
+.project-steps-container {
+  margin-top: 15px;
+  margin-bottom: 30px;
+  background: white;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+}
+
+.mt15 {
+  margin-top: 15px;
+}
+
+.ant-steps {
+  display: flex;
+  gap: 0;
+}
+
+.ant-steps-horizontal {
+  flex-direction: row;
+}
+
+.ant-steps-label-vertical .ant-steps-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.ant-steps-item {
+  position: relative;
+}
+
+.ant-steps-item-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.ant-steps-item-tail {
+  position: absolute;
+  left: 50%;
+  top: 16px;
+  width: 100%;
+  height: 2px;
+  background: #e8e8e8;
+  z-index: 0;
+}
+
+.ant-steps-item:last-child .ant-steps-item-tail {
+  display: none;
+}
+
+.ant-steps-item-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  z-index: 1;
+  position: relative;
+}
+
+.ant-steps-item-finish .ant-steps-item-icon {
+  background: #4a7cdd;
+  color: white;
+}
+
+.ant-steps-item-finish .ant-steps-item-tail {
+  background: #4a7cdd;
+}
+
+.ant-steps-item-process .ant-steps-item-icon {
+  background: white;
+  border: 2px solid #4a7cdd;
+}
+
+.ant-steps-item-wait .ant-steps-item-icon {
+  background: white;
+  border: 2px solid #e8e8e8;
+}
+
+.ant-steps-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-check {
+  font-size: 18px;
+}
+
+.circle-icon {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #e8e8e8;
+}
+
+.ant-steps-item-process .circle-icon {
+  background: #4a7cdd;
+}
+
+.ant-steps-item-content {
+  margin-top: 12px;
+  text-align: center;
+}
+
+.ant-steps-item-title {
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.ant-steps-item-description {
+  font-size: 12px;
+  color: #999;
+}
+
+.color-grey-6 {
+  color: #999;
+}
+
+.font-12 {
+  font-size: 12px;
+}
+/* ========== 结束：项目进度条样式 (PROJECT_STEPS_PROGRESS_STYLES) ========== */
+
 .tab-section {
   background: white;
   border-radius: 8px;
@@ -592,6 +1565,388 @@ onMounted(() => {
   padding: 20px 0;
   color: #666;
 }
+
+/* ========== 开始：项目里程碑跟踪样式 (PROJECT_MILESTONE_TRACKING_STYLES) ========== */
+.milestone-tracking-content {
+  padding: 20px 0;
+}
+
+.permission-notice {
+  margin-bottom: 24px;
+}
+
+.milestone-timeline {
+  position: relative;
+  padding-left: 40px;
+}
+
+.milestone-item {
+  position: relative;
+  margin-bottom: 32px;
+  display: flex;
+  align-items: flex-start;
+}
+
+.milestone-item:last-child {
+  margin-bottom: 0;
+}
+
+/* 时间轴连接线 */
+.timeline-connector {
+  position: absolute;
+  left: -32px;
+  top: 24px;
+  bottom: -32px;
+  width: 2px;
+  background: #e4e7ed;
+  z-index: 0;
+}
+
+.milestone-item.milestone-completed .timeline-connector {
+  background: #67c23a;
+}
+
+.milestone-item.milestone-in-progress .timeline-connector {
+  background: linear-gradient(to bottom, #67c23a 0%, #67c23a 50%, #e4e7ed 50%);
+}
+
+/* 里程碑标记 */
+.milestone-marker {
+  position: absolute;
+  left: -40px;
+  top: 0;
+  width: 24px;
+  height: 24px;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.marker-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border: 2px solid #e4e7ed;
+  color: #e4e7ed;
+  font-size: 14px;
+}
+
+.marker-icon.completed {
+  background: #67c23a;
+  border-color: #67c23a;
+  color: white;
+}
+
+.marker-icon.in-progress {
+  border-color: #409eff;
+  position: relative;
+}
+
+.pulse-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #409eff;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.2);
+  }
+}
+
+/* 里程碑卡片 */
+.milestone-card {
+  flex: 1;
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-left: 4px solid #e4e7ed;
+  transition: all 0.3s ease;
+}
+
+.milestone-item.milestone-completed .milestone-card {
+  border-left-color: #67c23a;
+}
+
+.milestone-item.milestone-in-progress .milestone-card {
+  border-left-color: #409eff;
+}
+
+.milestone-item.milestone-delayed .milestone-card {
+  border-left-color: #f56c6c;
+}
+
+.milestone-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.milestone-header {
+  margin-bottom: 16px;
+}
+
+.milestone-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.milestone-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.milestone-meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 14px;
+  color: #666;
+}
+
+.milestone-date {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.milestone-actual-date {
+  color: #67c23a;
+}
+
+.milestone-delay {
+  color: #f56c6c;
+  font-weight: 500;
+}
+
+.milestone-description {
+  margin-bottom: 16px;
+  color: #666;
+  line-height: 1.6;
+}
+
+.milestone-description p {
+  margin: 0;
+}
+
+/* 交付物列表 */
+.milestone-deliverables {
+  margin-bottom: 16px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 6px;
+}
+
+.section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.deliverables-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.deliverables-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  color: #666;
+  font-size: 14px;
+}
+
+/* 敏感信息区域 */
+.milestone-sensitive-info {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px dashed #e4e7ed;
+}
+
+.sensitive-section {
+  margin-bottom: 20px;
+}
+
+.sensitive-section:last-child {
+  margin-bottom: 0;
+}
+
+.progress-detail {
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 6px;
+}
+
+.progress-note {
+  margin: 8px 0 0 0;
+  font-size: 13px;
+  color: #666;
+}
+
+/* 沟通记录 */
+.communications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.communication-item {
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border-left: 3px solid #409eff;
+}
+
+.comm-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+
+.comm-author {
+  font-weight: 600;
+  color: #409eff;
+}
+
+.comm-time {
+  color: #999;
+}
+
+.comm-content {
+  margin: 0;
+  color: #666;
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+/* 内部备注 */
+.internal-notes {
+  padding: 12px;
+  background: #fff7e6;
+  border-radius: 6px;
+  border-left: 3px solid #faad14;
+}
+
+.internal-notes p {
+  margin: 0;
+  color: #666;
+  line-height: 1.6;
+  font-size: 14px;
+}
+
+/* 敏感附件 */
+.attachments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.attachments-list .attachment-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #f8f9fa;
+  border-radius: 4px;
+}
+
+/* 敏感信息占位符 */
+.sensitive-info-placeholder {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px dashed #e4e7ed;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .milestone-timeline {
+    padding-left: 30px;
+  }
+  
+  .milestone-marker {
+    left: -30px;
+  }
+  
+  .timeline-connector {
+    left: -22px;
+  }
+  
+  .milestone-title-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .milestone-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+/* 里程碑操作按钮区域 */
+.milestone-actions {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e4e7ed;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.milestone-actions .el-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* 里程碑操作弹窗样式 */
+.progress-input-group {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.progress-input-group .el-slider {
+  flex: 1;
+}
+
+.progress-text {
+  min-width: 60px;
+  text-align: right;
+  font-weight: 600;
+  color: #409eff;
+  font-size: 16px;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* ========== 结束：项目里程碑跟踪样式 (PROJECT_MILESTONE_TRACKING_STYLES) ========== */
 
 @media (max-width: 768px) {
   .content-row {
