@@ -72,7 +72,7 @@
               </div>
               <div class="info-item">
                 <span class="label">剩余时间</span>
-                <span class="value time-left">⏰ 7天</span>
+                <span class="value time-left">7天</span>
               </div>
             </div>
             
@@ -177,7 +177,61 @@
         </div>
       </div>
       <!-- ========== 结束：项目进度条部分 (PROJECT_STEPS_PROGRESS_SECTION) ========== -->
-      
+
+      <!-- 当前/下一阶段卡片 -->
+      <section class="stage-highlight detail-highlight">
+        <el-row :gutter="20">
+          <el-col :xs="24">
+            <el-card class="highlight-card current" v-if="currentMilestoneHighlight">
+              <!-- 左上角页签 -->
+              <div class="milestone-tab-label">当前里程碑</div>
+              <!-- 标题和状态标签在同一行 -->
+              <div class="title-with-status">
+                <h2 class="stage-title">{{ currentMilestoneHighlight.title }}</h2>
+                <el-tag :type="getMilestoneTagType(currentMilestoneHighlight.status)" class="status-tag-inline">
+                  {{ getMilestoneStatusText(currentMilestoneHighlight.status) }}
+                </el-tag>
+              </div>
+              <p class="stage-desc">{{ truncateText(currentMilestoneHighlight.description, 110) }}</p>
+              <!-- 交付物、计划完成时间、剩余/逾期天数和查看详情按钮水平排列 -->
+              <div class="stage-info-row">
+                <div class="info-items-group">
+                  <div class="info-item-compact">
+                    <span class="info-label">交付物</span>
+                    <span class="info-value">{{ currentMilestoneHighlight.deliverables ? currentMilestoneHighlight.deliverables.length : 0 }}</span>
+                  </div>
+                  <div class="info-item-compact">
+                    <span class="info-label">计划完成时间</span>
+                    <span class="info-value">{{ currentMilestoneHighlight.plannedDate || '待定' }}</span>
+                  </div>
+                  <div class="info-item-compact">
+                    <span class="info-label">剩余/逾期天数</span>
+                    <span class="info-value" :class="{ overdue: currentMilestoneHighlightRemainInfo.overdue }">
+                      {{ currentMilestoneHighlightRemainInfo.text }}
+                    </span>
+                  </div>
+                </div>
+                <!-- 查看详情按钮在右侧，与状态标签右端对齐 -->
+                <div class="stage-actions-inline">
+                  <el-button
+                    type="primary"
+                    size="small"
+                    text
+                    @click="openMilestoneDetailDialog(currentMilestoneHighlight)"
+                  >
+                    查看详情
+                    <el-icon><ArrowRight /></el-icon>
+                  </el-button>
+                </div>
+              </div>
+            </el-card>
+            <el-card class="highlight-card empty" v-else>
+              <p class="card-empty">暂无当前里程碑信息</p>
+            </el-card>
+          </el-col>
+        </el-row>
+      </section>
+
       <!-- 标签页切换 -->
       <div class="tab-section">
         <el-tabs v-model="activeTab" class="detail-tabs">
@@ -407,13 +461,13 @@
     <!-- ========== 开始：里程碑操作弹窗 (MILESTONE_OPERATION_DIALOG) ========== -->
     <el-dialog
       v-model="milestoneDialogVisible"
-      :title="currentMilestone ? currentMilestone.title + ' - 更新进度' : '里程碑操作'"
+      :title="currentMilestoneDialog ? currentMilestoneDialog.title + ' - 更新进度' : '里程碑操作'"
       width="800px"
       :close-on-click-modal="false"
       destroy-on-close
     >
       <el-form 
-        v-if="currentMilestone"
+        v-if="currentMilestoneDialog"
         ref="milestoneFormRef"
         :model="milestoneForm" 
         :rules="milestoneRules" 
@@ -745,6 +799,7 @@ const milestones = ref([
       status: 'success',
       note: '所有申请已审核完毕，承接方已确定'
     },
+    riskLevel: 'low',
     communications: [
       {
         author: '陈老师（教务中心）',
@@ -770,6 +825,7 @@ const milestones = ref([
       status: 'success',
       note: '方案已通过评审，获得专家组一致认可'
     },
+    riskLevel: 'low',
     communications: [
       {
         author: '王岚（评审专家）',
@@ -797,6 +853,7 @@ const milestones = ref([
       status: 'warning',
       note: '中期答辩已完成，等待评审结论归档'
     },
+    riskLevel: 'medium',
     communications: [
       {
         author: '孙赫（专家委员会）',
@@ -829,6 +886,7 @@ const milestones = ref([
       status: 'exception',
       note: '成果整理中，注意截止日期临近'
     },
+    riskLevel: 'high',
     communications: [],
     internalNotes: '需要加快进度，确保按时提交',
     sensitiveAttachments: []
@@ -848,6 +906,7 @@ const milestones = ref([
       status: 'info',
       note: '等待成果提交完成后启动评审'
     },
+    riskLevel: 'high',
     communications: [],
     internalNotes: '',
     sensitiveAttachments: []
@@ -867,6 +926,7 @@ const milestones = ref([
       status: 'info',
       note: '等待评审完成后启动公示流程'
     },
+    riskLevel: 'medium',
     communications: [],
     internalNotes: '',
     sensitiveAttachments: []
@@ -886,11 +946,35 @@ const milestones = ref([
       status: 'info',
       note: '等待前序阶段完成'
     },
+    riskLevel: 'low',
     communications: [],
     internalNotes: '',
     sensitiveAttachments: []
   }
 ])
+
+// 计算当前里程碑，确保卡片始终有聚焦阶段
+const currentMilestoneHighlight = computed(() => {
+  if (!milestones.value.length) return null
+  return (
+    milestones.value.find(milestone => milestone.status === 'in-progress') ||
+    milestones.value.find(milestone => milestone.status === 'pending') ||
+    milestones.value[milestones.value.length - 1]
+  )
+})
+
+const currentMilestoneHighlightRemainInfo = computed(() => {
+  if (!currentMilestoneHighlight.value) {
+    return { text: '—', overdue: false }
+  }
+  const targetDate =
+    currentMilestoneHighlight.value.plannedDate ||
+    currentMilestoneHighlight.value.actualDate
+  if (!targetDate) {
+    return { text: '—', overdue: false }
+  }
+  return calculateRemainingDays(targetDate)
+})
 
 // 获取里程碑状态标签类型
 const getMilestoneTagType = (status) => {
@@ -912,6 +996,19 @@ const getMilestoneStatusText = (status) => {
     'delayed': '已延迟'
   }
   return textMap[status] || '未知'
+}
+
+// 供当前里程碑卡片使用的风险等级语义化
+const riskTagType = (level) => {
+  if (level === 'high') return 'danger'
+  if (level === 'medium') return 'warning'
+  return 'success'
+}
+
+const riskLabel = (level) => {
+  if (level === 'high') return '高风险'
+  if (level === 'medium') return '中风险'
+  return '低风险'
 }
 
 // ========== 开始：里程碑操作相关 (MILESTONE_OPERATION_LOGIC) ==========
@@ -950,7 +1047,7 @@ const isSimpleMilestone = (milestone) => {
 
 // 里程碑操作弹窗相关
 const milestoneDialogVisible = ref(false)
-const currentMilestone = ref(null)
+const currentMilestoneDialog = ref(null)
 const milestoneFormRef = ref(null)
 const submitting = ref(false)
 
@@ -973,7 +1070,7 @@ const milestoneRules = {
 
 // 打开里程碑操作弹窗
 const openMilestoneDialog = (milestone) => {
-  currentMilestone.value = milestone
+  currentMilestoneDialog.value = milestone
   // 初始化表单数据
   milestoneForm.value = {
     progress: milestone.progressDetail?.percentage || 0,
@@ -993,13 +1090,13 @@ const submitMilestone = async () => {
     submitting.value = true
     
     // TODO: 调用API提交数据
-    // const response = await submitMilestoneProgress(currentMilestone.value.id, milestoneForm.value)
+    // const response = await submitMilestoneProgress(currentMilestoneDialog.value.id, milestoneForm.value)
     
     // 模拟API调用
     await new Promise(resolve => setTimeout(resolve, 1000))
     
     // 更新本地里程碑状态
-    const index = milestones.value.findIndex(m => m.id === currentMilestone.value.id)
+    const index = milestones.value.findIndex(m => m.id === currentMilestoneDialog.value.id)
     if (index !== -1) {
       milestones.value[index] = {
         ...milestones.value[index],
@@ -1220,6 +1317,24 @@ onMounted(() => {
 //     console.error('加载项目进度失败:', error)
 //   }
 // }
+
+// 计算距离目标日期的剩余/逾期信息，提供给当前里程碑卡片
+const calculateRemainingDays = (dateStr) => {
+  if (!dateStr) {
+    return { text: '—', overdue: false }
+  }
+  const endDate = new Date(dateStr)
+  if (Number.isNaN(endDate.getTime())) {
+    return { text: '—', overdue: false }
+  }
+  const now = new Date()
+  const diff = endDate.getTime() - now.getTime()
+  const days = Math.ceil(diff / (1000 * 60 * 60 * 24))
+  if (days >= 0) {
+    return { text: `剩余 ${days} 天`, overdue: false }
+  }
+  return { text: `逾期 ${Math.abs(days)} 天`, overdue: true }
+}
 </script>
 
 <style scoped>
@@ -1347,24 +1462,34 @@ onMounted(() => {
 .info-item {
   flex: 1;
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 12px;
 }
 
 .info-item .label {
   color: #666;
-  font-size: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  min-width: 90px;
+  flex-shrink: 0;
+  text-align: right;
 }
 
 .info-item .value {
   color: #333;
   font-weight: 500;
+  font-size: 15px;
+  flex: 1;
+  text-align: left;
+  line-height: 1.5;
 }
 
 .price {
   color: #f56c6c;
   font-weight: bold;
-  font-size: 18px;
+  font-size: 15px;
+  line-height: 1.5;
 }
 
 .time-left {
@@ -1610,6 +1735,140 @@ onMounted(() => {
 .ant-steps-item-content {
   margin-top: 12px;
   text-align: center;
+}
+
+.stage-highlight {
+  margin-top: 24px;
+  margin-bottom: 20px;
+}
+
+.stage-highlight .highlight-card {
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  padding: 20px 26px;
+  padding-top: 40px;
+  min-height: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+  overflow: visible;
+}
+
+/* 当前里程碑左上角页签样式 */
+.stage-highlight .milestone-tab-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: linear-gradient(135deg, #409eff, #337ecc);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 24px;
+  border-radius: 0 0 16px 0;
+  box-shadow: 0 3px 10px rgba(64, 158, 255, 0.4);
+  z-index: 10;
+  letter-spacing: 0.8px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+  white-space: nowrap;
+}
+
+.stage-highlight .highlight-card.empty {
+  background: #f8f9fa;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+/* 标题和状态标签在同一行 */
+.stage-highlight .title-with-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 4px;
+  margin-bottom: 8px;
+}
+
+.stage-highlight .stage-title {
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0;
+  flex: 1;
+}
+
+.stage-highlight .status-tag-inline {
+  flex-shrink: 0;
+}
+
+.stage-highlight .stage-desc {
+  margin: 0 0 12px 0;
+  color: #666;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* 信息项和按钮在同一行，信息偏左，按钮偏右 */
+.stage-highlight .stage-info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 0;
+}
+
+/* 信息项组（偏左） */
+.stage-highlight .info-items-group {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.stage-highlight .info-item-compact {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.stage-highlight .info-item-compact .info-label {
+  font-size: 15px;
+  font-weight: 600;
+  color: #666;
+  flex-shrink: 0;
+}
+
+.stage-highlight .info-item-compact .info-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.stage-highlight .info-item-compact .info-value.overdue {
+  color: #f56c6c;
+}
+
+/* 查看详情按钮（偏右，与状态标签右端对齐） */
+.stage-highlight .stage-actions-inline {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.stage-highlight .stage-actions-inline .el-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stage-highlight .card-empty {
+  color: #999;
+}
+
+.stage-highlight strong.overdue {
+  color: #f56c6c;
 }
 
 .ant-steps-item-title {
