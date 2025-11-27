@@ -193,10 +193,19 @@ const handleLogin = () => {
         admin: '管理员'
       }
       
+      // 【测试功能】为测试用户生成固定的ID，便于权限测试
+      const testUserIds = {
+        student: 'test_student_001', // 测试学生用户固定ID，用于项目承接方权限测试
+        enterprise: 'enterprise-001',
+        teacher: 'test_teacher_001',
+        admin: 'test_admin_001'
+      }
+      
       const testUserData = {
         username: `测试${roleNames[testRole]}`,
         role: testRole,
-        userId: `test_${testRole}_${Date.now()}`,
+        id: testUserIds[testRole] || `test_${testRole}_${Date.now()}`, // 使用固定ID便于测试
+        userId: testUserIds[testRole] || `test_${testRole}_${Date.now()}`, // 兼容字段
         avatar: `https://picsum.photos/seed/${testRole}/40/40.jpg`
       }
       
