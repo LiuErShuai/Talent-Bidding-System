@@ -165,6 +165,13 @@ const navConfigs = {
         type: 'link'
       },
       {
+        label: '项目大厅',
+        path: '/projects',
+        type: 'link',
+        // 项目详情页也高亮项目大厅
+        matchRoute: (route) => route.path.startsWith('/projects')
+      },
+      {
         label: '项目管理',
         type: 'dropdown',
         children: [
