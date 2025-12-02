@@ -121,20 +121,18 @@ const navConfigs = {
         type: 'link'
       },
       {
-        label: '创客空间',
-        type: 'dropdown',
-        children: [
-          { label: '项目大厅', path: '/projects' },
-          { label: '热门项目', path: '/projects?sort=hot' },
-          { label: '项目详情', path: '/projects' }
-        ]
-      },
-      {
         label: '项目大厅',
         path: '/projects',
         type: 'link',
         // 项目详情页也高亮项目大厅
         matchRoute: (route) => route.path.startsWith('/projects')
+      },
+      {
+        label: '我的项目',
+        path: '/my-projects',
+        type: 'link',
+        // 我的项目下的所有子路由均高亮
+        matchRoute: (route) => route.path.startsWith('/my-projects')
       },
       {
         label: '成长中心',
@@ -165,6 +163,13 @@ const navConfigs = {
         label: '首页',
         path: '/home',
         type: 'link'
+      },
+      {
+        label: '项目大厅',
+        path: '/projects',
+        type: 'link',
+        // 项目详情页也高亮项目大厅
+        matchRoute: (route) => route.path.startsWith('/projects')
       },
       {
         label: '项目管理',

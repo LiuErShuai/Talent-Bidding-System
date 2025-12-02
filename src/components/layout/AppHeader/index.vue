@@ -249,9 +249,10 @@ const handleNavClick = (item, event) => {
 .main-nav {
   flex: 1;
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   gap: 24px;
+  margin-left: 40px;
 }
 
 .nav-link {
@@ -259,9 +260,14 @@ const handleNavClick = (item, event) => {
   text-decoration: none;
   color: #5a6486;
   font-weight: 600;
+  font-size: 16px;
+  line-height: 1;
   transition: color 0.2s;
   cursor: pointer;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .nav-link.active,
@@ -390,6 +396,8 @@ const handleNavClick = (item, event) => {
 
   .main-nav {
     flex-wrap: wrap;
+    justify-content: center;
+    margin-left: 0;
     gap: 16px;
   }
 }

@@ -424,8 +424,109 @@
                       </div>
                     </div>
 
+                    <!-- 承接方提交摘要区域（仅发布方可见） -->
+                    <div v-if="isPublisher && milestone.submissionSummary" class="submission-summary-section">
+                      <div class="section-header">
+                        <el-icon><Document /></el-icon>
+                        <span>承接方提交摘要</span>
+                        <el-tag v-if="milestone.submissionSummary.version" size="small" type="info">
+                          v{{ milestone.submissionSummary.version }}
+                        </el-tag>
+                      </div>
+                      <div class="submission-content">
+                        <!-- 揭榜征集 -->
+                        <div v-if="milestone.code === 'BIDDING'" class="bidding-summary">
+                          <p><strong>申请者：</strong>{{ milestone.submissionSummary.applicantName }}</p>
+                          <p v-if="milestone.submissionSummary.teamName"><strong>团队：</strong>{{ milestone.submissionSummary.teamName }}</p>
+                          <p><strong>申请理由：</strong>{{ truncateText(milestone.submissionSummary.reason, 80) }}</p>
+                          <p class="submit-time">提交时间：{{ milestone.submissionSummary.submitTime }}</p>
+                        </div>
+                        <!-- 方案提交 -->
+                        <div v-else-if="milestone.code === 'PROPOSAL'" class="proposal-summary">
+                          <p><strong>方案标题：</strong>{{ milestone.submissionSummary.title }}</p>
+                          <p>
+                            <strong>技术栈：</strong>
+                            <el-tag
+                              v-for="tech in milestone.submissionSummary.techStack"
+                              :key="tech"
+                              size="small"
+                              style="margin-right: 4px; margin-top: 4px;"
+                            >
+                              {{ tech }}
+                            </el-tag>
+                          </p>
+                          <p><strong>方案概述：</strong>{{ truncateText(milestone.submissionSummary.planOverview, 80) }}</p>
+                          <p class="submit-time">提交时间：{{ milestone.submissionSummary.submitTime }}</p>
+                        </div>
+                        <!-- 中期答辩 -->
+                        <div v-else-if="milestone.code === 'MIDTERM'" class="midterm-summary">
+                          <p><strong>材料类型：</strong>{{ milestone.submissionSummary.materialType }}</p>
+                          <p><strong>进度对比：</strong>{{ milestone.submissionSummary.progressComparison }}</p>
+                          <p><strong>问题数量：</strong>{{ milestone.submissionSummary.issueCount }}个</p>
+                          <p class="submit-time">提交时间：{{ milestone.submissionSummary.submitTime }}</p>
+                        </div>
+                        <!-- 其他里程碑的摘要 -->
+                        <div v-else class="default-summary">
+                          <p><strong>提交者：</strong>{{ milestone.submissionSummary.submitterName }}</p>
+                          <p class="submit-time">提交时间：{{ milestone.submissionSummary.submitTime }}</p>
+                        </div>
+                      </div>
+                      <div class="submission-actions">
+                        <el-button type="text" size="small" @click="viewSubmissionDetail(milestone)">
+                          查看完整内容 <el-icon><ArrowRight /></el-icon>
+                        </el-button>
+                        <el-button
+                          v-if="milestone.submissionSummary.hasHistory"
+                          type="text"
+                          size="small"
+                          @click="viewSubmissionHistory(milestone)"
+                        >
+                          查看历史版本 <el-icon><Clock /></el-icon>
+                        </el-button>
+                      </div>
+                    </div>
+
+                    <!-- 发布方操作区（仅发布方可见，状态为 in-progress 时显示） -->
+                    <div v-if="isPublisher && milestone.status === 'in-progress'" class="publisher-actions-section">
+                      <div class="actions-header">
+                        <el-icon><EditPen /></el-icon>
+                        <span>发布方操作</span>
+                      </div>
+                      <div class="actions-buttons">
+                        <!-- 揭榜征集：通过/拒绝申请 -->
+                        <template v-if="milestone.code === 'BIDDING'">
+                          <el-button type="success" @click="openReviewDialog(milestone, '通过')">
+                            <el-icon><Check /></el-icon>
+                            通过申请
+                          </el-button>
+                          <el-button type="danger" @click="openReviewDialog(milestone, '拒绝')">
+                            <el-icon><Close /></el-icon>
+                            拒绝申请
+                          </el-button>
+                        </template>
+                        <!-- 中期答辩：进入答辩 / 跳过 -->
+                        <template v-else-if="milestone.code === 'MIDTERM'">
+                          <el-button type="primary" @click="goToMidtermReview(milestone)">
+                            <el-icon><EditPen /></el-icon>
+                            进入中期答辩
+                          </el-button>
+                          <el-button type="warning" @click="openSkipDialog(milestone)">
+                            <el-icon><Remove /></el-icon>
+                            跳过此里程碑
+                          </el-button>
+                        </template>
+                        <!-- 其他里程碑：通用审核按钮 -->
+                        <template v-else>
+                          <el-button type="primary" @click="openReviewDialog(milestone, '审核')">
+                            <el-icon><EditPen /></el-icon>
+                            {{ getReviewButtonText(milestone) }}
+                          </el-button>
+                        </template>
+                      </div>
+                    </div>
+
                     <!-- 操作按钮区域：仅承接方可操作 -->
-                    <div v-if="isProjectParticipant && canOperateMilestone(milestone)" class="milestone-actions">
+                    <div v-if="isBidder && canOperateMilestone(milestone)" class="milestone-actions">
                       <el-button
                         v-if="isSimpleMilestone(milestone)"
                         type="primary"
@@ -445,6 +546,84 @@
                         提交{{ milestone.title }}
                       </el-button>
                     </div>
+
+                    <!-- 审核历史记录（折叠面板，项目参与者可见） -->
+                    <el-collapse
+                      v-if="isProjectParticipant && milestone.reviewHistory && milestone.reviewHistory.length > 0"
+                      class="review-history-collapse"
+                    >
+                      <el-collapse-item name="review-history">
+                        <template #title>
+                          <div class="collapse-title">
+                            <el-icon><Clock /></el-icon>
+                            <span>审核历史（{{ milestone.reviewHistory.length }}条）</span>
+                          </div>
+                        </template>
+                        <div class="review-history-list">
+                          <div
+                            v-for="(review, idx) in milestone.reviewHistory"
+                            :key="review.reviewId"
+                            class="review-history-item"
+                            :class="{ 'latest-review': idx === 0 }"
+                          >
+                            <!-- 审核记录头部 -->
+                            <div class="review-header">
+                              <div class="reviewer-info">
+                                <div class="reviewer-details">
+                                  <span class="reviewer-name">{{ review.reviewerName }}</span>
+                                  <span class="review-time">{{ review.reviewTime }}</span>
+                                </div>
+                              </div>
+                              <div class="review-result">
+                                <el-tag :type="getReviewResultTagType(review.reviewResult)" size="small">
+                                  {{ review.reviewResult }}
+                                </el-tag>
+                                <span v-if="review.submissionVersion" class="version-tag">
+                                  v{{ review.submissionVersion }}
+                                </span>
+                              </div>
+                            </div>
+
+                            <!-- 审核内容 -->
+                            <div class="review-content">
+                              <p class="review-comment">{{ review.reviewComment }}</p>
+
+                              <!-- 附件列表 -->
+                              <div v-if="review.attachments && review.attachments.length > 0" class="review-attachments">
+                                <el-icon><Paperclip /></el-icon>
+                                <span
+                                  v-for="(att, i) in review.attachments"
+                                  :key="i"
+                                  class="attachment-link"
+                                >
+                                  {{ att.name }}
+                                </span>
+                              </div>
+
+                              <!-- 扩展字段（根据里程碑类型） -->
+                              <div v-if="review.highlights" class="review-extended">
+                                <div class="extended-item">
+                                  <span class="label">亮点：</span>
+                                  <span>{{ review.highlights }}</span>
+                                </div>
+                              </div>
+                              <div v-if="review.issues" class="review-extended">
+                                <div class="extended-item">
+                                  <span class="label">问题：</span>
+                                  <span>{{ review.issues }}</span>
+                                </div>
+                              </div>
+                              <div v-if="review.rectificationRequirements" class="review-extended">
+                                <div class="extended-item">
+                                  <span class="label">整改要求：</span>
+                                  <span>{{ review.rectificationRequirements }}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </el-collapse-item>
+                    </el-collapse>
                   </div>
                 </div>
               </div>
@@ -704,14 +883,231 @@
       </template>
     </el-dialog>
     <!-- ========== 结束：里程碑详情弹窗 (MILESTONE_DETAIL_DIALOG) ========== -->
+
+    <!-- ========== 开始：审核弹窗 (REVIEW_DIALOG) ========== -->
+    <el-dialog
+      v-model="reviewDialogVisible"
+      :title="currentMilestoneForReview ? '审核 - ' + currentMilestoneForReview.title : '审核'"
+      width="1200px"
+      :close-on-click-modal="false"
+      destroy-on-close
+    >
+      <div class="review-dialog-content">
+        <!-- 左侧：提交内容预览 -->
+        <div class="review-left-panel">
+          <div class="panel-header">
+            <el-icon><Document /></el-icon>
+            <span>提交内容预览</span>
+          </div>
+          <div class="panel-content">
+            <div v-if="currentMilestoneForReview && currentMilestoneForReview.submissionSummary" class="submission-preview">
+              <!-- 揭榜征集提交内容 -->
+              <div v-if="currentMilestoneForReview.code === 'BIDDING'">
+                <div class="preview-item">
+                  <span class="preview-label">申请人：</span>
+                  <span>{{ currentMilestoneForReview.submissionSummary.applicantName }}</span>
+                </div>
+                <div class="preview-item">
+                  <span class="preview-label">团队名称：</span>
+                  <span>{{ currentMilestoneForReview.submissionSummary.teamName }}</span>
+                </div>
+                <div class="preview-item">
+                  <span class="preview-label">申请理由：</span>
+                  <p class="preview-text">{{ currentMilestoneForReview.submissionSummary.reason }}</p>
+                </div>
+                <div class="preview-item">
+                  <span class="preview-label">提交时间：</span>
+                  <span>{{ currentMilestoneForReview.submissionSummary.submitTime }}</span>
+                </div>
+              </div>
+
+              <!-- 方案提交内容 -->
+              <div v-if="currentMilestoneForReview.code === 'PROPOSAL'">
+                <div class="preview-item">
+                  <span class="preview-label">方案标题：</span>
+                  <span>{{ currentMilestoneForReview.submissionSummary.proposalTitle }}</span>
+                </div>
+                <div class="preview-item">
+                  <span class="preview-label">技术方案摘要：</span>
+                  <p class="preview-text">{{ currentMilestoneForReview.submissionSummary.technicalSummary }}</p>
+                </div>
+                <div class="preview-item">
+                  <span class="preview-label">实施计划：</span>
+                  <p class="preview-text">{{ currentMilestoneForReview.submissionSummary.implementationPlan }}</p>
+                </div>
+                <div class="preview-item">
+                  <span class="preview-label">风险评估：</span>
+                  <p class="preview-text">{{ currentMilestoneForReview.submissionSummary.riskAssessment }}</p>
+                </div>
+                <div class="preview-item">
+                  <span class="preview-label">提交时间：</span>
+                  <span>{{ currentMilestoneForReview.submissionSummary.submitTime }}</span>
+                </div>
+              </div>
+
+              <!-- 中期答辩/成果提交内容 -->
+              <div v-if="['MIDTERM', 'DELIVERY'].includes(currentMilestoneForReview.code)">
+                <div class="preview-item">
+                  <span class="preview-label">成果标题：</span>
+                  <span>{{ currentMilestoneForReview.submissionSummary.resultTitle }}</span>
+                </div>
+                <div class="preview-item">
+                  <span class="preview-label">完成情况：</span>
+                  <p class="preview-text">{{ currentMilestoneForReview.submissionSummary.completionStatus }}</p>
+                </div>
+                <div class="preview-item">
+                  <span class="preview-label">核心成果：</span>
+                  <p class="preview-text">{{ currentMilestoneForReview.submissionSummary.coreResults }}</p>
+                </div>
+                <div class="preview-item" v-if="currentMilestoneForReview.submissionSummary.challenges">
+                  <span class="preview-label">遇到的挑战：</span>
+                  <p class="preview-text">{{ currentMilestoneForReview.submissionSummary.challenges }}</p>
+                </div>
+                <div class="preview-item">
+                  <span class="preview-label">提交时间：</span>
+                  <span>{{ currentMilestoneForReview.submissionSummary.submitTime }}</span>
+                </div>
+              </div>
+
+              <div class="preview-actions">
+                <el-button size="small" @click="viewSubmissionDetail(currentMilestoneForReview)">
+                  <el-icon><View /></el-icon>
+                  查看完整内容
+                </el-button>
+                <el-button v-if="currentMilestoneForReview.submissionSummary.hasHistory" size="small" @click="viewSubmissionHistory(currentMilestoneForReview)">
+                  <el-icon><Clock /></el-icon>
+                  查看历史版本
+                </el-button>
+              </div>
+            </div>
+            <el-empty v-else description="暂无提交内容" :image-size="80" />
+          </div>
+        </div>
+
+        <!-- 右侧：审核表单 -->
+        <div class="review-right-panel">
+          <div class="panel-header">
+            <el-icon><EditPen /></el-icon>
+            <span>审核意见</span>
+          </div>
+          <div class="panel-content">
+            <el-form :model="reviewForm" :rules="reviewRules" ref="reviewFormRef" label-width="100px">
+              <!-- 审核结果 -->
+              <el-form-item label="审核结果" prop="reviewResult">
+                <el-radio-group v-model="reviewForm.reviewResult">
+                  <el-radio label="通过">通过</el-radio>
+                  <el-radio label="拒绝">拒绝</el-radio>
+                  <el-radio v-if="currentMilestoneForReview && !['BIDDING'].includes(currentMilestoneForReview.code)" label="要求修改">要求修改</el-radio>
+                </el-radio-group>
+              </el-form-item>
+
+              <!-- 审核意见 -->
+              <el-form-item label="审核意见" prop="reviewComment">
+                <el-input
+                  v-model="reviewForm.reviewComment"
+                  type="textarea"
+                  :rows="6"
+                  placeholder="请输入审核意见（至少10个字）..."
+                  show-word-limit
+                  maxlength="500"
+                />
+              </el-form-item>
+
+              <!-- 评分（仅成果评审） -->
+              <el-form-item v-if="currentMilestoneForReview && currentMilestoneForReview.code === 'FINAL_REVIEW'" label="评分" prop="score">
+                <el-rate v-model="reviewForm.score" show-score :max="10" />
+                <span class="score-hint">（满分10分）</span>
+              </el-form-item>
+
+              <!-- 附件上传 -->
+              <el-form-item label="附件">
+                <el-upload
+                  class="review-upload"
+                  :auto-upload="false"
+                  :file-list="reviewForm.attachments"
+                  multiple
+                  :limit="5"
+                >
+                  <el-button size="small">
+                    <el-icon><Paperclip /></el-icon>
+                    添加附件
+                  </el-button>
+                  <template #tip>
+                    <div class="upload-tip">支持上传最多5个附件，单个文件不超过10MB</div>
+                  </template>
+                </el-upload>
+              </el-form-item>
+
+              <!-- 通知选项 -->
+              <el-form-item label="通知承接方">
+                <el-switch v-model="reviewForm.notifyBidder" />
+                <span class="switch-hint">（通过邮件和站内消息通知）</span>
+              </el-form-item>
+            </el-form>
+          </div>
+        </div>
+      </div>
+
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="reviewDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="submitReview" :loading="submitting">
+            提交审核
+          </el-button>
+        </div>
+      </template>
+    </el-dialog>
+    <!-- ========== 结束：审核弹窗 (REVIEW_DIALOG) ========== -->
+
+    <!-- ========== 开始：跳过里程碑弹窗 (SKIP_DIALOG) ========== -->
+    <el-dialog
+      v-model="skipDialogVisible"
+      title="跳过里程碑"
+      width="600px"
+      :close-on-click-modal="false"
+      destroy-on-close
+    >
+      <el-alert
+        title="重要提示"
+        type="warning"
+        :closable="false"
+        show-icon
+      >
+        <p>跳过里程碑后将无法恢复，该阶段将被标记为"已跳过"状态。</p>
+        <p>项目将直接进入下一个里程碑阶段，请谨慎操作！</p>
+      </el-alert>
+
+      <el-form :model="skipForm" :rules="skipRules" ref="skipFormRef" label-width="100px" style="margin-top: 20px;">
+        <el-form-item label="跳过原因" prop="skipReason">
+          <el-input
+            v-model="skipForm.skipReason"
+            type="textarea"
+            :rows="5"
+            placeholder="请说明跳过该里程碑的原因（至少10个字）..."
+            show-word-limit
+            maxlength="200"
+          />
+        </el-form-item>
+      </el-form>
+
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="skipDialogVisible = false">取消</el-button>
+          <el-button type="warning" @click="confirmSkip" :loading="submitting">
+            确认跳过
+          </el-button>
+        </div>
+      </template>
+    </el-dialog>
+    <!-- ========== 结束：跳过里程碑弹窗 (SKIP_DIALOG) ========== -->
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { Star, ChatDotRound, Document, Trophy, View, User, Check, Calendar, Lock, Edit, Upload, ArrowRight, TrendCharts } from '@element-plus/icons-vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { Star, ChatDotRound, Document, Trophy, View, User, Check, Calendar, Lock, Edit, Upload, ArrowRight, TrendCharts, Clock, EditPen, Remove, Close, Paperclip } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/store/modules/auth'
 
 const route = useRoute()
@@ -749,28 +1145,34 @@ const currentUser = computed(() => {
   }
 })
 
+// 判断是否是发布方
+const isPublisher = computed(() => {
+  if (!currentUser.value.isLoggedIn) return false
+  return currentUser.value.role === 'enterprise' &&
+         currentUser.value.id === project.value.publisherId
+})
+
+// 判断是否是承接方
+const isBidder = computed(() => {
+  if (!currentUser.value.isLoggedIn) return false
+  return currentUser.value.role === 'student' &&
+         project.value.bidderIds?.includes(currentUser.value.id)
+})
+
 // 判断当前用户是否是项目参与者（发布方或承接方）
 const isProjectParticipant = computed(() => {
   if (!currentUser.value.isLoggedIn) return false
-  
-  const userId = currentUser.value.id
-  const userRole = currentUser.value.role
-  
-  // 判断是否是发布方
-  if (userRole === 'enterprise' && userId === project.value.publisherId) {
+
+  // 发布方或承接方
+  if (isPublisher.value || isBidder.value) {
     return true
   }
-  
-  // 判断是否是承接方（学生角色且在承接方列表中）
-  if (userRole === 'student' && project.value.bidderIds && project.value.bidderIds.includes(userId)) {
-    return true
-  }
-  
+
   // 管理员和教师也可以查看（可选，根据需求调整）
-  // if (userRole === 'admin' || userRole === 'teacher') {
+  // if (currentUser.value.role === 'admin' || currentUser.value.role === 'teacher') {
   //   return true
   // }
-  
+
   return false
 })
 
@@ -793,7 +1195,7 @@ const milestones = ref([
     plannedDate: '2025-11-05',
     actualDate: '2025-11-04',
     delayDays: -1,
-    deliverables: ['揭榜申请表', '审核结果通知'],
+    deliverables: ['揭榜申请表', '审核结果通过通知'],
     progressDetail: {
       percentage: 100,
       status: 'success',
@@ -808,7 +1210,29 @@ const milestones = ref([
       }
     ],
     internalNotes: '本期导师资源充足，匹配顺利',
-    sensitiveAttachments: []
+    sensitiveAttachments: [],
+    // 承接方提交摘要（发布方可见）
+    submissionSummary: {
+      version: 1,
+      submitTime: '2025-11-03 14:20',
+      submitterName: '李明 - 计算机科学团队',
+      applicantName: '李明',
+      teamName: '计算机科学团队',
+      reason: '我们团队在AI领域有丰富经验，曾完成多个智能客服项目...',
+      hasHistory: false
+    },
+    // 审核历史记录
+    reviewHistory: [
+      {
+        reviewId: 'review-bidding-001',
+        reviewerId: 'enterprise-001',
+        reviewerName: 'XX科技有限公司',
+        reviewTime: '2025-11-04 10:00',
+        reviewResult: '通过',
+        reviewComment: '团队经验丰富，技术栈匹配度高，通过揭榜申请',
+        attachments: []
+      }
+    ]
   },
   {
     id: 'milestone-proposal',
@@ -836,6 +1260,41 @@ const milestones = ref([
     internalNotes: '评审过程顺利，团队表现优秀',
     sensitiveAttachments: [
       { name: '评审专家意见汇总.docx', size: '2.3MB' }
+    ],
+    // 承接方提交摘要（发布方可见）
+    submissionSummary: {
+      version: 2,
+      submitTime: '2025-11-19 09:30',
+      submitterName: '李明 - 计算机科学团队',
+      title: 'AI智能客服系统实施方案V2.0',
+      techStack: ['Vue3', 'Python', 'TensorFlow', 'Redis', 'MySQL'],
+      planOverview: '采用微服务架构，前后端分离，集成大模型API...',
+      hasHistory: true
+    },
+    // 审核历史记录
+    reviewHistory: [
+      {
+        reviewId: 'review-proposal-001',
+        reviewerId: 'enterprise-001',
+        reviewerName: 'XX科技有限公司',
+        reviewTime: '2025-11-18 14:00',
+        reviewResult: '要求修改',
+        reviewComment: '技术方案整体可行，但需要补充数据库设计部分，实施计划时间安排过于紧张',
+        attachments: [
+          { name: '修改建议清单.pdf', url: '...', size: '1.2MB' }
+        ],
+        submissionVersion: 1
+      },
+      {
+        reviewId: 'review-proposal-002',
+        reviewerId: 'enterprise-001',
+        reviewerName: 'XX科技有限公司',
+        reviewTime: '2025-11-19 15:30',
+        reviewResult: '通过',
+        reviewComment: '修改后的方案完善，技术架构合理，时间安排可行，批准通过',
+        attachments: [],
+        submissionVersion: 2
+      }
     ]
   },
   {
@@ -869,7 +1328,19 @@ const milestones = ref([
     internalNotes: '中期进展良好，团队执行力强',
     sensitiveAttachments: [
       { name: '中期评审打分表.xlsx', size: '1.2MB' }
-    ]
+    ],
+    // 承接方提交摘要（发布方可见）
+    submissionSummary: {
+      version: 1,
+      submitTime: '2025-12-22 10:00',
+      submitterName: '李明 - 计算机科学团队',
+      materialType: 'PPT + 演示视频',
+      progressComparison: '已完成核心功能60%，进度符合预期',
+      issueCount: 3,
+      hasHistory: false
+    },
+    // 审核历史记录（发布方审核中，暂无记录）
+    reviewHistory: []
   },
   {
     id: 'milestone-delivery',
@@ -889,7 +1360,11 @@ const milestones = ref([
     riskLevel: 'high',
     communications: [],
     internalNotes: '需要加快进度，确保按时提交',
-    sensitiveAttachments: []
+    sensitiveAttachments: [],
+    // 承接方提交摘要（待提交）
+    submissionSummary: null,
+    // 审核历史记录（待提交）
+    reviewHistory: []
   },
   {
     id: 'milestone-review',
@@ -909,7 +1384,9 @@ const milestones = ref([
     riskLevel: 'high',
     communications: [],
     internalNotes: '',
-    sensitiveAttachments: []
+    sensitiveAttachments: [],
+    submissionSummary: null,
+    reviewHistory: []
   },
   {
     id: 'milestone-announcement',
@@ -929,7 +1406,9 @@ const milestones = ref([
     riskLevel: 'medium',
     communications: [],
     internalNotes: '',
-    sensitiveAttachments: []
+    sensitiveAttachments: [],
+    submissionSummary: null,
+    reviewHistory: []
   },
   {
     id: 'milestone-completion',
@@ -949,7 +1428,9 @@ const milestones = ref([
     riskLevel: 'low',
     communications: [],
     internalNotes: '',
-    sensitiveAttachments: []
+    sensitiveAttachments: [],
+    submissionSummary: null,
+    reviewHistory: []
   }
 ])
 
@@ -982,7 +1463,8 @@ const getMilestoneTagType = (status) => {
     'completed': 'success',
     'in-progress': 'warning',
     'pending': 'info',
-    'delayed': 'danger'
+    'delayed': 'danger',
+    'skipped': '' // Element Plus 的 default 类型
   }
   return typeMap[status] || 'info'
 }
@@ -993,7 +1475,8 @@ const getMilestoneStatusText = (status) => {
     'completed': '已完成',
     'in-progress': '进行中',
     'pending': '待开始',
-    'delayed': '已延迟'
+    'delayed': '已延迟',
+    'skipped': '已跳过'
   }
   return textMap[status] || '未知'
 }
@@ -1044,6 +1527,52 @@ const isSimpleMilestone = (milestone) => {
   ]
   return !complexMilestones.includes(milestone.code)
 }
+
+// ========== 开始：发布方专属函数 (PUBLISHER_FUNCTIONS) ==========
+// 查看提交详情
+const viewSubmissionDetail = (milestone) => {
+  ElMessage.info('查看提交详情功能开发中...')
+  // TODO: 打开提交详情弹窗或跳转到详情页面
+}
+
+// 查看提交历史
+const viewSubmissionHistory = (milestone) => {
+  ElMessage.info('查看提交历史功能开发中...')
+  // TODO: 打开提交历史弹窗，显示所有历史版本
+}
+
+// 跳转到中期答辩页面
+const goToMidtermReview = (milestone) => {
+  const projectId = route.params.id
+  router.push(`/project/${projectId}/milestone/midterm-review`)
+}
+
+// 获取审核按钮文本
+const getReviewButtonText = (milestone) => {
+  const buttonTextMap = {
+    'PROPOSAL': '审核方案',
+    'MIDTERM': '进入中期答辩',
+    'DELIVERY': '审核成果',
+    'REVIEW': '开始评审',
+    'PAYMENT': '确认支付金额',
+    'ANNOUNCEMENT': '上传公示内容'
+  }
+  return buttonTextMap[milestone.code] || '审核'
+}
+
+// 获取审核结果标签类型
+const getReviewResultTagType = (result) => {
+  const typeMap = {
+    '通过': 'success',
+    '拒绝': 'danger',
+    '驳回': 'danger',
+    '要求修改': 'warning',
+    '不通过': 'danger',
+    '需修订': 'warning'
+  }
+  return typeMap[result] || 'info'
+}
+// ========== 结束：发布方专属函数 (PUBLISHER_FUNCTIONS) ==========
 
 // 里程碑操作弹窗相关
 const milestoneDialogVisible = ref(false)
@@ -1172,6 +1701,173 @@ const truncateText = (text, maxLength = 100) => {
   return text.substring(0, maxLength) + '...'
 }
 // ========== 结束：里程碑详情弹窗相关 (MILESTONE_DETAIL_DIALOG_LOGIC) ==========
+
+// ========== 开始：审核弹窗相关 (REVIEW_DIALOG_LOGIC) ==========
+const reviewDialogVisible = ref(false)
+const currentReviewMilestone = ref(null)
+const reviewFormRef = ref(null)
+const reviewSubmitting = ref(false)
+
+const reviewForm = ref({
+  reviewResult: '',
+  reviewComment: '',
+  attachments: [],
+  notifyBidder: true
+})
+
+const reviewRules = {
+  reviewResult: [
+    { required: true, message: '请选择审核结果', trigger: 'change' }
+  ],
+  reviewComment: [
+    { required: true, message: '请填写审核意见', trigger: 'blur' },
+    { min: 10, message: '审核意见至少10个字符', trigger: 'blur' }
+  ]
+}
+
+// 打开审核弹窗
+const openReviewDialog = (milestone, action) => {
+  currentReviewMilestone.value = milestone
+  reviewForm.value = {
+    reviewResult: action === '通过' ? '通过' : '',
+    reviewComment: '',
+    attachments: [],
+    notifyBidder: true
+  }
+  reviewDialogVisible.value = true
+}
+
+// 提交审核
+const submitReview = async () => {
+  if (!reviewFormRef.value) return
+
+  try {
+    await reviewFormRef.value.validate()
+    reviewSubmitting.value = true
+
+    // TODO: 调用API提交审核
+    await new Promise(resolve => setTimeout(resolve, 1000))
+
+    ElMessage.success('审核提交成功')
+    reviewDialogVisible.value = false
+
+    // 更新里程碑状态和审核历史
+    const index = milestones.value.findIndex(m => m.id === currentReviewMilestone.value.id)
+    if (index !== -1) {
+      // 添加审核记录
+      const newReview = {
+        reviewId: 'review-new-' + Date.now(),
+        reviewerId: currentUser.value.id,
+        reviewerName: currentUser.value.name || '发布方',
+        reviewTime: new Date().toLocaleString('zh-CN'),
+        reviewResult: reviewForm.value.reviewResult,
+        reviewComment: reviewForm.value.reviewComment,
+        attachments: []
+      }
+
+      if (!milestones.value[index].reviewHistory) {
+        milestones.value[index].reviewHistory = []
+      }
+      milestones.value[index].reviewHistory.unshift(newReview)
+
+      // 更新状态
+      if (reviewForm.value.reviewResult === '通过') {
+        milestones.value[index].status = 'completed'
+        milestones.value[index].actualDate = new Date().toISOString().split('T')[0]
+      } else if (reviewForm.value.reviewResult === '驳回' || reviewForm.value.reviewResult === '拒绝') {
+        milestones.value[index].status = 'pending'
+      }
+    }
+  } catch (error) {
+    if (error !== false) {
+      ElMessage.error('审核失败：' + (error.message || '未知错误'))
+    }
+  } finally {
+    reviewSubmitting.value = false
+  }
+}
+// ========== 结束：审核弹窗相关 (REVIEW_DIALOG_LOGIC) ==========
+
+// ========== 开始：跳过弹窗相关 (SKIP_DIALOG_LOGIC) ==========
+const skipDialogVisible = ref(false)
+const currentSkipMilestone = ref(null)
+const skipFormRef = ref(null)
+const skipSubmitting = ref(false)
+
+const skipForm = ref({
+  skipReason: ''
+})
+
+const skipRules = {
+  skipReason: [
+    { required: true, message: '请填写跳过原因', trigger: 'blur' },
+    { min: 10, message: '跳过原因至少10个字符', trigger: 'blur' }
+  ]
+}
+
+// 打开跳过弹窗
+const openSkipDialog = (milestone) => {
+  currentSkipMilestone.value = milestone
+  skipForm.value = {
+    skipReason: ''
+  }
+  skipDialogVisible.value = true
+}
+
+// 确认跳过
+const confirmSkip = async () => {
+  if (!skipFormRef.value) return
+
+  try {
+    await skipFormRef.value.validate()
+
+    // 二次确认
+    await ElMessageBox.confirm(
+      `确定跳过"${currentSkipMilestone.value.title}"里程碑吗？跳过后不可恢复！`,
+      '二次确认',
+      {
+        confirmButtonText: '确定跳过',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
+
+    skipSubmitting.value = true
+
+    // TODO: 调用API跳过里程碑
+    await new Promise(resolve => setTimeout(resolve, 1000))
+
+    ElMessage.success('里程碑已跳过')
+    skipDialogVisible.value = false
+
+    // 更新里程碑状态
+    const index = milestones.value.findIndex(m => m.id === currentSkipMilestone.value.id)
+    if (index !== -1) {
+      milestones.value[index].status = 'skipped'
+      milestones.value[index].actualDate = new Date().toISOString().split('T')[0]
+      // 添加跳过记录到审核历史
+      if (!milestones.value[index].reviewHistory) {
+        milestones.value[index].reviewHistory = []
+      }
+      milestones.value[index].reviewHistory.unshift({
+        reviewId: 'skip-' + Date.now(),
+        reviewerId: currentUser.value.id,
+        reviewerName: currentUser.value.name || '发布方',
+        reviewTime: new Date().toLocaleString('zh-CN'),
+        reviewResult: '已跳过',
+        reviewComment: skipForm.value.skipReason,
+        attachments: []
+      })
+    }
+  } catch (error) {
+    if (error !== 'cancel' && error !== false) {
+      ElMessage.error('跳过失败：' + (error.message || '未知错误'))
+    }
+  } finally {
+    skipSubmitting.value = false
+  }
+}
+// ========== 结束：跳过弹窗相关 (SKIP_DIALOG_LOGIC) ==========
 // ========== 结束：里程碑操作相关 (MILESTONE_OPERATION_LOGIC) ==========
 // ========== 结束：项目里程碑跟踪数据 (PROJECT_MILESTONE_TRACKING_DATA) ==========
 
@@ -2538,6 +3234,352 @@ const calculateRemainingDays = (dateStr) => {
   border-radius: 6px;
 }
 /* ========== 结束：里程碑详情弹窗样式 (MILESTONE_DETAIL_DIALOG_STYLES) ========== */
+
+/* ========== 开始：承接方提交摘要区域样式 (SUBMISSION_SUMMARY_SECTION_STYLES) ========== */
+.submission-summary-section {
+  margin-top: 20px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e3e8ef;
+}
+
+.submission-summary-section .section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.submission-summary-section .section-header .el-icon {
+  color: #409eff;
+}
+
+.submission-summary-section .summary-content {
+  background: white;
+  padding: 16px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
+
+.submission-summary-section .summary-item {
+  margin-bottom: 12px;
+  line-height: 1.6;
+}
+
+.submission-summary-section .summary-item:last-child {
+  margin-bottom: 0;
+}
+
+.submission-summary-section .summary-label {
+  display: inline-block;
+  min-width: 100px;
+  color: #606266;
+  font-weight: 500;
+}
+
+.submission-summary-section .summary-text {
+  margin: 8px 0 0 0;
+  padding: 12px;
+  background: #f5f7fa;
+  border-radius: 4px;
+  color: #606266;
+  line-height: 1.8;
+}
+
+.submission-summary-section .summary-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+}
+/* ========== 结束：承接方提交摘要区域样式 (SUBMISSION_SUMMARY_SECTION_STYLES) ========== */
+
+/* ========== 开始：发布方操作区样式 (PUBLISHER_ACTIONS_SECTION_STYLES) ========== */
+.publisher-actions-section {
+  margin-top: 20px;
+  padding: 16px;
+  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+  border-radius: 8px;
+  border: 2px solid #ff9800;
+}
+
+.publisher-actions-section .actions-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #e65100;
+}
+
+.publisher-actions-section .actions-header .el-icon {
+  color: #ff9800;
+}
+
+.publisher-actions-section .actions-buttons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.publisher-actions-section .el-button {
+  min-width: 120px;
+}
+/* ========== 结束：发布方操作区样式 (PUBLISHER_ACTIONS_SECTION_STYLES) ========== */
+
+/* ========== 开始：审核历史记录样式 (REVIEW_HISTORY_STYLES) ========== */
+.collapse-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.collapse-title .el-icon {
+  color: #909399;
+}
+
+.review-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.review-history-item {
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #409eff;
+}
+
+.review-history-item.result-success {
+  border-left-color: #67c23a;
+  background: #f0f9ff;
+}
+
+.review-history-item.result-danger {
+  border-left-color: #f56c6c;
+  background: #fef0f0;
+}
+
+.review-history-item.result-warning {
+  border-left-color: #e6a23c;
+  background: #fdf6ec;
+}
+
+.review-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e4e7ed;
+}
+
+.reviewer-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.reviewer-name {
+  font-weight: 600;
+  color: #303133;
+}
+
+.review-time {
+  color: #909399;
+  font-size: 13px;
+}
+
+.review-item-body {
+  margin-top: 12px;
+}
+
+.review-item-row {
+  margin-bottom: 8px;
+  line-height: 1.6;
+}
+
+.review-item-row:last-child {
+  margin-bottom: 0;
+}
+
+.review-item-label {
+  display: inline-block;
+  min-width: 80px;
+  color: #606266;
+  font-weight: 500;
+}
+
+.review-comment {
+  margin: 12px 0;
+  padding: 12px;
+  background: white;
+  border-radius: 6px;
+  color: #606266;
+  line-height: 1.8;
+}
+
+.review-attachments {
+  margin-top: 12px;
+}
+
+.attachment-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.attachment-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: white;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  color: #409eff;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.attachment-item:hover {
+  background: #ecf5ff;
+  border-color: #409eff;
+}
+
+.review-extended-fields {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed #dcdfe6;
+}
+/* ========== 结束：审核历史记录样式 (REVIEW_HISTORY_STYLES) ========== */
+
+/* ========== 开始：审核弹窗样式 (REVIEW_DIALOG_STYLES) ========== */
+.review-dialog-content {
+  display: flex;
+  gap: 20px;
+  max-height: 600px;
+}
+
+.review-left-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #e4e7ed;
+  padding-right: 20px;
+  overflow: hidden;
+}
+
+.review-right-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.review-left-panel .panel-header,
+.review-right-panel .panel-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #e4e7ed;
+  font-size: 15px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.review-left-panel .panel-header .el-icon,
+.review-right-panel .panel-header .el-icon {
+  color: #409eff;
+}
+
+.review-left-panel .panel-content,
+.review-right-panel .panel-content {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.submission-preview {
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.preview-item {
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px dashed #dcdfe6;
+}
+
+.preview-item:last-of-type {
+  border-bottom: none;
+  margin-bottom: 12px;
+  padding-bottom: 0;
+}
+
+.preview-label {
+  display: inline-block;
+  min-width: 120px;
+  color: #606266;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.preview-text {
+  margin: 8px 0 0 0;
+  padding: 12px;
+  background: white;
+  border-radius: 6px;
+  color: #606266;
+  line-height: 1.8;
+  white-space: pre-wrap;
+}
+
+.preview-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e4e7ed;
+}
+
+.score-hint,
+.switch-hint {
+  margin-left: 12px;
+  color: #909399;
+  font-size: 13px;
+}
+
+.upload-tip {
+  color: #909399;
+  font-size: 12px;
+  line-height: 1.5;
+  margin-top: 4px;
+}
+
+.review-upload {
+  width: 100%;
+}
+/* ========== 结束：审核弹窗样式 (REVIEW_DIALOG_STYLES) ========== */
+
+/* ========== 开始：跳过弹窗样式 (SKIP_DIALOG_STYLES) ========== */
+.el-alert p {
+  margin: 4px 0;
+  line-height: 1.6;
+}
+/* ========== 结束：跳过弹窗样式 (SKIP_DIALOG_STYLES) ========== */
+
 /* ========== 结束：项目里程碑跟踪样式 (PROJECT_MILESTONE_TRACKING_STYLES) ========== */
 
 @media (max-width: 768px) {
