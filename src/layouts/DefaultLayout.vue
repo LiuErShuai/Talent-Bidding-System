@@ -17,7 +17,8 @@
         </transition>
       </router-view>
     </main>
-    <AppFooter />
+    <!-- 根据路由 meta 决定是否显示 AppFooter -->
+    <AppFooter v-if="!$route.meta.hideFooter" />
   </div>
 </template>
 
@@ -74,6 +75,9 @@ const unreadCount = computed(() => ({
 .layout-main {
   flex: 1 1 auto;
   width: 100%;
+  /* 确保不创建滚动，让子组件自己处理滚动 */
   min-height: 0;
+  overflow: visible;
+  height: 100%;
 }
 </style>

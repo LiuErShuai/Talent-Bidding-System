@@ -20,7 +20,8 @@ export default [
         meta: {
           title: '首页',
           transition: 'fade',
-          requiresAuth: false
+          requiresAuth: false,
+          hideFooter: true  // 隐藏 DefaultLayout 的 AppFooter
         }
       },
       // 项目公共模块

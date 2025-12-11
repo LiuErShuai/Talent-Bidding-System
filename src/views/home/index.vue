@@ -50,41 +50,6 @@
         </div>
       </section>
 
-      <!-- 筛选器区域 -->
-      <section class="filter-section">
-        <div class="filter-card">
-          <!-- 任务领域筛选 -->
-          <div class="filter-row">
-            <span class="filter-label">任务领域:</span>
-            <div class="filter-buttons">
-              <button
-                v-for="field in taskFields"
-                :key="field"
-                :class="['filter-btn', { active: selectedField === field }]"
-                @click="selectedField = field"
-              >
-                {{ field }}
-              </button>
-              <button class="filter-btn more-btn">更多 ≡</button>
-            </div>
-          </div>
-          <!-- 任务状态筛选 -->
-          <div class="filter-row">
-            <span class="filter-label">任务状态:</span>
-            <div class="filter-buttons">
-              <button
-                v-for="status in taskStatuses"
-                :key="status"
-                :class="['filter-btn', { active: selectedStatus === status }]"
-                @click="selectedStatus = status"
-              >
-                {{ status }}
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
       <!-- 流程展示区域 -->
       <section class="process-section">
         <div class="process-card">
@@ -117,6 +82,58 @@
                 <img src="@/assets/images/icons/流程箭头.png" alt="下一步" />
               </div>
             </template>
+          </div>
+        </div>
+      </section>
+
+      <!-- 筛选器区域 -->
+      <section class="filter-section">
+        <div class="filter-card">
+          <!-- 任务领域筛选 -->
+          <div class="filter-row">
+            <span class="filter-label">任务领域:</span>
+            <div class="filter-buttons" ref="filterButtonsRef">
+              <button
+                v-for="field in visibleFields"
+                :key="field"
+                :class="['filter-btn', { active: selectedField === field }]"
+                @click="selectedField = field"
+              >
+                {{ field }}
+              </button>
+              <button 
+                v-if="hasMoreFields"
+                class="filter-btn more-btn"
+                @click="showMoreFields = !showMoreFields"
+              >
+                更多 {{ showMoreFields ? '▲' : '≡' }}
+              </button>
+            </div>
+            <!-- 更多选项（下拉显示） -->
+            <div v-if="showMoreFields && hiddenFields.length" class="more-fields">
+              <button
+                v-for="field in hiddenFields"
+                :key="field"
+                :class="['filter-btn', { active: selectedField === field }]"
+                @click="selectedField = field; showMoreFields = false"
+              >
+                {{ field }}
+              </button>
+            </div>
+          </div>
+          <!-- 任务状态筛选 -->
+          <div class="filter-row">
+            <span class="filter-label">任务状态:</span>
+            <div class="filter-buttons">
+              <button
+                v-for="status in taskStatuses"
+                :key="status"
+                :class="['filter-btn', { active: selectedStatus === status }]"
+                @click="selectedStatus = status"
+              >
+                {{ status }}
+              </button>
+            </div>
           </div>
         </div>
       </section>
@@ -171,7 +188,63 @@
                   </el-select>
                 </div>
               </div>
-              <div class="task-list-empty">
+              <!-- 项目列表容器 -->
+              <div v-if="hotProjects.length" class="task-list-content">
+                <div
+                  v-for="project in hotProjects"
+                  :key="project.id"
+                  class="task-item"
+                >
+                  <!-- 任务项主要内容区 -->
+                  <div class="task-item-main">
+                    <!-- 项目左侧信息区 -->
+                    <div class="task-item-left">
+                      <!-- 标题行：标题 + 状态标签 -->
+                      <div class="task-title-row">
+                        <h3 class="task-title">{{ project.title }}</h3>
+                        <div class="task-status-tag" :class="project.status">
+                          {{ statusTextMap[project.status] || project.statusText }}
+                        </div>
+                      </div>
+                      
+                      <!-- 元信息行：发布方、领域、截止时间 -->
+                      <div class="task-meta-row">
+                        <span class="task-meta-item">发布方：{{ project.company }}</span>
+                        <span class="task-meta-sep">|</span>
+                        <span class="task-meta-item">领域：{{ project.field }}</span>
+                        <span class="task-meta-sep">|</span>
+                        <span class="task-meta-item">截止：{{ getDeadlineText(project.deadlineDays) }}</span>
+                      </div>
+                      
+                      <!-- 项目描述 -->
+                      <p class="task-brief">{{ project.brief }}</p>
+                      
+                      <!-- 底部信息：参与人数、点赞数（仅揭榜中状态显示） -->
+                      <div v-if="project.status === 'bidding'" class="task-footer-row">
+                        <div class="task-stats">
+                          <span class="task-stat-text">
+                            已有 {{ project.joinCount }} 人揭榜
+                          </span>
+                          <span class="task-like-text">❤ {{ project.likeCount }}</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <!-- 项目右侧操作区：奖金 + 了解详情按钮 -->
+                    <div class="task-item-right">
+                      <div class="task-reward">￥{{ project.reward.toLocaleString() }}</div>
+                      <button
+                        class="detail-btn"
+                        @click.stop="goToProjectDetail(project.id)"
+                      >
+                        了解详情<span class="arrow">→</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- 空状态（当没有项目时显示） -->
+              <div v-else class="task-list-empty">
                 <div class="empty-icon">📋</div>
                 <p class="empty-text">暂无任务数据</p>
               </div>
@@ -337,7 +410,8 @@
         </div>
       </section>
 
-      <section class="module">
+      <!-- 热门项目推荐模块已整合到任务列表中，此处移除 -->
+      <!-- <section class="module">
         <div class="module-header">
           <h2>热门项目推荐</h2>
           <router-link to="/projects" class="more-link">更多 &gt;</router-link>
@@ -362,13 +436,13 @@
             </div>
           </router-link>
         </div>
-      </section>
+      </section> -->
 
       <!-- 合作企业：展示合作企业，增强信任感 -->
       <section class="module">
         <div class="module-header">
           <h2>合作企业</h2>
-          <p class="module-subtitle">与众多知名企业建立深度合作关系</p>
+          <p class="module-subtitle">与众多企业建立深度合作关系</p>
         </div>
         <div class="partners-grid">
           <div class="partner-card" v-for="partner in partners" :key="partner.id">
@@ -378,6 +452,7 @@
         </div>
       </section>
 
+      <!-- Footer 移到 page-body 内部，确保在滚动容器内 -->
       <footer class="page-footer">
         <div class="footer-content">
           <div class="footer-grid">
@@ -459,7 +534,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/store/modules/auth'
 import { ElMessage } from 'element-plus'
@@ -470,16 +545,24 @@ const authStore = useAuthStore()
 // 初始化认证状态
 onMounted(() => {
   authStore.initAuth()
+  // 动态计算可见字段数量
+  updateVisibleFieldCount()
+  window.addEventListener('resize', updateVisibleFieldCount)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', updateVisibleFieldCount)
 })
 
 const isLoggedIn = computed(() => authStore.isLoggedIn)
 const userInfo = computed(() => authStore.userInfo || {})
 const userRole = computed(() => authStore.userRole || '')
 
-// 筛选器数据
+// 筛选器数据（调整顺序，将热门领域放到前面）
 const taskFields = ref([
-  '全部', '理论研究', '政策法规', '医学', '电子信息',
-  '通信工程', '计算机科学', '软件工程', '人工智能', '知识'
+  '全部', '人工智能', '前端开发', '后端开发', '音视频',
+  '理论研究', '政策法规', '医学', '电子信息',
+  '通信工程', '计算机科学', '软件工程', '知识'
 ])
 
 const taskStatuses = ref([
@@ -489,6 +572,37 @@ const taskStatuses = ref([
 
 const selectedField = ref('全部')
 const selectedStatus = ref('全部')
+const showMoreFields = ref(false)
+const visibleFieldCount = ref(13) // 默认显示全部
+const filterButtonsRef = ref(null)
+
+// 动态计算可见字段数量
+const updateVisibleFieldCount = () => {
+  if (window.innerWidth >= 1200) {
+    visibleFieldCount.value = 13 // 全部显示
+  } else if (window.innerWidth >= 900) {
+    visibleFieldCount.value = 8
+  } else if (window.innerWidth >= 700) {
+    visibleFieldCount.value = 6
+  } else {
+    visibleFieldCount.value = 4
+  }
+}
+
+// 可见的领域（根据屏幕宽度动态调整）
+const visibleFields = computed(() => {
+  return taskFields.value.slice(0, visibleFieldCount.value)
+})
+
+// 隐藏的领域
+const hiddenFields = computed(() => {
+  return taskFields.value.slice(visibleFieldCount.value)
+})
+
+// 是否有更多选项
+const hasMoreFields = computed(() => {
+  return taskFields.value.length > visibleFieldCount.value
+})
 
 // 流程步骤数据
 const processSteps = ref([
@@ -572,40 +686,365 @@ const latestActivities = ref([
   { user: '姜航', action: '在创客任务 即插即用式应急高速网络通信装备 下提交了成果', id: '35397049', time: '1天前' }
 ])
 
-const hotProjects = ref([
+// 所有项目数据
+const allProjects = ref([
+  // 人工智能领域
   {
     id: 1,
     title: 'AI智能助手开发',
-    price: '¥5,000',
+    company: 'XX科技有限公司',
+    field: '人工智能',
     status: 'bidding',
     statusText: '揭榜中',
-    description: '基于深度学习的智能客服系统'
+    description: '基于深度学习的智能客服系统',
+    brief: '需要开发一套基于深度学习的智能客服系统，用于提升客户服务效率和用户体验...',
+    reward: 5000,
+    tag: 'HOT',
+    tagText: 'HOT',
+    deadlineDays: 7,
+    joinCount: 12,
+    likeCount: 45,
+    taskMode: 'team', // 团队任务
+    taskDuration: '7days' // 7天内
   },
+  {
+    id: 5,
+    title: '智能图像识别系统',
+    company: '视觉科技公司',
+    field: '人工智能',
+    status: 'bidding',
+    statusText: '揭榜中',
+    description: '基于深度学习的图像识别与分类系统',
+    brief: '开发一套智能图像识别系统，支持物体检测、人脸识别、场景分析等功能，应用于安防监控...',
+    reward: 12000,
+    tag: 'NEW',
+    tagText: 'NEW',
+    deadlineDays: 10,
+    joinCount: 15,
+    likeCount: 52,
+    taskMode: 'team', // 团队任务
+    taskDuration: '1month' // 1个月内
+  },
+  // 前端开发领域
   {
     id: 2,
     title: 'Web前端开发',
-    price: '¥8,000',
+    company: 'YY网络公司',
+    field: '前端开发',
     status: 'bidding',
     statusText: '揭榜中',
-    description: '响应式企业官网开发'
+    description: '响应式企业官网开发',
+    brief: '开发一个现代化的企业官网前端页面，支持响应式布局和多终端适配，提升品牌形象...',
+    reward: 8000,
+    tag: 'NEW',
+    tagText: 'NEW',
+    deadlineDays: 5,
+    joinCount: 8,
+    likeCount: 32,
+    taskMode: 'individual', // 个人任务
+    taskDuration: '7days' // 7天内
   },
+  {
+    id: 6,
+    title: 'Vue3管理系统前端',
+    company: '云智科技',
+    field: '前端开发',
+    status: 'bidding',
+    statusText: '揭榜中',
+    description: '基于Vue3的企业管理系统前端开发',
+    brief: '使用Vue3 + Element Plus开发企业级管理系统前端，包含用户管理、数据统计、权限控制等模块...',
+    reward: 15000,
+    tag: '',
+    tagText: '',
+    deadlineDays: 14,
+    joinCount: 10,
+    likeCount: 38,
+    taskMode: 'team', // 团队任务
+    taskDuration: '1month' // 1个月内
+  },
+  // 后端开发领域
+  {
+    id: 7,
+    title: 'Spring Boot微服务后端',
+    company: '架构科技',
+    field: '后端开发',
+    status: 'bidding',
+    statusText: '揭榜中',
+    description: '基于Spring Boot的微服务架构后端开发',
+    brief: '设计并实现基于Spring Boot的微服务架构，包含用户服务、订单服务、支付服务等，支持高并发...',
+    reward: 20000,
+    tag: 'HOT',
+    tagText: 'HOT',
+    deadlineDays: 21,
+    joinCount: 18,
+    likeCount: 65,
+    taskMode: 'team', // 团队任务
+    taskDuration: '3months' // 3个月内
+  },
+  {
+    id: 8,
+    title: 'Node.js API服务开发',
+    company: '全栈科技',
+    field: '后端开发',
+    status: 'bidding',
+    statusText: '揭榜中',
+    description: '基于Node.js的RESTful API服务开发',
+    brief: '使用Node.js + Express开发RESTful API服务，支持JWT认证、数据缓存、接口限流等功能...',
+    reward: 10000,
+    tag: '',
+    tagText: '',
+    deadlineDays: 12,
+    joinCount: 9,
+    likeCount: 28,
+    taskMode: 'individual', // 个人任务
+    taskDuration: '1month' // 1个月内
+  },
+  // 音视频领域
+  {
+    id: 9,
+    title: '实时音视频通话系统',
+    company: '音视科技',
+    field: '音视频',
+    status: 'bidding',
+    statusText: '揭榜中',
+    description: '基于WebRTC的实时音视频通话系统',
+    brief: '开发一套实时音视频通话系统，支持多人视频会议、屏幕共享、实时录制等功能，低延迟高清晰度...',
+    reward: 25000,
+    tag: 'URGENT',
+    tagText: '急',
+    deadlineDays: 6,
+    joinCount: 22,
+    likeCount: 78,
+    taskMode: 'team', // 团队任务
+    taskDuration: '7days' // 7天内
+  },
+  {
+    id: 10,
+    title: '视频编辑处理平台',
+    company: '媒体科技',
+    field: '音视频',
+    status: 'reviewing',
+    statusText: '评审中',
+    description: '在线视频编辑与处理平台开发',
+    brief: '开发在线视频编辑平台，支持视频剪辑、特效添加、字幕生成、格式转换等功能，提供云端处理能力...',
+    reward: 18000,
+    tag: '',
+    tagText: '',
+    deadlineDays: 0,
+    joinCount: 16,
+    likeCount: 45,
+    taskMode: 'team', // 团队任务
+    taskDuration: '3months' // 3个月内
+  },
+  // 其他领域
   {
     id: 3,
     title: '数据分析平台',
-    price: '¥6,000',
+    company: 'ZZ数据公司',
+    field: '大数据',
     status: 'reviewing',
     statusText: '评审中',
-    description: '大数据可视化分析系统'
+    description: '大数据可视化分析系统',
+    brief: '需要对销售数据进行深度分析并制作可视化报表，支持多维度钻取分析和实时监控...',
+    reward: 6000,
+    tag: '',
+    tagText: '',
+    deadlineDays: 0,
+    joinCount: 15,
+    likeCount: 28,
+    taskMode: 'individual', // 个人任务
+    taskDuration: '1month' // 1个月内
   },
   {
     id: 4,
     title: '移动应用开发',
-    price: '¥10,000',
+    company: '智慧教育科技有限公司',
+    field: '移动开发',
     status: 'bidding',
     statusText: '揭榜中',
-    description: '跨平台移动应用开发'
+    description: '跨平台移动应用开发',
+    brief: '开发一款跨平台移动应用，支持iOS和Android双平台，提供流畅的用户体验和丰富的功能...',
+    reward: 10000,
+    tag: 'URGENT',
+    tagText: '急',
+    deadlineDays: 3,
+    joinCount: 20,
+    likeCount: 60,
+    taskMode: 'team', // 团队任务
+    taskDuration: '7days' // 7天内
+  },
+  // 添加更多不同状态和时限的项目
+  {
+    id: 11,
+    title: '企业级ERP系统开发',
+    company: '企业信息化公司',
+    field: '后端开发',
+    status: 'proposal',
+    statusText: '方案提交中',
+    description: '企业级ERP系统后端架构设计',
+    brief: '设计并开发企业级ERP系统，包含采购、销售、库存、财务等核心模块，支持多公司多账套...',
+    reward: 30000,
+    tag: '',
+    tagText: '',
+    deadlineDays: 60,
+    joinCount: 5,
+    likeCount: 20,
+    taskMode: 'team',
+    taskDuration: '6months' // 6个月内
+  },
+  {
+    id: 12,
+    title: 'React移动端H5开发',
+    company: '移动互联网公司',
+    field: '前端开发',
+    status: 'executing',
+    statusText: '项目进行中',
+    description: '基于React的移动端H5应用开发',
+    brief: '使用React + TypeScript开发移动端H5应用，支持PWA、离线缓存、推送通知等功能...',
+    reward: 12000,
+    tag: '',
+    tagText: '',
+    deadlineDays: 30,
+    joinCount: 3,
+    likeCount: 15,
+    taskMode: 'individual',
+    taskDuration: '1month'
+  },
+  {
+    id: 13,
+    title: 'AI语音识别引擎',
+    company: '语音技术公司',
+    field: '人工智能',
+    status: 'midterm',
+    statusText: '中期答辩中',
+    description: '基于深度学习的语音识别引擎',
+    brief: '开发高精度语音识别引擎，支持多语言、方言识别，实时转写，准确率达到95%以上...',
+    reward: 35000,
+    tag: 'HOT',
+    tagText: 'HOT',
+    deadlineDays: 90,
+    joinCount: 8,
+    likeCount: 45,
+    taskMode: 'team',
+    taskDuration: '6months'
+  },
+  {
+    id: 14,
+    title: '直播推流系统开发',
+    company: '直播平台公司',
+    field: '音视频',
+    status: 'publicizing',
+    statusText: '项目公示中',
+    description: '实时直播推流与分发系统',
+    brief: '开发直播推流系统，支持RTMP、HLS协议，多路推流、CDN分发、弹幕互动等功能...',
+    reward: 28000,
+    tag: '',
+    tagText: '',
+    deadlineDays: 120,
+    joinCount: 12,
+    likeCount: 55,
+    taskMode: 'team',
+    taskDuration: 'longterm' // 长期项目
+  },
+  {
+    id: 15,
+    title: '小程序商城开发',
+    company: '电商科技公司',
+    field: '前端开发',
+    status: 'completed',
+    statusText: '已完成',
+    description: '微信小程序商城前端开发',
+    brief: '开发微信小程序商城，包含商品展示、购物车、订单管理、支付等功能，支持分销和拼团...',
+    reward: 15000,
+    tag: '',
+    tagText: '',
+    deadlineDays: -10,
+    joinCount: 6,
+    likeCount: 30,
+    taskMode: 'individual',
+    taskDuration: '3months'
   }
 ])
+
+// 根据筛选条件过滤项目
+const hotProjects = computed(() => {
+  let filtered = allProjects.value
+
+  // 1. 按领域筛选
+  if (selectedField.value !== '全部') {
+    const fieldMap = {
+      '前端开发': ['前端开发', 'Web前端'],
+      '后端开发': ['后端开发', '后端'],
+      '人工智能': ['人工智能', 'AI'],
+      '音视频': ['音视频', '视频', '音频']
+    }
+    const targetFields = fieldMap[selectedField.value] || [selectedField.value]
+    filtered = filtered.filter(project => 
+      targetFields.some(field => project.field.includes(field))
+    )
+  }
+
+  // 2. 按任务模式筛选
+  if (selectedTaskMode.value) {
+    filtered = filtered.filter(project => project.taskMode === selectedTaskMode.value)
+  }
+
+  // 3. 按任务时限筛选
+  if (selectedTaskDuration.value) {
+    filtered = filtered.filter(project => {
+      // 如果项目有 taskDuration 字段，直接匹配
+      if (project.taskDuration) {
+        return project.taskDuration === selectedTaskDuration.value
+      }
+      // 否则根据 deadlineDays 判断
+      const duration = selectedTaskDuration.value
+      const days = project.deadlineDays
+      if (duration === '7days') {
+        return days <= 7 && days >= 0
+      } else if (duration === '1month') {
+        return days > 7 && days <= 30
+      } else if (duration === '3months') {
+        return days > 30 && days <= 90
+      } else if (duration === '6months') {
+        return days > 90 && days <= 180
+      } else if (duration === 'longterm') {
+        return days > 180
+      }
+      return true
+    })
+  }
+
+  // 4. 按项目状态筛选
+  if (selectedProjectStatus.value) {
+    filtered = filtered.filter(project => project.status === selectedProjectStatus.value)
+  }
+
+  return filtered
+})
+
+// 状态文本映射
+const statusTextMap = {
+  bidding: '揭榜中',
+  proposal: '方案提交中',
+  executing: '项目进行中',
+  midterm: '中期答辩中',
+  reviewing: '评审中',
+  publicizing: '项目公示中',
+  publishing: '公示中',
+  completed: '已完成',
+  closed: '已关闭'
+}
+
+// 计算截止时间文本
+const getDeadlineText = (days) => {
+  if (days > 0) {
+    return `${days}天后`
+  } else if (days === 0) {
+    return '今天截止'
+  } else {
+    return '已截止'
+  }
+}
 
 const partners = ref([
   { id: 1, name: '腾讯科技', logo: 'T' },
@@ -615,16 +1054,24 @@ const partners = ref([
   { id: 5, name: '百度', logo: 'B' },
   { id: 6, name: '京东', logo: 'J' }
 ])
+
+// 跳转到项目详情页
+const goToProjectDetail = (projectId) => {
+  router.push(`/projects/${projectId}`)
+}
 </script>
 
 <style scoped>
 .home-page {
-  min-height: 100vh;
+  /* 占据整个视口高度 */
+  height: 100vh;
   display: flex;
   flex-direction: column;
   background: transparent; /* 背景透明，让背景图显示 */
   color: #1f274b;
   position: relative;
+  /* 阻止自身滚动，让内部 .page-body 滚动 */
+  overflow: hidden;
 }
 
 /* 背景图片样式 - 放在最底层，淡一点，从上到下渐变，跟随页面滚动 */
@@ -655,7 +1102,9 @@ const partners = ref([
 }
 
 .page-body {
+  /* 占据剩余空间，成为滚动容器 */
   flex: 1;
+  /* 限制最大宽度，居中显示 */
   max-width: 1200px;
   width: 100%;
   margin: 0 auto;
@@ -663,11 +1112,15 @@ const partners = ref([
   display: flex;
   flex-direction: column;
   gap: 32px;
-  /* 滑动效果 */
+  /* 成为主滚动容器 */
   overflow-y: auto;
-  max-height: calc(100vh - 80px);
+  overflow-x: hidden;
+  /* 占据整个视口高度 */
+  height: 100vh;
+  /* 平滑滚动 */
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
+  /* 隐藏滚动条（可选，保持美观） */
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
@@ -677,10 +1130,20 @@ const partners = ref([
 }
 
 .page-footer {
-  margin-top: auto;
+  /* 移除 margin-top: auto，因为现在在 page-body 内部 */
+  margin-top: 0;
   background: #22336b;
   color: #ffffff;
   padding: 48px 0;
+  /* 确保 footer 在滚动容器内正常显示 */
+  flex-shrink: 0;
+  /* 全浏览器宽度 */
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
 }
 
 .footer-content {
@@ -801,7 +1264,7 @@ const partners = ref([
 /* Hero Section */
 .hero-section {
   background: transparent; /* 背景透明，让背景图显示 */
-  margin-bottom: 16px;
+  margin-bottom: 8px;
   /* 突破父容器宽度限制，实现全屏宽度 */
   width: 100vw;
   position: relative;
@@ -941,7 +1404,7 @@ const partners = ref([
 
 /* 筛选器区域 */
 .filter-section {
-  margin-bottom: 16px;
+  margin-bottom: 8px;
 }
 
 .filter-card {
@@ -972,6 +1435,25 @@ const partners = ref([
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.filter-buttons .filter-btn:not(.more-btn) {
+  flex-shrink: 0;
+}
+
+.more-btn {
+  flex-shrink: 0;
+}
+
+.more-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #f3f4f6;
 }
 
 .filter-btn {
@@ -1005,7 +1487,7 @@ const partners = ref([
 
 /* 流程展示区域 */
 .process-section {
-  margin-bottom: 16px;
+  margin-bottom: 8px;
 }
 
 .process-card {
@@ -1237,6 +1719,208 @@ const partners = ref([
 .sort-btn:hover {
   background: #000000;
   color: #ffffff;
+}
+
+/* 任务列表内容区 */
+.task-list-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 0;
+}
+
+/* 任务项容器 */
+.task-item {
+  display: flex;
+  flex-direction: column;
+  padding: 18px 20px;
+  background: #ffffff;
+  border: 1px solid #edf1fb;
+  border-radius: 18px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+}
+
+.task-item:hover {
+  border-color: #2563eb;
+  box-shadow: 0 12px 30px rgba(15, 39, 106, 0.08);
+  transform: translateY(-4px);
+}
+
+/* 任务项主要内容区 */
+.task-item-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  margin-bottom: 12px;
+}
+
+/* 任务项左侧信息区 */
+.task-item-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-width: 0;
+}
+
+/* 标题行：标题 + 状态标签 */
+.task-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.task-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f274b;
+  margin: 0;
+  line-height: 1.4;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 元信息行：发布方、领域、截止时间 */
+.task-meta-row {
+  font-size: 13px;
+  color: #7b859f;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.task-meta-item {
+  margin-right: 0;
+}
+
+.task-meta-sep {
+  margin: 0 4px;
+  color: #c0c7dd;
+}
+
+/* 项目描述 */
+.task-brief {
+  font-size: 14px;
+  color: #4f5d7a;
+  margin: 0 0 12px 0;
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 底部信息：参与人数、点赞数 + 了解详情按钮 */
+.task-footer-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+.task-stats {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.task-stat-text {
+  color: #808aa7;
+}
+
+.task-like-text {
+  color: #ff6b81;
+}
+
+/* 任务项右侧操作区：奖金 + 了解详情按钮 */
+.task-item-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-start;
+  gap: 12px;
+  width: 140px;
+  flex-shrink: 0;
+}
+
+
+.task-reward {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f2c85;
+  text-align: right;
+}
+
+.task-status-tag {
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  color: #fff;
+  font-weight: 500;
+  text-align: center;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.task-status-tag.bidding {
+  background: linear-gradient(120deg, #0c5fe7, #2fb7ff);
+}
+
+.task-status-tag.reviewing {
+  background: linear-gradient(120deg, #ff9f0a, #ffb347);
+}
+
+.task-status-tag.publishing {
+  background: linear-gradient(120deg, #9254de, #b37feb);
+}
+
+.task-status-tag.completed {
+  background: linear-gradient(120deg, #52c41a, #73d13d);
+}
+
+.detail-btn {
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #2563eb;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  text-decoration: none;
+}
+
+.detail-btn:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+
+.detail-btn:active {
+  color: #1e40af;
+}
+
+.detail-btn .arrow {
+  font-size: 16px;
+  line-height: 1;
+  transition: transform 0.2s ease;
+}
+
+.detail-btn:hover .arrow {
+  transform: translateX(2px);
 }
 
 .task-list-empty {
@@ -1514,6 +2198,11 @@ const partners = ref([
   box-shadow: 0 25px 50px rgba(15, 39, 106, 0.08);
 }
 
+/* 合作企业模块特殊样式 - 减小高度 */
+.module:has(.partners-grid) {
+  padding: 20px 32px;
+}
+
 .module-header {
   display: flex;
   align-items: center;
@@ -1596,19 +2285,30 @@ const partners = ref([
 }
 
 .partners-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 20px;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 16px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-bottom: 8px;
+}
+
+.partners-grid::-webkit-scrollbar {
+  display: none;
 }
 
 .partner-card {
   border: 1px dashed #cfd7f1;
-  border-radius: 16px;
-  padding: 30px;
+  border-radius: 12px;
+  padding: 20px 24px;
   text-align: center;
   color: #4f5d7a;
   font-weight: 600;
   background: #f8faff;
+  flex-shrink: 0;
+  min-width: 120px;
 }
 
 /* 响应式适配 */
@@ -1650,6 +2350,34 @@ const partners = ref([
 
   .task-list-header {
     flex-wrap: wrap;
+  }
+
+  /* 任务列表响应式 */
+  .task-item-main {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .task-item-right {
+    width: 100%;
+    align-items: flex-start;
+  }
+
+  .task-reward {
+    text-align: left;
+  }
+
+  .task-status-tag {
+    width: auto;
+  }
+
+  .detail-btn {
+    width: auto;
+  }
+
+  .task-meta-row {
+    flex-wrap: wrap;
+    gap: 4px;
   }
 
   /* 项目网格 */
