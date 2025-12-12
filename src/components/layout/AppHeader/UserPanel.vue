@@ -121,7 +121,7 @@ const handleLogout = () => {
   localStorage.removeItem('userRole')
   localStorage.removeItem('userData')
   ElMessage.success('已退出登录')
-  router.push('/login')
+  router.push('/home')
 }
 
 // ========================================
@@ -168,20 +168,21 @@ const vClickOutside = {
 .user-dropdown {
   position: absolute;
   top: 100%;
-  right: 0;
+  left: 50%;
   margin-top: 8px;
   background: #fff;
   border-radius: 12px;
   padding: 12px;
   box-shadow: 0 10px 30px rgba(15, 39, 106, 0.15);
   border: 1px solid #e0e6f2;
-  min-width: 160px;
+  min-width: 200px;
+  max-width: 280px;
   display: flex;
   flex-direction: column;
   gap: 8px;
   opacity: 0;
   visibility: hidden;
-  transform: translateY(-10px);
+  transform: translate(-50%, -10px);
   transition: all 0.3s ease;
   z-index: 1000;
 }
@@ -189,7 +190,7 @@ const vClickOutside = {
 .user-dropdown.active {
   opacity: 1;
   visibility: visible;
-  transform: translateY(0);
+  transform: translate(-50%, 0);
 }
 
 .user-name {
