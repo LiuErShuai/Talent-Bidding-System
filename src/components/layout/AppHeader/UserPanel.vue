@@ -33,7 +33,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/store/modules/auth'
 import { ElMessage } from 'element-plus'
@@ -80,6 +80,12 @@ const hideDropdown = () => {
   showDropdown.value = false
 }
 
+// 不同角色的个人中心路径
+const profilePath = computed(() => {
+  if (props.userRole === 'enterprise') return '/enterprise/profile'
+  return '/user'
+})
+
 /**
  * 处理快捷操作点击
  * @param {object} action - 快捷操作配置 { label, path, type }
@@ -105,7 +111,7 @@ const handleAction = (action) => {
 
 const goUserCenter = () => {
   hideDropdown()
-  router.push('/user')
+  router.push(profilePath.value)
 }
 
 const goSettings = () => {

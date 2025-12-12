@@ -2,19 +2,13 @@
   <el-dialog
     v-model="visible"
     width="auto"
-    :show-close="true"
+    :show-close="false"
     :close-on-click-modal="true"
     :close-on-press-escape="true"
     class="auth-dialog"
     align-center
     destroy-on-close
   >
-    <template #header>
-      <div class="dialog-header">
-        <h2 class="dialog-title">揭榜挂帅系统</h2>
-      </div>
-    </template>
-
     <!-- 登录表单 -->
     <div v-if="currentMode === 'login'" class="auth-content">
       <div class="auth-card login-card">
@@ -22,6 +16,7 @@
           <img class="auth-illustration" src="@/assets/Login.jpg" alt="登录插画" @error="handleImageError" />
         </div>
         <div class="auth-right">
+          <button class="inline-close" @click="closeDialog" aria-label="关闭登录弹窗">✕</button>
           <div class="auth-header">
             <h2 class="auth-title">揭榜挂帅系统</h2>
             <p class="auth-subtitle">一款让对接更高效的协同平台</p>
@@ -77,6 +72,7 @@
           <img class="auth-illustration" src="@/assets/Register.jpg" alt="注册插画" />
         </div>
         <div class="auth-right">
+          <button class="inline-close" @click="closeDialog" aria-label="关闭注册弹窗">✕</button>
           <div class="auth-header">
             <h2 class="auth-title">揭榜挂帅系统</h2>
             <p class="auth-subtitle">欢迎加入，请完成注册信息</p>
@@ -219,6 +215,11 @@ const identifierLabel = computed(() => {
   if (registerFormData.value.identityType === 'username') return '用户名'
   return '邮箱'
 })
+
+// 关闭弹窗
+const closeDialog = () => {
+  visible.value = false
+}
 
 // 校验
 const validateIdentifier = (rule, value, callback) => {
@@ -416,12 +417,12 @@ watch(visible, (newVal) => {
 .auth-card {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  background: #fff;
-  border-radius: 18px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3),
-              0 0 0 1px rgba(255, 255, 255, 0.1);
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  /* 去掉外部视觉框架，保留内容区域 */
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: visible;
+  border: none;
   margin: 0 auto;
 }
 
@@ -515,6 +516,7 @@ watch(visible, (newVal) => {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 .auth-header {
@@ -536,6 +538,26 @@ watch(visible, (newVal) => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.inline-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 16px;
+  color: #606266;
+  transition: all 0.2s ease;
+}
+
+.inline-close:hover {
+  background: rgba(0, 0, 0, 0.08);
+  color: #303133;
 }
 
 .auth-form {

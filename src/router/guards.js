@@ -47,7 +47,7 @@ export function setupGuards(router) {
             next('/my-projects')
             break
           case 'enterprise':
-            next('/enterprise/my-projects')
+            next('/enterprise/profile')
             break
           case 'teacher':
             next('/projects')

@@ -47,9 +47,25 @@ const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
 
-const isLoggedIn = computed(() => authStore.isLoggedIn)
+// 登录状态：优先使用isAuthenticated，如果没有则检查token和localStorage
+const isLoggedIn = computed(() => {
+  // 检查authStore的登录状态
+  if (authStore.isAuthenticated || authStore.isLoggedIn) {
+    return true
+  }
+  // 如果authStore中没有，检查localStorage中的token（兼容旧的存储方式）
+  const token = localStorage.getItem('token') || authStore.token
+  const userInfo = localStorage.getItem('userInfo') || authStore.userInfo
+  return !!(token && userInfo)
+})
 const userInfo = computed(() => authStore.userInfo || {})
 const userRole = computed(() => authStore.userRole || 'student')
+
+// 个人中心路径按角色区分
+const userProfilePath = computed(() => {
+  if (userRole.value === 'enterprise') return '/enterprise/profile'
+  return '/user'
+})
 
 // 按角色映射“我的项目”路径，确保统一入口可跳转到对应页面
 const myProjectsPath = computed(() => {
@@ -65,8 +81,9 @@ const isMyProjectsActive = computed(() => route.path.startsWith(myProjectsPath.v
 // 头像下拉菜单（按角色）统一收纳隐藏导航
 const quickActions = computed(() => {
   const actions = [
-    { label: '个人中心', path: '/user/profile' },
-    { label: '消息中心', path: '/messages' }
+    { label: '个人中心', path: userProfilePath.value },
+    { label: '消息中心', path: '/messages' },
+    { label: '帮助中心', path: '/help' }
   ]
 
   if (userRole.value === 'enterprise') {
@@ -134,15 +151,24 @@ const handleLoginSuccess = () => {
 
 // 登录校验封装：未登录弹窗，已登录直接跳转
 const requireLoginAndGo = (path, feature) => {
-  if (!authStore.isLoggedIn) {
+  // 使用computed的isLoggedIn，它已经包含了多种登录状态检查
+  if (!isLoggedIn.value) {
     handleRequireLogin(path, feature)
     return
   }
-  router.push(path)
+  
+  // 确保路由跳转
+  router.push(path).catch(err => {
+    // 忽略重复导航错误（Vue Router 4.x的特性）
+    if (err.name !== 'NavigationDuplicated') {
+      console.error('Navigation error:', err)
+      ElMessage.error('页面跳转失败，请重试')
+    }
+  })
 }
 
 const goMyProjects = () => requireLoginAndGo(myProjectsPath.value, '我的项目')
-const goUserProfile = () => requireLoginAndGo('/user/profile', '个人中心')
+const goUserProfile = () => requireLoginAndGo(userProfilePath.value, '个人中心')
 const goMessages = () => requireLoginAndGo('/messages', '消息')
 
 // 初始化认证状态与未读数
