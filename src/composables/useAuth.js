@@ -31,7 +31,7 @@ export function useAuth() {
    */
   const logout = () => {
     authStore.logout()
-  router.push('/home')
+    router.push('/home')
   }
 
   /**
@@ -52,7 +52,12 @@ export function useAuth() {
    */
   const requireAuth = () => {
     if (!isLoggedIn.value) {
-      router.push({ name: 'Login', query: { redirect: router.currentRoute.value.fullPath } })
+      // 登录/注册已统一使用弹窗，通过事件触发即可
+      window.dispatchEvent(
+        new CustomEvent('open-auth-dialog', {
+          detail: { mode: 'login', redirect: router.currentRoute.value.fullPath }
+        })
+      )
       return false
     }
     return true

@@ -13,6 +13,7 @@ export function setupGuards(router) {
   // 全局前置守卫
   router.beforeEach((to, from, next) => {
     const authStore = useAuthStore()
+    const isInitialNavigation = from.matched.length === 0
 
     // 1. 设置页面标题
     if (to.meta.title) {
@@ -29,7 +30,9 @@ export function setupGuards(router) {
           detail: { mode: 'login', redirect: to.fullPath }
         })
       )
-      next(false)
+      // 避免 next(false) 导致 router.push Promise 被拒绝（产生未捕获错误）
+      if (isInitialNavigation) next('/home')
+      else next(from.fullPath)
       return
     }
 
@@ -62,16 +65,18 @@ export function setupGuards(router) {
       }
     }
 
-    // 4. 登录/注册路由改为弹窗，不再进入页面
+    // 4. 登录/注册入口改为弹窗，不再进入页面与路由模块
     if (to.path === '/login' || to.path === '/register') {
       const mode = to.path === '/register' ? 'register' : 'login'
+      const redirect = typeof to.query.redirect === 'string' ? to.query.redirect : ''
       window.dispatchEvent(
         new CustomEvent('open-auth-dialog', {
-          detail: { mode }
+          detail: { mode, redirect }
         })
       )
-      // 已登录则保持当前页；未登录也留在原页
-      next(false)
+      // 已登录或未登录都回到来源页；首次进入（例如浏览器地址栏）则进入首页
+      if (isInitialNavigation) next('/home')
+      else next(from.fullPath)
       return
     }
 

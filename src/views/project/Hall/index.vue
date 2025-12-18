@@ -252,7 +252,8 @@ const handleLogout = () => {
     role: 'student',
     avatar: 'https://picsum.photos/seed/user123/40/40.jpg'
   }
-  router.push('/login')
+  // 退出登录后仅回到首页，登录/注册已统一使用弹窗
+  router.push('/home')
 }
 
 // 搜索与筛选

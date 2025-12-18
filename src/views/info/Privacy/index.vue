@@ -258,7 +258,8 @@ const handleAgree = () => {
 
 const handleDisagree = () => {
   alert('您需要同意隐私政策才能继续使用我们的服务。')
-  router.push('/login')
+  // 登录/注册已统一使用弹窗，这里回到首页即可
+  router.push('/home')
 }
 
 onMounted(() => {

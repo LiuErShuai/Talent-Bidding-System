@@ -6,7 +6,7 @@
 export default [
   {
     path: '/',
-    redirect: '/login'
+    redirect: '/home'
   },
   // 使用 DefaultLayout 的公共页面
   {
