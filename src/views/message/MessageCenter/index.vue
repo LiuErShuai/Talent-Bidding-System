@@ -166,6 +166,7 @@
 
     <!-- 移动端：聊天抽屉（替代消息详情页） -->
     <el-drawer
+      v-if="!isWideScreen && activeNav === 'chat'"
       v-model="chatDrawerVisible"
       direction="rtl"
       size="100%"
@@ -566,15 +567,22 @@ onUnmounted(() => {
 
 <style scoped>
 .message-center-page {
-  min-height: 100vh;
+  height: 100vh;
+  box-sizing: border-box;
   background: #f5f7fb;
   color: #1f274b;
   padding: 18px 16px 24px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .message-center-layout {
   max-width: 1100px;
   margin: 0 auto;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
   display: grid;
   grid-template-columns: 360px 1fr;
   gap: 16px;
@@ -592,6 +600,7 @@ onUnmounted(() => {
   border-radius: 18px;
   box-shadow: 0 18px 35px rgba(15, 39, 106, 0.06);
   padding: 14px 16px 10px;
+  flex: none;
 }
 
 .center-header-main {
@@ -671,7 +680,8 @@ onUnmounted(() => {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  min-height: calc(100vh - 130px);
+  height: 100%;
+  min-height: 0;
 }
 
 .search-input {
@@ -715,6 +725,7 @@ onUnmounted(() => {
   padding: 10px 12px 12px;
   display: flex;
   justify-content: flex-start;
+  flex: none;
 }
 
 .list-area {
@@ -859,7 +870,8 @@ onUnmounted(() => {
   border: 1px solid #edf1fb;
   border-radius: 18px;
   box-shadow: 0 18px 35px rgba(15, 39, 106, 0.06);
-  min-height: calc(100vh - 130px);
+  height: 100%;
+  min-height: 0;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -901,6 +913,7 @@ onUnmounted(() => {
   align-items: baseline;
   justify-content: space-between;
   gap: 12px;
+  flex: none;
 }
 
 .chat-title {
@@ -987,6 +1000,7 @@ onUnmounted(() => {
   display: flex;
   gap: 10px;
   background: rgba(255, 255, 255, 0.96);
+  flex: none;
 }
 
 .composer-input {
