@@ -14,79 +14,87 @@
     </header>
 
     <!-- 聊天 -->
-    <main v-if="type === 'chat'" class="chat-main">
-      <div ref="chatScroller" class="chat-scroller">
-        <div v-if="messages.length" class="chat-list">
-          <div
-            v-for="msg in messages"
-            :key="msg.id"
-            class="chat-row"
-            :class="{ me: msg.sender === 'me' }"
-          >
-            <img
-              class="bubble-avatar"
-              :src="msg.sender === 'me' ? myAvatar : peerAvatar"
-              alt="头像"
-              @error="handleAvatarError"
-            />
-            <div class="bubble">
-              <div class="bubble-text">{{ msg.text }}</div>
-              <div class="bubble-time">{{ formatTime(msg.time) }}</div>
+    <div v-if="type === 'chat'" class="body-layout">
+      <div class="side-spacer" aria-hidden="true"></div>
+      <main class="body-center chat-main">
+        <div ref="chatScroller" class="chat-scroller">
+          <div v-if="messages.length" class="chat-list">
+            <div
+              v-for="msg in messages"
+              :key="msg.id"
+              class="chat-row"
+              :class="{ me: msg.sender === 'me' }"
+            >
+              <img
+                class="bubble-avatar"
+                :src="msg.sender === 'me' ? myAvatar : peerAvatar"
+                alt="头像"
+                @error="handleAvatarError"
+              />
+              <div class="bubble">
+                <div class="bubble-text">{{ msg.text }}</div>
+                <div class="bubble-time">{{ formatTime(msg.time) }}</div>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div v-else class="chat-empty">
-          <div class="chat-empty-icon">💬</div>
-          <div class="chat-empty-title">暂无聊天记录</div>
-          <div class="chat-empty-desc">试着发一句话开始对话吧</div>
-        </div>
-      </div>
-
-      <div class="composer">
-        <input
-          v-model="draft"
-          type="text"
-          class="composer-input"
-          placeholder="输入消息…"
-          @keydown.enter="send"
-        />
-        <button type="button" class="send-btn" :disabled="!draft.trim()" @click="send">
-          发送
-        </button>
-      </div>
-    </main>
-
-    <!-- @我 / 评论 -->
-    <main v-else class="notify-main">
-      <div class="notify-card">
-        <div class="notify-title">
-          <span class="notify-badge" :class="type">{{ typeLabel }}</span>
-          <span class="notify-title-text">{{ notifyItem?.title || '通知详情' }}</span>
-        </div>
-
-        <div class="notify-content">
-          <p class="notify-text">{{ notifyItem?.content || '暂无内容' }}</p>
-          <div class="notify-meta">
-            <span>时间：{{ notifyItem ? formatTime(notifyItem.time) : '-' }}</span>
-            <span v-if="notifyItem?.from">来自：{{ notifyItem.from }}</span>
+          <div v-else class="chat-empty">
+            <div class="chat-empty-icon">💬</div>
+            <div class="chat-empty-title">暂无聊天记录</div>
+            <div class="chat-empty-desc">试着发一句话开始对话吧</div>
           </div>
         </div>
 
-        <div class="notify-actions">
-          <button
-            v-if="notifyItem?.targetRoute"
-            type="button"
-            class="primary-btn"
-            @click="goTarget(notifyItem.targetRoute)"
-          >
-            跳转到相关内容
-            <span class="arrow">→</span>
+        <div class="composer">
+          <input
+            v-model="draft"
+            type="text"
+            class="composer-input"
+            placeholder="输入消息…"
+            @keydown.enter="send"
+          />
+          <button type="button" class="send-btn" :disabled="!draft.trim()" @click="send">
+            发送
           </button>
-          <button type="button" class="ghost-btn" @click="goBack">返回消息中心</button>
         </div>
-      </div>
-    </main>
+      </main>
+      <div class="side-spacer" aria-hidden="true"></div>
+    </div>
+
+    <!-- @我 / 评论 -->
+    <div v-else class="body-layout">
+      <div class="side-spacer" aria-hidden="true"></div>
+      <main class="body-center notify-main">
+        <div class="notify-card">
+          <div class="notify-title">
+            <span class="notify-badge" :class="type">{{ typeLabel }}</span>
+            <span class="notify-title-text">{{ notifyItem?.title || '通知详情' }}</span>
+          </div>
+
+          <div class="notify-content">
+            <p class="notify-text">{{ notifyItem?.content || '暂无内容' }}</p>
+            <div class="notify-meta">
+              <span>时间：{{ notifyItem ? formatTime(notifyItem.time) : '-' }}</span>
+              <span v-if="notifyItem?.from">来自：{{ notifyItem.from }}</span>
+            </div>
+          </div>
+
+          <div class="notify-actions">
+            <button
+              v-if="notifyItem?.targetRoute"
+              type="button"
+              class="primary-btn"
+              @click="goTarget(notifyItem.targetRoute)"
+            >
+              跳转到相关内容
+              <span class="arrow">→</span>
+            </button>
+            <button type="button" class="ghost-btn" @click="goBack">返回消息中心</button>
+          </div>
+        </div>
+      </main>
+      <div class="side-spacer" aria-hidden="true"></div>
+    </div>
   </div>
 </template>
 
@@ -236,6 +244,23 @@ watch([type, id], () => {
   flex-direction: column;
 }
 
+.body-layout {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr minmax(0, 980px) 1fr;
+}
+
+.side-spacer {
+  min-width: 0;
+}
+
+.body-center {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
 .detail-header {
   position: sticky;
   top: 0;
@@ -302,8 +327,6 @@ watch([type, id], () => {
 /* chat */
 .chat-main {
   flex: 1;
-  display: flex;
-  flex-direction: column;
   min-height: 0;
 }
 
@@ -540,5 +563,17 @@ watch([type, id], () => {
   color: #4a5676;
   font-weight: 800;
   cursor: pointer;
+}
+
+@media (max-width: 1024px) {
+  .body-layout {
+    grid-template-columns: 12px 1fr 12px;
+  }
+}
+
+@media (max-width: 640px) {
+  .body-layout {
+    grid-template-columns: 6px 1fr 6px;
+  }
 }
 </style>
