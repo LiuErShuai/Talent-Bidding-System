@@ -1,46 +1,31 @@
 <template>
   <div class="message-center-page">
     <div class="message-center-card">
-      <header class="page-header">
-        <div class="header-left">
-          <h1 class="page-title">消息中心</h1>
-        </div>
-
-        <div class="header-right">
-          <el-button type="primary" plain class="settings-btn" @click="handleOpenSettings">
-            <el-icon class="settings-icon"><Setting /></el-icon>
-            消息设置
-          </el-button>
-        </div>
-      </header>
-
       <div class="type-tabs">
-        <el-tabs v-model="activeType" @tab-change="handleTypeChange">
-          <el-tab-pane
-            v-for="tab in messageTypes"
-            :key="tab.key"
-            :name="tab.key"
-          >
-            <template #label>
-              <span class="tab-label">
-                <el-icon class="tab-icon">
-                  <component :is="tab.icon" />
-                </el-icon>
-                {{ tab.label }}
-                <el-badge
-                  v-if="unreadCountByType[tab.key] > 0"
-                  :value="unreadCountByType[tab.key]"
-                  class="tab-badge"
-                />
-              </span>
-            </template>
-          </el-tab-pane>
-        </el-tabs>
-      </div>
+        <div class="tabs-row">
+          <el-tabs v-model="activeType" @tab-change="handleTypeChange">
+            <el-tab-pane
+              v-for="tab in messageTypes"
+              :key="tab.key"
+              :name="tab.key"
+            >
+              <template #label>
+                <span class="tab-label">
+                  <el-icon class="tab-icon">
+                    <component :is="tab.icon" />
+                  </el-icon>
+                  {{ tab.label }}
+                  <el-badge
+                    v-if="unreadCountByType[tab.key] > 0"
+                    :value="unreadCountByType[tab.key]"
+                    class="tab-badge"
+                  />
+                </span>
+              </template>
+            </el-tab-pane>
+          </el-tabs>
 
-      <section class="message-center-main">
-        <aside class="left-panel">
-          <div class="left-toolbar">
+          <div class="header-tools">
             <el-input
               v-model="keyword"
               placeholder="搜索消息内容"
@@ -52,7 +37,11 @@
               </template>
             </el-input>
           </div>
+        </div>
+      </div>
 
+      <section class="message-center-main">
+        <aside class="left-panel">
           <div class="message-list" role="list">
             <div
               v-for="item in filteredList"
@@ -269,10 +258,6 @@ const removeSelected = () => {
   selectedId.value = ''
 }
 
-const handleOpenSettings = () => {
-  // 预留：后续可打开抽屉/对话框，配置消息免打扰、通知方式等
-}
-
 watch(
   () => activeType.value,
   () => {
@@ -302,33 +287,34 @@ onMounted(() => {
   overflow: hidden;
 }
 
-.page-header {
-  padding: 18px 20px 10px;
+.type-tabs {
+  padding: 10px 14px 0;
+  border-bottom: 1px solid #eef2fb;
+}
+
+.tabs-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
 }
 
-.page-title {
+.tabs-row :deep(.el-tabs__header) {
   margin: 0;
-  font-size: 20px;
-  font-weight: 700;
-  color: #1f274b;
-  letter-spacing: 0.5px;
 }
 
-.settings-btn {
+.tabs-row :deep(.el-tabs__nav-wrap::after) {
+  display: none;
+}
+
+.header-tools {
+  flex: none;
+  width: 360px;
+  padding-bottom: 10px;
+}
+
+.search-input :deep(.el-input__wrapper) {
   border-radius: 999px;
-}
-
-.settings-icon {
-  margin-right: 6px;
-}
-
-.type-tabs {
-  padding: 0 14px;
-  border-bottom: 1px solid #eef2fb;
 }
 
 .tab-label {
@@ -357,15 +343,6 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   min-width: 0;
-}
-
-.left-toolbar {
-  padding: 14px 14px 10px;
-  flex: none;
-}
-
-.search-input :deep(.el-input__wrapper) {
-  border-radius: 999px;
 }
 
 .message-list {
@@ -552,6 +529,16 @@ onMounted(() => {
 @media (max-width: 960px) {
   .message-center-page {
     padding: 16px;
+  }
+
+  .tabs-row {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .header-tools {
+    width: 100%;
+    padding-bottom: 12px;
   }
 
   .message-center-main {
