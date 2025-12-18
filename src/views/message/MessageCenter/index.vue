@@ -207,7 +207,7 @@
                 <el-input
                   v-model="draftText"
                   type="textarea"
-                  :rows="3"
+                  :rows="2"
                   class="chat-textarea"
                   placeholder="输入消息，Enter 发送，Shift+Enter 换行"
                   @keydown.enter.exact.prevent="sendMessage"
@@ -1189,11 +1189,15 @@ onMounted(() => {
 
 .chat-textarea :deep(.el-textarea__inner) {
   border-radius: 12px;
-  height: 80px;
-  min-height: 80px;
-  max-height: 80px;
+  height: 68px;
+  min-height: 68px;
+  max-height: 68px;
   overflow-y: auto;
   resize: none;
+}
+
+.chat-textarea :deep(.el-textarea__inner::placeholder) {
+  font-size: 15px;
 }
 
 .chat-textarea :deep(.el-textarea__inner) {
