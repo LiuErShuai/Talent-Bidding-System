@@ -1,19 +1,13 @@
 <template>
   <div class="message-center-page">
     <header class="page-header">
-      <div class="header-left">
-        <h1 class="title">消息</h1>
-        <p class="subtitle">聊天、@我、评论</p>
-      </div>
-      <div class="header-right">
-        <div class="search">
-          <input
-            v-model="keyword"
-            class="search-input"
-            type="text"
-            placeholder="搜索联系人 / 关键词"
-          />
-        </div>
+      <div class="search">
+        <input
+          v-model="keyword"
+          class="search-input"
+          type="text"
+          placeholder="搜索联系人 / 关键词"
+        />
       </div>
     </header>
 
@@ -191,28 +185,11 @@ const handleAvatarError = (event) => {
 .page-header {
   max-width: 1100px;
   margin: 0 auto;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 16px;
   padding: 10px 4px 16px;
 }
 
-.title {
-  font-size: 22px;
-  font-weight: 800;
-  margin: 0;
-  letter-spacing: 0.2px;
-}
-
-.subtitle {
-  margin: 4px 0 0;
-  color: #7b859f;
-  font-size: 13px;
-}
-
 .search {
-  width: min(420px, 60vw);
+  width: min(560px, 100%);
 }
 
 .search-input {
@@ -433,8 +410,7 @@ const handleAvatarError = (event) => {
 
 @media (max-width: 768px) {
   .page-header {
-    align-items: flex-start;
-    flex-direction: column;
+    padding: 6px 4px 14px;
   }
 
   .search {
