@@ -15,6 +15,13 @@
           </button>
           <button
             class="sidebar-item"
+            :class="{ active: activeSection === 'detail' }"
+            @click="activeSection = 'detail'"
+          >
+            详细资料
+          </button>
+          <button
+            class="sidebar-item"
             :class="{ active: activeSection === 'skills' }"
             @click="activeSection = 'skills'"
           >
@@ -72,7 +79,7 @@
               <div class="user-avatar-section">
                 <div class="avatar-upload" @click="editMode ? $refs.avatarInput.click() : null">
                   <div class="user-avatar-large">
-                    <img :src="userInfo.avatar || 'https://picsum.photos/seed/user123/120/120.jpg'" alt="用户头像" />
+                    <img :src="userProfileData?.avatar || userInfo.avatar || 'https://picsum.photos/seed/user123/120/120.jpg'" alt="用户头像" />
                     <div v-if="editMode" class="avatar-edit-overlay">
                       <span>更换头像</span>
                     </div>
@@ -86,12 +93,12 @@
                   >
                 </div>
                 <div class="user-info-main">
-                  <h1 class="user-name">{{ userInfo.username || '用户' }}</h1>
-                  <p class="user-role">
-                    <span class="role-tag" :class="userInfo.role === 'admin' ? 'admin' : 'user'">
-                      {{ userInfo.role === 'admin' ? '管理员' : '普通用户' }}
+                  <div class="user-name-row">
+                    <h1 class="user-name">{{ userInfo.username || userProfileData?.realName || '用户' }}</h1>
+                    <span class="role-tag" :class="userRole === 'admin' ? 'admin' : 'user'">
+                      {{ userRole === 'admin' ? '管理员' : userRole === 'student' ? '学生' : userRole === 'enterprise' ? '企业' : userRole === 'teacher' ? '教师' : '普通用户' }}
                     </span>
-                  </p>
+                  </div>
                   <p class="user-description">欢迎来到个人中心，管理您的个人信息和项目</p>
                 </div>
               </div>
@@ -119,50 +126,19 @@
 
           <!-- 个人资料 -->
           <section v-if="activeSection === 'profile'" class="info-section">
-        <div class="section-header">
-          <h2 class="section-title">个人资料</h2>
-          <button class="edit-btn" @click="editMode = !editMode">
-            {{ editMode ? '取消编辑' : '编辑信息' }}
-          </button>
-        </div>
-        
-        <div class="info-grid">
-          <div class="info-card">
-            <div class="info-item">
-              <label class="info-label">用户名：</label>
-              <span v-if="!editMode" class="info-value">{{ userInfo.username }}</span>
-              <input v-else class="info-input" v-model="userInfo.username" />
+            <ProfileCard 
+              v-if="userProfileData"
+              :user-data="userProfileData"
+              :has-profile="!!userProfileData"
+            />
+            <div v-else class="loading-container">
+              <el-skeleton :rows="5" animated />
             </div>
-            <div class="info-item">
-              <label class="info-label">手机号：</label>
-              <span v-if="!editMode" class="info-value">{{ userInfo.phone || '未设置' }}</span>
-              <input v-else class="info-input" v-model="userInfo.phone" />
-            </div>
-            <div class="info-item">
-              <label class="info-label">邮箱：</label>
-              <span v-if="!editMode" class="info-value">{{ userInfo.email || '未设置' }}</span>
-              <input v-else class="info-input" v-model="userInfo.email" />
-            </div>
-            <div class="info-item">
-              <label class="info-label">注册时间：</label>
-              <span class="info-value">{{ formatDate(userInfo.registerTime) }}</span>
-            </div>
-            <div class="info-item">
-              <label class="info-label">上次登录：</label>
-              <span class="info-value">{{ formatDate(userInfo.lastLoginTime) }}</span>
-            </div>
-            <div class="info-item full-width">
-              <label class="info-label">地址：</label>
-              <span v-if="!editMode" class="info-value">{{ userInfo.address || '未设置' }}</span>
-              <textarea v-else class="info-textarea" v-model="userInfo.address" rows="2"></textarea>
-            </div>
-            
-            <div v-if="editMode" class="form-actions">
-              <button class="save-btn" @click="saveUserInfo">保存修改</button>
-              <button class="cancel-btn" @click="cancelEdit">取消</button>
-            </div>
-          </div>
-        </div>
+          </section>
+
+          <!-- 详细资料 -->
+          <section v-else-if="activeSection === 'detail'" class="info-section">
+            <SettingsForm />
           </section>
 
           <!-- 技能标签管理 -->
@@ -283,20 +259,6 @@
       </div>
     </main>
 
-    <!-- 底部信息区 -->
-    <footer class="footer">
-      <div class="footer-content">
-        <div class="footer-links">
-          <router-link to="/about" class="footer-link">关于我们</router-link>
-          <router-link to="/contact" class="footer-link">联系我们</router-link>
-          <router-link to="/help" class="footer-link">帮助中心</router-link>
-          <router-link to="/privacy" class="footer-link">隐私政策</router-link>
-        </div>
-        <div class="copyright">
-          Copyright © 2025 产教融合平台 All Rights Reserved
-        </div>
-      </div>
-    </footer>
   </div>
 </template>
 
@@ -304,31 +266,29 @@
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@store/modules/user'
+import { useAuthStore } from '@store/modules/auth'
 import { ElMessage } from 'element-plus'
+import ProfileCard from '@/components/user/ProfileCard.vue'
+import SettingsForm from '@/components/user/SettingsForm.vue'
   
-  const router = useRouter()
-  const userStore = useUserStore()
+const router = useRouter()
+const userStore = useUserStore()
+const authStore = useAuthStore()
 
-  // 个人中心内部菜单
-  const activeSection = ref('profile')
+// 个人中心内部菜单
+const activeSection = ref('profile')
 
-  // 编辑模式
-  const editMode = ref(false)
-  const avatarInput = ref(null)
+// 编辑模式
+const editMode = ref(false)
+const avatarInput = ref(null)
 
-// 用户信息
-const userInfo = reactive({
-  username: userStore.username || '用户',
-  role: 'student', // student / enterprise
-  phone: '138****1234',
-  email: 'user@example.com',
-  registerTime: new Date('2024-01-01'),
-  lastLoginTime: new Date(),
-  address: '北京市朝阳区',
-  avatar: ''
-  })
-  
-  const userRole = computed(() => userInfo.role || 'student')
+// 用户资料数据
+const userProfileData = ref(null)
+
+// 用户信息（从authStore获取）
+const userInfo = computed(() => authStore.userInfo || {})
+
+const userRole = computed(() => authStore.userRole || 'student')
 
   // 技能标签管理
   const skillTags = ref(['Vue', 'JavaScript', 'Python'])
@@ -364,34 +324,34 @@ const userLogs = reactive([
 ])
 
 // 头像上传处理
-const handleAvatarUpload = (event) => {
+const handleAvatarUpload = async (event) => {
   const file = event.target.files[0]
-  if (file) {
-    if (file.size > 2 * 1024 * 1024) {
-      ElMessage.error('头像大小不能超过2MB')
-      return
-    }
-    
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      userInfo.avatar = e.target.result
-      ElMessage.success('头像上传成功')
-    }
-    reader.readAsDataURL(file)
+  if (!file) return
+
+  if (file.size > 2 * 1024 * 1024) {
+    ElMessage.error('头像大小不能超过2MB')
+    return
   }
-}
 
-// 保存用户信息
-const saveUserInfo = () => {
-  // 这里应该调用API保存用户信息
-  ElMessage.success('用户信息保存成功')
-  editMode.value = false
-}
-
-// 取消编辑
-const cancelEdit = () => {
-  editMode.value = false
-  // 这里可以重置用户信息为原始数据
+  try {
+    const { uploadAvatarAPI } = await import('@/api/user')
+    const result = await uploadAvatarAPI(file)
+    
+    if (result.code === 200) {
+      // 更新头像显示
+      if (userProfileData.value) {
+        userProfileData.value.avatar = result.data.avatarUrl
+      }
+      // 更新authStore中的头像
+      authStore.updateUserInfo({ avatar: result.data.avatarUrl })
+      ElMessage.success('头像上传成功')
+    } else {
+      ElMessage.error(result.message || '头像上传失败')
+    }
+  } catch (error) {
+    console.error('Upload avatar error:', error)
+    ElMessage.error('头像上传失败')
+  }
 }
 
 // 格式化日期
@@ -432,11 +392,21 @@ const getLogIcon = (type) => {
   return icons[type] || '📝'
 }
 
-onMounted(() => {
-  // 初始化用户信息
-  if (userStore.username) {
-    userInfo.username = userStore.username
+// 加载用户详细信息
+const loadUserProfile = async () => {
+  try {
+    const profile = await userStore.fetchUserProfile()
+    if (profile) {
+      userProfileData.value = profile
+    }
+  } catch (error) {
+    console.error('Load user profile error:', error)
   }
+}
+
+onMounted(() => {
+  // 加载用户详细信息
+  loadUserProfile()
 })
 </script>
 
@@ -447,7 +417,8 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   font-family: 'Microsoft YaHei', '微软雅黑', 'Source Han Sans CN', 'Roboto', Arial, sans-serif;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  /* 背景改为更淡的冷色渐变，减小与内容区的色差 */
+  background: linear-gradient(135deg, #f8fafc 0%, #edf1f7 100%);
   color: #333;
   scroll-behavior: smooth;
 }
@@ -455,21 +426,14 @@ onMounted(() => {
 /* 主要内容区域 */
 .main-content {
   flex: 1;
-  max-width: 1200px;
+  /* 主内容区加宽，视觉更舒展 */
+  max-width: 1340px;
   margin: 0 auto;
   padding: 24px;
   width: 100%;
   animation: fadeInUp 0.8s ease-out;
-  overflow-y: auto;
-  max-height: calc(100vh - 64px - 80px);
-  scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.main-content::-webkit-scrollbar {
-  display: none;
+  /* 统一使用页面滚动，移除内部滚动条 */
+  overflow: visible;
 }
 
 .user-layout {
@@ -527,8 +491,10 @@ onMounted(() => {
 /* 用户信息卡片区域 */
 .user-banner-section {
   border-radius: 12px;
-  padding: 24px 24px;
-  margin-bottom: 24px;
+  /* 压缩上下空间 */
+  padding: 16px 20px;
+  /* 缩小与下方信息区的间距 */
+  margin-bottom: 10px;
   background: #ffffff;
   border: 1px dashed #d9d9d9;
   position: relative;
@@ -537,7 +503,7 @@ onMounted(() => {
 .banner-content {
   position: relative;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 32px;
 }
 
@@ -548,8 +514,8 @@ onMounted(() => {
 }
 
 .user-avatar-large {
-  width: 120px;
-  height: 120px;
+  width: 96px;
+  height: 96px;
   border-radius: 50%;
   overflow: hidden;
   border: 2px solid #d9d9d9;
@@ -597,14 +563,18 @@ onMounted(() => {
 }
 
 .user-name {
-  font-size: 2rem;
+  font-size: 1.8rem;
   font-weight: 600;
-  margin-bottom: 8px;
-  letter-spacing: 1px;
+  margin-bottom: 4px;
+  letter-spacing: 0.5px;
 }
 
-.user-role {
-  margin-bottom: 16px;
+.user-name-row {
+  display: flex;
+  align-items: center;
+  gap: 100px;
+  flex-wrap: wrap;
+  margin-top: -20px; 
 }
 
 .role-tag {
@@ -613,6 +583,7 @@ onMounted(() => {
   font-size: 0.9rem;
   font-weight: 500;
   white-space: nowrap;
+  margin-top: 20px; 
 }
 
 .role-tag.admin {
@@ -632,25 +603,36 @@ onMounted(() => {
 }
 
 .user-stats-overview {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
+  /* 横向排列且不换行，控制宽度占比约30% */
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
   text-align: left;
+  max-width: 30%;
+  justify-content: space-between;
+  align-self: center;
+  margin-left: auto;
 }
 
 .stat-item {
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 4px 6px;
+  min-width: 60px;
 }
 
 .stat-number {
   display: block;
-  font-size: 2rem;
+  font-size: 1.4rem;
   font-weight: 700;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .stat-label {
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   opacity: 0.8;
 }
 
@@ -709,7 +691,8 @@ onMounted(() => {
 
 /* 个人信息编辑区 */
 .info-section {
-  margin-bottom: 40px;
+  /* 减少信息区之间的垂直间距 */
+  margin-bottom: 28px;
   animation: fadeInUp 0.8s ease-out 0.2s both;
 }
 

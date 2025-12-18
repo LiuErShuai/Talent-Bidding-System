@@ -31,7 +31,7 @@ export function useAuth() {
    */
   const logout = () => {
     authStore.logout()
-    router.push('/login')
+  router.push('/home')
   }
 
   /**

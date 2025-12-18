@@ -23,6 +23,17 @@ export default [
         }
       },
       {
+        path: 'enterprise/profile',
+        name: 'EnterpriseProfile',
+        component: () => import('@/views/enterprise/Profile/index.vue'),
+        meta: {
+          title: '企业个人中心',
+          transition: 'fade',
+          requiresAuth: true,
+          role: 'enterprise'
+        }
+      },
+      {
         path: 'evaluation/:projectId',
         name: 'EnterpriseEvaluation',
         component: () => import('@/views/enterprise/Evaluation/index.vue'),

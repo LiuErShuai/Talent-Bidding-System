@@ -73,15 +73,47 @@ export const useAuthStore = defineStore('auth', {
      * 初始化认证状态（从本地存储恢复）
      */
     initAuth() {
-      const token = local.get(STORAGE_KEYS.TOKEN)
-      const userInfo = local.get(STORAGE_KEYS.USER_INFO)
-      const userRole = local.get(STORAGE_KEYS.USER_ROLE)
+      // 优先从local.get读取（使用JSON格式）
+      let token = local.get(STORAGE_KEYS.TOKEN)
+      let userInfo = local.get(STORAGE_KEYS.USER_INFO)
+      let userRole = local.get(STORAGE_KEYS.USER_ROLE)
+      
+      // 兼容旧的存储方式（直接使用localStorage.getItem，字符串格式）
+      if (!token) {
+        const rawToken = localStorage.getItem('token')
+        if (rawToken) {
+          try {
+            // 尝试解析JSON，如果失败则当作字符串
+            token = JSON.parse(rawToken)
+          } catch {
+            token = rawToken
+          }
+        }
+      }
+      
+      if (!userInfo) {
+        const rawUserInfo = localStorage.getItem('userInfo') || localStorage.getItem('userData')
+        if (rawUserInfo) {
+          try {
+            userInfo = JSON.parse(rawUserInfo)
+          } catch {
+            userInfo = null
+          }
+        }
+      }
+      
+      if (!userRole) {
+        userRole = localStorage.getItem('userRole') || ''
+      }
       
       if (token && userInfo) {
         this.token = token
         this.userInfo = userInfo
         this.userRole = userRole
         this.isLoggedIn = true
+      } else {
+        // 如果没有token或userInfo，确保状态为未登录
+        this.isLoggedIn = false
       }
     }
   }

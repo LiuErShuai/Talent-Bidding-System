@@ -63,7 +63,8 @@ export default [
         meta: {
           title: '个人中心',
           transition: 'fade',
-          requiresAuth: true
+          requiresAuth: true,
+          role: 'student'
         }
       },
       // 消息中心（通用）

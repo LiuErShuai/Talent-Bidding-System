@@ -23,11 +23,13 @@ export function setupGuards(router) {
 
     // 2. 权限验证：检查是否需要登录
     if (to.meta.requiresAuth && !authStore.isLoggedIn) {
-      // 需要登录但未登录，跳转到登录页
-      next({
-        path: '/login',
-        query: { redirect: to.fullPath } // 保存原始目标路径，登录后可以跳转回来
-      })
+      // 拦截跳转并触发登录弹窗
+      window.dispatchEvent(
+        new CustomEvent('open-auth-dialog', {
+          detail: { mode: 'login', redirect: to.fullPath }
+        })
+      )
+      next(false)
       return
     }
 
@@ -45,7 +47,7 @@ export function setupGuards(router) {
             next('/my-projects')
             break
           case 'enterprise':
-            next('/enterprise/my-projects')
+            next('/enterprise/profile')
             break
           case 'teacher':
             next('/projects')
@@ -60,27 +62,16 @@ export function setupGuards(router) {
       }
     }
 
-    // 4. 如果已登录且访问登录/注册页，跳转到首页
-    if ((to.path === '/login' || to.path === '/register') && authStore.isLoggedIn) {
-      const userRole = authStore.userRole || localStorage.getItem('userRole')
-
-      // 根据角色跳转到不同的首页
-      switch (userRole) {
-        case 'student':
-          next('/my-projects')
-          break
-        case 'enterprise':
-          next('/enterprise/my-projects')
-          break
-        case 'teacher':
-          next('/projects')
-          break
-        case 'admin':
-          next('/statistics')
-          break
-        default:
-          next('/home')
-      }
+    // 4. 登录/注册路由改为弹窗，不再进入页面
+    if (to.path === '/login' || to.path === '/register') {
+      const mode = to.path === '/register' ? 'register' : 'login'
+      window.dispatchEvent(
+        new CustomEvent('open-auth-dialog', {
+          detail: { mode }
+        })
+      )
+      // 已登录则保持当前页；未登录也留在原页
+      next(false)
       return
     }
 
