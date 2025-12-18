@@ -585,7 +585,7 @@ onUnmounted(() => {
   overflow: hidden;
   max-height: calc(100vh - 220px);
   display: grid;
-  grid-template-columns: 400px 1fr;
+  grid-template-columns: 320px minmax(0, 1fr);
   gap: 16px;
 }
 
