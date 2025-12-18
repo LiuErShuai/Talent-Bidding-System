@@ -194,9 +194,11 @@
                     {{ (msg.fromId === currentUser.id ? currentUser.name : selectedConversation.peerName)?.slice(0, 1) }}
                   </el-avatar>
 
-                  <div class="chat-bubble">
-                    <div class="chat-text">{{ msg.content }}</div>
-                    <div class="chat-time">{{ msg.timeText }}</div>
+                  <div class="chat-msg-main">
+                    <div class="chat-bubble">
+                      <div class="chat-text">{{ msg.content }}</div>
+                    </div>
+                    <div class="chat-time-out">{{ msg.timeText }}</div>
                   </div>
                 </div>
               </div>
@@ -1134,6 +1136,25 @@ onMounted(() => {
   color: #fff;
 }
 
+.chat-msg-main {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+
+.chat-msg-row.me .chat-msg-main {
+  flex-direction: row-reverse;
+}
+
+.chat-time-out {
+  font-size: 12px;
+  color: #9aa5c2;
+  white-space: nowrap;
+  flex: none;
+  margin-bottom: 2px;
+}
+
 .chat-bubble {
   max-width: min(560px, 70%);
   background: #fff;
@@ -1157,17 +1178,6 @@ onMounted(() => {
 
 .chat-msg-row.me .chat-text {
   color: #fff;
-}
-
-.chat-time {
-  margin-top: 6px;
-  font-size: 12px;
-  color: #9aa5c2;
-  text-align: right;
-}
-
-.chat-msg-row.me .chat-time {
-  color: rgba(255, 255, 255, 0.8);
 }
 
 .chat-input {
