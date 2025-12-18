@@ -30,87 +30,89 @@
         <div class="filter-rows">
           <div class="filter-row">
             <span class="filter-label">项目领域：</span>
-            <button
-              v-for="field in visibleFields"
-              :key="field.value"
-              class="filter-chip"
-              :class="{ active: selectedField === field.value }"
-              @click="toggleField(field.value)"
-            >
-              {{ field.label }}
-            </button>
+            <div class="filter-options">
+              <button
+                v-for="field in visibleFields"
+                :key="field.value"
+                class="filter-chip"
+                :class="{ active: selectedField === field.value }"
+                @click="toggleField(field.value)"
+              >
+                {{ field.label }}
+              </button>
 
-            <el-popover
-              v-if="hiddenFields.length"
-              v-model:visible="showMoreFields"
-              placement="bottom-start"
-              trigger="click"
-              width="360"
-              popper-class="more-fields-popper"
-            >
-              <template #reference>
-                <button
-                  type="button"
-                  class="filter-chip more-chip"
-                  :class="{ active: isMoreFieldActive || showMoreFields }"
-                >
-                  更多
-                  <span class="more-arrow" :class="{ open: showMoreFields }">▾</span>
-                </button>
-              </template>
+              <button
+                v-if="hiddenFields.length"
+                type="button"
+                class="filter-chip more-chip"
+                :class="{ active: showMoreFields }"
+                @click="toggleMoreFields"
+              >
+                {{ showMoreFields ? '收起' : '展开' }}
+                <span class="more-arrow" :class="{ open: showMoreFields }">▾</span>
+              </button>
+            </div>
+          </div>
 
-              <div class="more-fields-panel">
-                <button
-                  v-for="field in hiddenFields"
-                  :key="field.value"
-                  type="button"
-                  class="filter-chip"
-                  :class="{ active: selectedField === field.value }"
-                  @click="selectMoreField(field.value)"
-                >
-                  {{ field.label }}
-                </button>
-              </div>
-            </el-popover>
+          <div v-if="showMoreFields && hiddenFields.length" class="filter-row more-row">
+            <span class="filter-label"></span>
+            <div class="filter-options more-fields-panel">
+              <button
+                v-for="field in hiddenFields"
+                :key="field.value"
+                type="button"
+                class="filter-chip"
+                :class="{ active: selectedField === field.value }"
+                @click="selectMoreField(field.value)"
+              >
+                {{ field.label }}
+              </button>
+            </div>
           </div>
 
           <div class="filter-row">
             <span class="filter-label">项目状态：</span>
-            <button
-              v-for="status in statuses"
-              :key="status.value"
-              class="filter-chip"
-              :class="{ active: selectedStatuses.includes(status.value) }"
-              @click="toggleStatus(status.value)"
-            >
-              {{ status.label }}
-            </button>
+            <div class="filter-options">
+              <button
+                v-for="status in statuses"
+                :key="status.value"
+                class="filter-chip"
+                :class="{ active: selectedStatuses.includes(status.value) }"
+                @click="toggleStatus(status.value)"
+              >
+                {{ status.label }}
+              </button>
+            </div>
           </div>
 
           <div class="filter-row">
             <span class="filter-label">奖金范围：</span>
-            <button
-              v-for="range in rewardRanges"
-              :key="range.value"
-              class="filter-chip"
-              :class="{ active: selectedReward === range.value }"
-              @click="toggleReward(range.value)"
-            >
-              {{ range.label }}
-            </button>
+            <div class="filter-options">
+              <button
+                v-for="range in rewardRanges"
+                :key="range.value"
+                class="filter-chip"
+                :class="{ active: selectedReward === range.value }"
+                @click="toggleReward(range.value)"
+              >
+                {{ range.label }}
+              </button>
+            </div>
           </div>
 
           <div class="filter-row sort-row">
             <span class="filter-label">排序方式：</span>
-            <button
-              v-for="sort in sortOptions"
-              :key="sort.value"
-              class="filter-chip"
-              :class="{ active: sortBy === sort.value }"
-              @click="setSort(sort.value)"
-            >
-              {{ sort.label }}
-            </button>
+            <div class="filter-options">
+              <button
+                v-for="sort in sortOptions"
+                :key="sort.value"
+                class="filter-chip"
+                :class="{ active: sortBy === sort.value }"
+                @click="setSort(sort.value)"
+              >
+                {{ sort.label }}
+              </button>
+            </div>
           </div>
         </div>
       </section>
@@ -320,11 +322,24 @@ const fields = [
 const visibleFieldCount = ref(8)
 const showMoreFields = ref(false)
 
-const visibleFields = computed(() => fields.slice(0, visibleFieldCount.value))
-const hiddenFields = computed(() => fields.slice(visibleFieldCount.value))
-const isMoreFieldActive = computed(() =>
-  hiddenFields.value.some((f) => f.value === selectedField.value)
-)
+const visibleFields = computed(() => {
+  const base = fields.slice(0, visibleFieldCount.value)
+  if (selectedField.value === 'all') return base
+
+  const inBase = base.some((f) => f.value === selectedField.value)
+  if (inBase) return base
+
+  const selected = fields.find((f) => f.value === selectedField.value)
+  if (!selected) return base
+  if (!base.length) return [selected]
+
+  return [...base.slice(0, -1), selected]
+})
+
+const hiddenFields = computed(() => {
+  const visibleValues = new Set(visibleFields.value.map((f) => f.value))
+  return fields.filter((f) => !visibleValues.has(f.value))
+})
 
 const statuses = [
   { label: '全部', value: 'all' },
@@ -507,6 +522,10 @@ const toggleField = (value) => {
 const selectMoreField = (value) => {
   toggleField(value)
   showMoreFields.value = false
+}
+
+const toggleMoreFields = () => {
+  showMoreFields.value = !showMoreFields.value
 }
 
 const toggleStatus = (value) => {
@@ -912,20 +931,27 @@ onMounted(() => {
 .filter-rows {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
 
 .filter-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
+  display: grid;
+  grid-template-columns: 88px 1fr;
+  gap: 12px;
+  align-items: start;
 }
 
 .filter-label {
   font-size: 14px;
   color: #808aa7;
-  min-width: 70px;
+  padding-top: 6px;
+}
+
+.filter-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 10px;
+  align-items: center;
 }
 
 .filter-chip {
@@ -974,10 +1000,11 @@ onMounted(() => {
 }
 
 .more-fields-panel {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 6px;
+  padding: 2px 0 0;
+}
+
+.more-row .filter-label {
+  padding-top: 0;
 }
 
 .project-list-section {
