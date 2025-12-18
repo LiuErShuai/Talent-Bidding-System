@@ -552,8 +552,19 @@ const persistPrivateState = () => {
   }
 }
 
+let persistTimer = null
+
+const schedulePersistPrivateState = () => {
+  if (persistTimer) clearTimeout(persistTimer)
+  // localStorage 写入为同步操作，频繁写入会造成交互卡顿，这里做轻量节流
+  persistTimer = setTimeout(() => {
+    persistPrivateState()
+    persistTimer = null
+  }, 200)
+}
+
 watch(privateStorageKey, () => loadPrivateState(), { immediate: true })
-watch(privateState, () => persistPrivateState(), { deep: true })
+watch(privateState, () => schedulePersistPrivateState(), { deep: true, flush: 'post' })
 
 const privateConversations = computed(() => {
   const list = [...(privateState.value.conversations || [])]
@@ -598,10 +609,11 @@ const noticeList = computed(() =>
 )
 
 const filteredNotices = computed(() => {
+  const list = noticeList.value
   const kw = keyword.value.trim().toLowerCase()
-  if (!kw) return noticeList
+  if (!kw) return list
 
-  return noticeList.filter((item) => {
+  return list.filter((item) => {
     const hay = `${item.title} ${item.summary} ${item.content}`.toLowerCase()
     return hay.includes(kw)
   })
