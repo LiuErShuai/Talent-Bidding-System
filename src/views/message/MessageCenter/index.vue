@@ -1189,9 +1189,9 @@ onMounted(() => {
 
 .chat-textarea :deep(.el-textarea__inner) {
   border-radius: 12px;
-  height: 68px;
-  min-height: 68px;
-  max-height: 68px;
+  height: 60px;
+  min-height: 60px;
+  max-height: 60px;
   overflow-y: auto;
   resize: none;
 }
