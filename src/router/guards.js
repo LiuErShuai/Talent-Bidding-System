@@ -5,6 +5,8 @@
 
 import { useAuthStore } from '@/store/modules/auth'
 
+const PENDING_AUTH_DIALOG_KEY = 'pendingAuthDialog'
+
 /**
  * 配置路由守卫
  * @param {Router} router - Vue Router实例
@@ -14,6 +16,14 @@ export function setupGuards(router) {
   router.beforeEach((to, from, next) => {
     const authStore = useAuthStore()
     const isInitialNavigation = from.matched.length === 0
+
+    const cacheAuthDialogRequest = (payload) => {
+      try {
+        sessionStorage.setItem(PENDING_AUTH_DIALOG_KEY, JSON.stringify(payload))
+      } catch {
+        // 忽略 sessionStorage 不可用的情况（例如隐私模式/浏览器限制）
+      }
+    }
 
     // 1. 设置页面标题
     if (to.meta.title) {
@@ -25,9 +35,12 @@ export function setupGuards(router) {
     // 2. 权限验证：检查是否需要登录
     if (to.meta.requiresAuth && !authStore.isLoggedIn) {
       // 拦截跳转并触发登录弹窗
+      const request = { mode: 'login', redirect: to.fullPath }
+      // 先缓存一次，避免首次进入页面时事件早于组件监听导致弹窗不出现
+      cacheAuthDialogRequest(request)
       window.dispatchEvent(
         new CustomEvent('open-auth-dialog', {
-          detail: { mode: 'login', redirect: to.fullPath }
+          detail: request
         })
       )
       // 避免 next(false) 导致 router.push Promise 被拒绝（产生未捕获错误）
@@ -69,9 +82,11 @@ export function setupGuards(router) {
     if (to.path === '/login' || to.path === '/register') {
       const mode = to.path === '/register' ? 'register' : 'login'
       const redirect = typeof to.query.redirect === 'string' ? to.query.redirect : ''
+      const request = { mode, redirect }
+      cacheAuthDialogRequest(request)
       window.dispatchEvent(
         new CustomEvent('open-auth-dialog', {
-          detail: { mode, redirect }
+          detail: request
         })
       )
       // 已登录或未登录都回到来源页；首次进入（例如浏览器地址栏）则进入首页
