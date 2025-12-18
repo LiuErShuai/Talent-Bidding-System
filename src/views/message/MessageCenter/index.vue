@@ -578,14 +578,14 @@ onUnmounted(() => {
 }
 
 .message-center-layout {
-  max-width: 1100px;
+  max-width: 1280px;
   margin: 0 auto;
   flex: 1;
   min-height: 0;
   overflow: hidden;
   max-height: calc(100vh - 220px);
   display: grid;
-  grid-template-columns: 360px 1fr;
+  grid-template-columns: 400px 1fr;
   gap: 16px;
 }
 
@@ -594,7 +594,7 @@ onUnmounted(() => {
 }
 
 .center-header {
-  max-width: 1100px;
+  max-width: 1280px;
   margin: 0 auto 14px;
   background: rgba(255, 255, 255, 0.92);
   border: 1px solid #edf1fb;
