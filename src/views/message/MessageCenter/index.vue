@@ -164,6 +164,65 @@
       </section>
     </div>
 
+    <!-- 移动端：聊天抽屉（替代消息详情页） -->
+    <el-drawer
+      v-model="chatDrawerVisible"
+      direction="rtl"
+      size="100%"
+      :with-header="false"
+      class="chat-drawer"
+    >
+      <div class="chat-panel mobile">
+        <header class="drawer-header">
+          <button type="button" class="drawer-back" @click="chatDrawerVisible = false">返回</button>
+          <div class="drawer-title">{{ activeChatItem?.title || '聊天' }}</div>
+          <div class="drawer-right"></div>
+        </header>
+
+        <div v-if="activeChatItem" class="chat-panel-body">
+          <div ref="chatScroller" class="chat-scroller">
+            <div class="chat-list">
+              <div
+                v-for="msg in activeMessages"
+                :key="msg.id"
+                class="chat-row"
+                :class="{ me: msg.sender === 'me' }"
+              >
+                <img
+                  class="bubble-avatar"
+                  :src="msg.sender === 'me' ? myAvatar : activeChatItem.avatar"
+                  alt="头像"
+                  @error="handleAvatarError"
+                />
+                <div class="bubble">
+                  <div class="bubble-text">{{ msg.text }}</div>
+                  <div class="bubble-time">{{ formatTimeFull(msg.time) }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="composer">
+            <input
+              v-model="draft"
+              type="text"
+              class="composer-input"
+              placeholder="输入消息…"
+              @keydown.enter="sendInPanel"
+            />
+            <button type="button" class="send-btn" :disabled="!draft.trim()" @click="sendInPanel">
+              发送
+            </button>
+          </div>
+        </div>
+
+        <div v-else class="right-empty">
+          <div class="right-empty-title">暂无会话内容</div>
+          <div class="right-empty-desc">请先在左侧选择一个聊天</div>
+        </div>
+      </div>
+    </el-drawer>
+
     <!-- @我 / 评论：使用弹窗展示详情与操作 -->
     <el-dialog
       v-model="notifyDialogVisible"
@@ -204,7 +263,7 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -214,6 +273,7 @@ const MESSAGE_READ_KEY = 'messageReadState'
 const keyword = ref('')
 const activeNav = ref('chat')
 const isWideScreen = ref(false)
+const chatDrawerVisible = ref(false)
 
 // 导航栏（参考 CSDN：我的消息、评论和@ 等）
 const navTabs = [
@@ -423,13 +483,15 @@ const openItem = (item) => {
   item.unread = 0
   markItemRead(item.type, item.id)
 
-  // 聊天进入详情页；@我/评论使用弹窗展示，避免路由跳转
+  // 聊天：桌面端右侧面板展示；移动端抽屉展示（不再跳转消息详情页）
   if (item.type === 'chat') {
     if (isWideScreen.value) {
       activeChatId.value = item.id
       scrollToBottom()
     } else {
-      router.push(`/messages/${item.type}/${item.id}`)
+      activeChatId.value = item.id
+      chatDrawerVisible.value = true
+      scrollToBottom()
     }
     return
   }
@@ -460,18 +522,37 @@ onMounted(() => {
   loadReadState()
   hydrateUnreadFromReadState()
 
-  // 桌面端默认选中第一条会话，展示右侧聊天面板
-  const firstChat = items.value.find((i) => i.type === 'chat')
-  if (firstChat) activeChatId.value = firstChat.id
-
   mediaQuery = window.matchMedia('(min-width: 1024px)')
   mediaQueryListener = () => {
     isWideScreen.value = !!mediaQuery?.matches
   }
   mediaQueryListener()
 
+  // 桌面端默认选中第一条会话，展示右侧聊天面板；移动端不默认弹出抽屉
+  const firstChat = items.value.find((i) => i.type === 'chat')
+  if (isWideScreen.value && firstChat) activeChatId.value = firstChat.id
+
   if (mediaQuery.addEventListener) mediaQuery.addEventListener('change', mediaQueryListener)
   else mediaQuery.addListener(mediaQueryListener)
+})
+
+watch(activeNav, (val) => {
+  if (val !== 'chat') chatDrawerVisible.value = false
+})
+
+watch(isWideScreen, (val) => {
+  // 切到桌面端时关闭抽屉，并确保有默认会话
+  if (val) {
+    chatDrawerVisible.value = false
+    if (!activeChatId.value) {
+      const firstChat = items.value.find((i) => i.type === 'chat')
+      if (firstChat) activeChatId.value = firstChat.id
+    }
+  }
+})
+
+watch(chatDrawerVisible, (visible) => {
+  if (visible) scrollToBottom()
 })
 
 onUnmounted(() => {
@@ -1022,5 +1103,64 @@ onUnmounted(() => {
   .right-panel {
     display: none;
   }
+}
+
+.chat-drawer :deep(.el-drawer__body) {
+  padding: 0;
+  background: #f5f7fb;
+}
+
+.chat-panel.mobile {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #f5f7fb;
+}
+
+.drawer-header {
+  height: 56px;
+  padding: 0 12px;
+  display: grid;
+  grid-template-columns: 72px 1fr 72px;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.96);
+  border-bottom: 1px solid #edf1fb;
+}
+
+.drawer-back {
+  border: none;
+  background: transparent;
+  color: #0c5fe7;
+  font-weight: 800;
+  cursor: pointer;
+  padding: 8px 10px;
+  border-radius: 12px;
+  justify-self: start;
+}
+
+.drawer-back:hover {
+  background: rgba(12, 95, 231, 0.08);
+}
+
+.drawer-title {
+  text-align: center;
+  font-weight: 900;
+  color: #1f274b;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.drawer-right {
+  justify-self: end;
+}
+
+.chat-panel-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 </style>

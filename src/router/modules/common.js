@@ -78,17 +78,6 @@ export default [
           requiresAuth: true
         }
       },
-      // 消息详情（通用）
-      {
-        path: 'messages/:type/:id',
-        name: 'MessageDetail',
-        component: () => import('@/views/message/MessageDetail/index.vue'),
-        meta: {
-          title: '消息详情',
-          transition: 'fade',
-          requiresAuth: true
-        }
-      },
       // 信息页面
       {
         path: 'about',
