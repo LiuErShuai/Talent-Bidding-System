@@ -595,6 +595,8 @@ onUnmounted(() => {
 
 .search-input {
   width: 100%;
+  max-width: 320px;
+  box-sizing: border-box;
   border-radius: 999px;
   border: 1px solid #d6ddf5;
   padding: 10px 14px;
@@ -628,6 +630,8 @@ onUnmounted(() => {
 
 .search {
   padding: 10px 12px 12px;
+  display: flex;
+  justify-content: flex-start;
 }
 
 .list-area {
@@ -1015,6 +1019,10 @@ onUnmounted(() => {
 
   .right-panel {
     display: none;
+  }
+
+  .search-input {
+    max-width: 100%;
   }
 }
 </style>
