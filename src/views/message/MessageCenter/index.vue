@@ -595,20 +595,22 @@ onUnmounted(() => {
 
 .search-input {
   width: 100%;
-  max-width: 320px;
+  flex: 1;
+  min-width: 0;
   box-sizing: border-box;
+  display: block;
   border-radius: 999px;
   border: 1px solid #d6ddf5;
   padding: 10px 14px;
   background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 6px 18px rgba(15, 39, 106, 0.08);
+  box-shadow: 0 2px 10px rgba(15, 39, 106, 0.08);
   outline: none;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .search-input:focus {
   border-color: rgba(12, 95, 231, 0.55);
-  box-shadow: 0 10px 24px rgba(12, 95, 231, 0.12);
+  box-shadow: 0 0 0 3px rgba(12, 95, 231, 0.16);
 }
 
 .settings-btn {
@@ -1019,10 +1021,6 @@ onUnmounted(() => {
 
   .right-panel {
     display: none;
-  }
-
-  .search-input {
-    max-width: 100%;
   }
 }
 </style>
