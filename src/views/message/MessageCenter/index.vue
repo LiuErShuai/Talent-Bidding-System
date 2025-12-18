@@ -205,7 +205,8 @@
                 <el-input
                   v-model="draftText"
                   type="textarea"
-                  :autosize="{ minRows: 2, maxRows: 4 }"
+                  :rows="3"
+                  class="chat-textarea"
                   placeholder="输入消息，Enter 发送，Shift+Enter 换行"
                   @keydown.enter.exact.prevent="sendMessage"
                 />
@@ -1176,8 +1177,24 @@ onMounted(() => {
   flex: none;
 }
 
-.chat-input :deep(.el-textarea__inner) {
+.chat-textarea :deep(.el-textarea__inner) {
   border-radius: 12px;
+  height: 80px;
+  min-height: 80px;
+  max-height: 80px;
+  overflow-y: auto;
+  resize: none;
+}
+
+.chat-textarea :deep(.el-textarea__inner) {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.chat-textarea :deep(.el-textarea__inner::-webkit-scrollbar) {
+  width: 0;
+  height: 0;
+  display: none;
 }
 
 .chat-send-row {
@@ -1199,6 +1216,24 @@ onMounted(() => {
   max-height: 320px;
   overflow: auto;
   padding-right: 4px;
+}
+
+/* 隐藏滚动条（保持可滚动） */
+.message-list,
+.conversation-list,
+.chat-scroller,
+.contact-list {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.message-list::-webkit-scrollbar,
+.conversation-list::-webkit-scrollbar,
+.chat-scroller::-webkit-scrollbar,
+.contact-list::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
 }
 
 .contact-item {
