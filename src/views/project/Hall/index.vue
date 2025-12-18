@@ -31,7 +31,7 @@
           <div class="filter-row">
             <span class="filter-label">项目领域：</span>
             <button
-              v-for="field in fields"
+              v-for="field in visibleFields"
               :key="field.value"
               class="filter-chip"
               :class="{ active: selectedField === field.value }"
@@ -39,6 +39,39 @@
             >
               {{ field.label }}
             </button>
+
+            <el-popover
+              v-if="hiddenFields.length"
+              v-model:visible="showMoreFields"
+              placement="bottom-start"
+              trigger="click"
+              width="360"
+              popper-class="more-fields-popper"
+            >
+              <template #reference>
+                <button
+                  type="button"
+                  class="filter-chip more-chip"
+                  :class="{ active: isMoreFieldActive || showMoreFields }"
+                >
+                  更多
+                  <span class="more-arrow" :class="{ open: showMoreFields }">▾</span>
+                </button>
+              </template>
+
+              <div class="more-fields-panel">
+                <button
+                  v-for="field in hiddenFields"
+                  :key="field.value"
+                  type="button"
+                  class="filter-chip"
+                  :class="{ active: selectedField === field.value }"
+                  @click="selectMoreField(field.value)"
+                >
+                  {{ field.label }}
+                </button>
+              </div>
+            </el-popover>
           </div>
 
           <div class="filter-row">
@@ -98,10 +131,11 @@
             <div class="project-card-main">
               <div class="project-card-left">
                 <div class="project-card-title-row">
-                  <div class="project-badges">
-                    <span v-if="project.tag" class="badge" :class="project.tag">{{ project.tagText }}</span>
-                  </div>
+                  <span v-if="project.tag" class="badge" :class="project.tag">{{ project.tagText }}</span>
                   <h2 class="project-title">{{ project.title }}</h2>
+                  <div class="project-status-tag" :class="project.status">
+                    {{ statusTextMap[project.status] }}
+                  </div>
                 </div>
 
                 <div class="project-meta-row">
@@ -137,12 +171,9 @@
                 </div>
               </div>
 
-                <div class="project-card-right">
-                  <div class="reward">￥{{ project.reward.toLocaleString() }}</div>
-                  <div class="status-tag" :class="project.status">
-                    {{ statusTextMap[project.status] }}
-                  </div>
-                </div>
+              <div class="project-card-right">
+                <div class="reward">￥{{ project.reward.toLocaleString() }}</div>
+              </div>
             </div>
           </article>
         </div>
@@ -266,14 +297,34 @@ const sortBy = ref('comprehensive')
 const currentPage = ref(1)
 const pageSize = ref(5)
 
+// 项目领域（常用 + 更多）
 const fields = [
   { label: '全部', value: 'all' },
-  { label: '软件工程', value: 'software' },
   { label: '人工智能', value: 'ai' },
-  { label: '大数据', value: 'big-data' },
+  { label: 'Web前端', value: 'frontend' },
+  { label: '后端开发', value: 'backend' },
   { label: '移动开发', value: 'mobile' },
-  { label: 'Web前端', value: 'frontend' }
+  { label: '大数据', value: 'big-data' },
+  { label: '云计算', value: 'cloud' },
+  { label: '物联网', value: 'iot' },
+  { label: '网络安全', value: 'security' },
+  { label: '区块链', value: 'blockchain' },
+  { label: '数据可视化', value: 'data-vis' },
+  { label: 'UI/UX设计', value: 'ui-ux' },
+  { label: '测试与质量', value: 'qa' },
+  { label: 'DevOps', value: 'devops' },
+  { label: '软件工程', value: 'software' }
 ]
+
+// 默认展示的领域数量，剩余进入“更多”
+const visibleFieldCount = ref(8)
+const showMoreFields = ref(false)
+
+const visibleFields = computed(() => fields.slice(0, visibleFieldCount.value))
+const hiddenFields = computed(() => fields.slice(visibleFieldCount.value))
+const isMoreFieldActive = computed(() =>
+  hiddenFields.value.some((f) => f.value === selectedField.value)
+)
 
 const statuses = [
   { label: '全部', value: 'all' },
@@ -449,7 +500,13 @@ const applySuggestion = (item) => {
 
 const toggleField = (value) => {
   selectedField.value = value
+  showMoreFields.value = false
   currentPage.value = 1
+}
+
+const selectMoreField = (value) => {
+  toggleField(value)
+  showMoreFields.value = false
 }
 
 const toggleStatus = (value) => {
@@ -879,12 +936,48 @@ onMounted(() => {
   background: #fff;
   cursor: pointer;
   color: #4a5676;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
 .filter-chip.active {
   background: #0c5fe7;
   border-color: #0c5fe7;
   color: #fff;
+}
+
+.filter-chip:hover {
+  border-color: rgba(12, 95, 231, 0.45);
+  color: #0c5fe7;
+}
+
+.filter-chip.active:hover {
+  border-color: #0c5fe7;
+  color: #fff;
+}
+
+.more-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-style: dashed;
+}
+
+.more-arrow {
+  display: inline-block;
+  font-size: 12px;
+  transform: translateY(-1px);
+  transition: transform 0.2s ease;
+}
+
+.more-arrow.open {
+  transform: translateY(-1px) rotate(180deg);
+}
+
+.more-fields-panel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 6px;
 }
 
 .project-list-section {
@@ -909,8 +1002,9 @@ onMounted(() => {
   background: #fff;
   border-radius: 18px;
   padding: 18px 20px;
+  border: 1px solid #edf1fb;
   box-shadow: 0 12px 30px rgba(15, 39, 106, 0.08);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: all 0.3s ease;
   text-decoration: none;
   color: inherit;
   cursor: pointer;
@@ -918,6 +1012,7 @@ onMounted(() => {
 }
 
 .project-card:hover {
+  border-color: #2563eb;
   transform: translateY(-4px);
   box-shadow: 0 20px 45px rgba(15, 39, 106, 0.14);
 }
@@ -952,6 +1047,13 @@ onMounted(() => {
   font-size: 18px;
   font-weight: 600;
   color: #1f274b;
+  margin: 0;
+  line-height: 1.4;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .project-meta-row {
@@ -1023,27 +1125,30 @@ onMounted(() => {
   color: #0f2c85;
 }
 
-.status-tag {
-  margin-top: 6px;
+.project-status-tag {
   padding: 4px 12px;
   border-radius: 999px;
   font-size: 12px;
   color: #fff;
+  font-weight: 500;
+  text-align: center;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
-.status-tag.bidding {
+.project-status-tag.bidding {
   background: linear-gradient(120deg, #0c5fe7, #2fb7ff);
 }
 
-.status-tag.reviewing {
+.project-status-tag.reviewing {
   background: linear-gradient(120deg, #ff9f0a, #ffb347);
 }
 
-.status-tag.publishing {
+.project-status-tag.publishing {
   background: linear-gradient(120deg, #9254de, #b37feb);
 }
 
-.status-tag.completed {
+.project-status-tag.completed {
   background: linear-gradient(120deg, #52c41a, #73d13d);
 }
 
