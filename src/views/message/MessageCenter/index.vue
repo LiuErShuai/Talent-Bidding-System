@@ -1,82 +1,120 @@
 <template>
   <div class="message-center-page">
-    <div class="message-center-layout">
-      <!-- 左侧：消息中心列表（参考常见社交软件双栏布局） -->
+    <!-- 顶部：导航栏（参考 CSDN 消息中心样式） -->
+    <header class="center-header">
+      <div class="center-header-main">
+        <h1 class="center-title">消息中心</h1>
+        <button type="button" class="settings-btn">消息设置</button>
+      </div>
+
+      <nav class="center-nav" aria-label="消息导航">
+        <button
+          v-for="nav in navTabs"
+          :key="nav.key"
+          type="button"
+          class="nav-item"
+          :class="{ active: activeNav === nav.key, disabled: nav.disabled }"
+          :disabled="nav.disabled"
+          @click="activeNav = nav.key"
+        >
+          {{ nav.label }}
+          <span v-if="nav.badge && navUnreadCount(nav.key) > 0" class="nav-badge">
+            {{ formatUnread(navUnreadCount(nav.key)) }}
+          </span>
+        </button>
+      </nav>
+    </header>
+
+    <!-- 主体：聊天 = 左列表 + 右详情；评论/@ = 列表 + 弹窗 -->
+    <div class="message-center-layout" :class="{ single: activeNav === 'interaction' }">
       <aside class="left-panel">
-        <header class="left-header">
-          <section class="tabs-bar" role="tablist" aria-label="消息分类">
-            <button
-              v-for="tab in tabs"
-              :key="tab.key"
-              type="button"
-              class="tab"
-              :class="{ active: activeTab === tab.key }"
-              @click="activeTab = tab.key"
-            >
-              <span class="tab-label">{{ tab.label }}</span>
-              <span v-if="tabUnreadCount(tab.key) > 0" class="tab-badge">
-                {{ formatUnread(tabUnreadCount(tab.key)) }}
-              </span>
-            </button>
-          </section>
-
-          <button type="button" class="settings-btn">
-            消息设置
-          </button>
-        </header>
-
         <div class="search">
           <input
             v-model="keyword"
             class="search-input"
             type="text"
-            placeholder="搜索联系人 / 关键词"
+            :placeholder="activeNav === 'chat' ? '搜索聊天对象 / 关键词' : '搜索评论/@消息'"
           />
         </div>
 
         <main class="list-area">
-          <div v-if="filteredItems.length" class="list" role="list">
-            <button
-              v-for="item in filteredItems"
-              :key="`${item.type}-${item.id}`"
-              type="button"
-              class="list-item"
-              role="listitem"
-              :class="{ selected: isChatSelected(item) }"
-              @click="openItem(item)"
-            >
-              <div class="avatar-wrap">
-                <img class="avatar" :src="item.avatar" :alt="item.title" @error="handleAvatarError" />
-                <span v-if="item.unread > 0" class="unread-dot">{{ formatUnread(item.unread) }}</span>
-              </div>
-
-              <div class="item-main">
-                <div class="item-top">
-                  <span class="item-title">{{ item.title }}</span>
-                  <span class="item-time">{{ formatTime(item.time) }}</span>
+          <template v-if="activeNav === 'chat'">
+            <div v-if="chatItems.length" class="list" role="list">
+              <button
+                v-for="item in chatItems"
+                :key="`${item.type}-${item.id}`"
+                type="button"
+                class="list-item"
+                role="listitem"
+                :class="{ selected: isChatSelected(item) }"
+                @click="openItem(item)"
+              >
+                <div class="avatar-wrap">
+                  <img class="avatar" :src="item.avatar" :alt="item.title" @error="handleAvatarError" />
+                  <span v-if="item.unread > 0" class="unread-dot">{{ formatUnread(item.unread) }}</span>
                 </div>
-                <div class="item-bottom">
-                  <span class="item-preview">
-                    <span class="type-tag" :class="item.type">
-                      {{ typeText(item.type) }}
+
+                <div class="item-main">
+                  <div class="item-top">
+                    <span class="item-title">{{ item.title }}</span>
+                    <span class="item-time">{{ formatTime(item.time) }}</span>
+                  </div>
+                  <div class="item-bottom">
+                    <span class="item-preview">{{ item.preview }}</span>
+                  </div>
+                </div>
+              </button>
+            </div>
+
+            <div v-else class="empty">
+              <div class="empty-icon">💬</div>
+              <div class="empty-title">暂无聊天消息</div>
+              <div class="empty-desc">有新会话后会在这里显示</div>
+            </div>
+          </template>
+
+          <template v-else>
+            <div v-if="interactionItems.length" class="list" role="list">
+              <button
+                v-for="item in interactionItems"
+                :key="`${item.type}-${item.id}`"
+                type="button"
+                class="list-item"
+                role="listitem"
+                @click="openItem(item)"
+              >
+                <div class="avatar-wrap">
+                  <img class="avatar" :src="item.avatar" :alt="item.title" @error="handleAvatarError" />
+                  <span v-if="item.unread > 0" class="unread-dot">{{ formatUnread(item.unread) }}</span>
+                </div>
+
+                <div class="item-main">
+                  <div class="item-top">
+                    <span class="item-title">{{ item.title }}</span>
+                    <span class="item-time">{{ formatTime(item.time) }}</span>
+                  </div>
+                  <div class="item-bottom">
+                    <span class="item-preview">
+                      <span class="type-tag" :class="item.type">
+                        {{ typeText(item.type) }}
+                      </span>
+                      {{ item.preview }}
                     </span>
-                    {{ item.preview }}
-                  </span>
+                  </div>
                 </div>
-              </div>
-            </button>
-          </div>
+              </button>
+            </div>
 
-          <div v-else class="empty">
-            <div class="empty-icon">消息为空</div>
-            <div class="empty-title">暂无消息</div>
-            <div class="empty-desc">收到新消息后会在这里显示</div>
-          </div>
+            <div v-else class="empty">
+              <div class="empty-icon">🔔</div>
+              <div class="empty-title">暂无评论/@消息</div>
+              <div class="empty-desc">互动通知会在这里显示</div>
+            </div>
+          </template>
         </main>
       </aside>
 
-      <!-- 右侧：聊天内容（桌面端展示，移动端仍采用跳转详情页） -->
-      <section class="right-panel">
+      <section v-if="activeNav === 'chat'" class="right-panel">
         <div v-if="isWideScreen && activeChatItem" class="chat-panel">
           <header class="chat-header">
             <div class="chat-title">{{ activeChatItem.title }}</div>
@@ -174,13 +212,17 @@ const router = useRouter()
 const MESSAGE_READ_KEY = 'messageReadState'
 
 const keyword = ref('')
-const activeTab = ref('chat')
+const activeNav = ref('chat')
 const isWideScreen = ref(false)
 
-const tabs = [
-  { key: 'chat', label: '聊天' },
-  { key: 'mention', label: '@我' },
-  { key: 'comment', label: '评论' }
+// 导航栏（参考 CSDN：我的消息、评论和@ 等）
+const navTabs = [
+  { key: 'chat', label: '我的消息', badge: true },
+  { key: 'interaction', label: '评论和@', badge: true },
+  { key: 'purchase', label: '已购上新', disabled: true },
+  { key: 'fans', label: '新增粉丝', disabled: true },
+  { key: 'likes', label: '赞和收藏', disabled: true },
+  { key: 'tasks', label: '有奖任务', disabled: true }
 ]
 
 // 聊天面板：模拟聊天数据（后续可替换为 API / WebSocket）
@@ -287,23 +329,36 @@ const notifyDialogTitle = computed(() => {
   return '消息详情'
 })
 
-const tabUnreadCount = (tabKey) =>
-  items.value.filter((i) => i.type === tabKey).reduce((sum, i) => sum + (i.unread || 0), 0)
+const navUnreadCount = (navKey) => {
+  if (navKey === 'chat') return items.value.filter((i) => i.type === 'chat').reduce((s, i) => s + (i.unread || 0), 0)
+  if (navKey === 'interaction') return items.value.filter((i) => i.type === 'mention' || i.type === 'comment').reduce((s, i) => s + (i.unread || 0), 0)
+  return 0
+}
 
-const filteredItems = computed(() => {
-  const list = items.value
-    .filter((i) => i.type === activeTab.value)
-    .slice()
-    .sort((a, b) => b.time - a.time)
-
+const filterByKeyword = (list) => {
   const kw = keyword.value.trim().toLowerCase()
   if (!kw) return list
-
   return list.filter((i) => {
     const title = (i.title || '').toLowerCase()
     const preview = (i.preview || '').toLowerCase()
     return title.includes(kw) || preview.includes(kw)
   })
+}
+
+const chatItems = computed(() => {
+  const list = items.value
+    .filter((i) => i.type === 'chat')
+    .slice()
+    .sort((a, b) => b.time - a.time)
+  return filterByKeyword(list)
+})
+
+const interactionItems = computed(() => {
+  const list = items.value
+    .filter((i) => i.type === 'mention' || i.type === 'comment')
+    .slice()
+    .sort((a, b) => b.time - a.time)
+  return filterByKeyword(list)
 })
 
 const activeChatItem = computed(() => {
@@ -444,6 +499,88 @@ onUnmounted(() => {
   gap: 16px;
 }
 
+.message-center-layout.single {
+  grid-template-columns: 1fr;
+}
+
+.center-header {
+  max-width: 1100px;
+  margin: 0 auto 14px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid #edf1fb;
+  border-radius: 18px;
+  box-shadow: 0 18px 35px rgba(15, 39, 106, 0.06);
+  padding: 14px 16px 10px;
+}
+
+.center-header-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.center-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 900;
+  color: #1f274b;
+}
+
+.center-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  border-bottom: 1px solid #edf1fb;
+  padding-bottom: 10px;
+}
+
+.nav-item {
+  border: none;
+  background: transparent;
+  color: #6a7696;
+  font-size: 14px;
+  font-weight: 800;
+  padding: 8px 4px;
+  cursor: pointer;
+  position: relative;
+}
+
+.nav-item.active {
+  color: #1f274b;
+}
+
+.nav-item.active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -11px;
+  height: 3px;
+  border-radius: 999px;
+  background: #0c5fe7;
+}
+
+.nav-item.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.nav-badge {
+  margin-left: 6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #ff4d4f;
+  color: #fff;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .left-panel {
   min-width: 0;
   background: rgba(255, 255, 255, 0.92);
@@ -454,15 +591,6 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   min-height: calc(100vh - 130px);
-}
-
-.left-header {
-  padding: 12px 12px 10px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  border-bottom: 1px solid #edf1fb;
 }
 
 .search-input {
@@ -479,16 +607,6 @@ onUnmounted(() => {
 .search-input:focus {
   border-color: rgba(12, 95, 231, 0.55);
   box-shadow: 0 10px 24px rgba(12, 95, 231, 0.12);
-}
-
-.tabs-bar {
-  flex: 1;
-  background: transparent;
-  border: none;
-  border-radius: 12px;
-  padding: 0;
-  display: flex;
-  gap: 8px;
 }
 
 .settings-btn {
@@ -510,40 +628,6 @@ onUnmounted(() => {
 
 .search {
   padding: 10px 12px 12px;
-}
-
-.tab {
-  flex: 1;
-  border: none;
-  background: transparent;
-  border-radius: 12px;
-  padding: 10px 12px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  color: #4a5676;
-  font-weight: 700;
-  transition: background 0.2s ease, color 0.2s ease;
-}
-
-.tab.active {
-  background: linear-gradient(120deg, rgba(12, 95, 231, 0.16), rgba(47, 183, 255, 0.16));
-  color: #0c5fe7;
-}
-
-.tab-badge {
-  min-width: 22px;
-  height: 18px;
-  padding: 0 6px;
-  border-radius: 999px;
-  background: #ff4d4f;
-  color: #fff;
-  font-size: 12px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .list-area {
