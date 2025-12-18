@@ -71,9 +71,20 @@ export default [
       {
         path: 'messages',
         name: 'MessageCenter',
-        component: () => import('@/views/message/index.vue'),
+        component: () => import('@/views/message/MessageCenter/index.vue'),
         meta: {
           title: '消息中心',
+          transition: 'fade',
+          requiresAuth: true
+        }
+      },
+      // 消息详情（通用）
+      {
+        path: 'messages/:type/:id',
+        name: 'MessageDetail',
+        component: () => import('@/views/message/MessageDetail/index.vue'),
+        meta: {
+          title: '消息详情',
           transition: 'fade',
           requiresAuth: true
         }
