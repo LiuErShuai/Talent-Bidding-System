@@ -97,8 +97,26 @@ import { useRoute, useRouter } from 'vue-router'
 const route = useRoute()
 const router = useRouter()
 
+const MESSAGE_READ_KEY = 'messageReadState'
+
 const type = computed(() => String(route.params.type || 'chat'))
 const id = computed(() => String(route.params.id || ''))
+
+const markRead = () => {
+  const t = type.value
+  const i = id.value
+  if (!t || !i) return
+
+  try {
+    const raw = localStorage.getItem(MESSAGE_READ_KEY)
+    const state = raw ? JSON.parse(raw) : {}
+    if (!state[t]) state[t] = {}
+    state[t][i] = { readAt: Date.now() }
+    localStorage.setItem(MESSAGE_READ_KEY, JSON.stringify(state))
+  } catch {
+    // 忽略 localStorage 不可用的情况（例如隐私模式/浏览器限制）
+  }
+}
 
 // 模拟头像（后续可与用户系统打通）
 const myAvatar = 'https://picsum.photos/seed/me-001/96/96.jpg'
@@ -199,10 +217,12 @@ const handleAvatarError = (event) => {
 }
 
 onMounted(() => {
+  markRead()
   if (type.value === 'chat') scrollToBottom()
 })
 
 watch([type, id], () => {
+  markRead()
   if (type.value === 'chat') scrollToBottom()
 })
 </script>

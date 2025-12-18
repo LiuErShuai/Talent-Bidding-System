@@ -69,10 +69,12 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
+
+const MESSAGE_READ_KEY = 'messageReadState'
 
 const keyword = ref('')
 const activeTab = ref('chat')
@@ -125,6 +127,39 @@ const items = ref([
   }
 ])
 
+const readState = ref({})
+
+const loadReadState = () => {
+  try {
+    const raw = localStorage.getItem(MESSAGE_READ_KEY)
+    readState.value = raw ? JSON.parse(raw) : {}
+  } catch {
+    readState.value = {}
+  }
+}
+
+const saveReadState = () => {
+  try {
+    localStorage.setItem(MESSAGE_READ_KEY, JSON.stringify(readState.value || {}))
+  } catch {
+    // 忽略 localStorage 不可用的情况（例如隐私模式/浏览器限制）
+  }
+}
+
+const markItemRead = (type, id) => {
+  if (!type || !id) return
+  if (!readState.value[type]) readState.value[type] = {}
+  readState.value[type][id] = { readAt: Date.now() }
+  saveReadState()
+}
+
+const hydrateUnreadFromReadState = () => {
+  items.value.forEach((item) => {
+    const wasRead = !!readState.value?.[item.type]?.[item.id]
+    if (wasRead) item.unread = 0
+  })
+}
+
 const tabUnreadCount = (tabKey) =>
   items.value.filter((i) => i.type === tabKey).reduce((sum, i) => sum + (i.unread || 0), 0)
 
@@ -164,6 +199,7 @@ const formatTime = (ts) => {
 const openItem = (item) => {
   // 标记已读（前端模拟）
   item.unread = 0
+  markItemRead(item.type, item.id)
   router.push(`/messages/${item.type}/${item.id}`)
 }
 
@@ -172,6 +208,11 @@ const handleAvatarError = (event) => {
   if (!img) return
   img.src = 'https://picsum.photos/seed/avatar-fallback/96/96.jpg'
 }
+
+onMounted(() => {
+  loadReadState()
+  hydrateUnreadFromReadState()
+})
 </script>
 
 <style scoped>
