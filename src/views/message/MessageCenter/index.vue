@@ -583,6 +583,7 @@ onUnmounted(() => {
   flex: 1;
   min-height: 0;
   overflow: hidden;
+  max-height: calc(100vh - 220px);
   display: grid;
   grid-template-columns: 360px 1fr;
   gap: 16px;
@@ -733,6 +734,13 @@ onUnmounted(() => {
   min-height: 0;
   overflow-y: auto;
   padding: 0 12px 12px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.list-area::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 .list {
@@ -938,6 +946,13 @@ onUnmounted(() => {
   overflow-y: auto;
   padding: 16px 14px 10px;
   scroll-behavior: smooth;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.chat-scroller::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 .chat-list {
