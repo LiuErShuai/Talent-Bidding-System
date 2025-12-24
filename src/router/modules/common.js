@@ -6,7 +6,7 @@
 export default [
   {
     path: '/',
-    redirect: '/login'
+    redirect: '/home'
   },
   // 使用 DefaultLayout 的公共页面
   {
@@ -71,7 +71,7 @@ export default [
       {
         path: 'messages',
         name: 'MessageCenter',
-        component: () => import('@/views/message/index.vue'),
+        component: () => import('@/views/message/MessageCenter/index.vue'),
         meta: {
           title: '消息中心',
           transition: 'fade',

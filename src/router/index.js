@@ -7,7 +7,6 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { setupGuards } from './guards'
 
 // 导入各模块路由
-import authRoutes from './modules/auth'
 import commonRoutes from './modules/common'
 import studentRoutes from './modules/student'
 import enterpriseRoutes from './modules/enterprise'
@@ -17,15 +16,13 @@ import adminRoutes from './modules/admin'
 /**
  * 合并所有路由配置
  * 路由加载顺序：
- * 1. 认证模块（登录、注册）
- * 2. 公共模块（首页、项目大厅等）
- * 3. 学生模块
- * 4. 企业模块
- * 5. 教师模块
- * 6. 管理员模块
+ * 1. 公共模块（首页、项目大厅等）
+ * 2. 学生模块
+ * 3. 企业模块
+ * 4. 教师模块
+ * 5. 管理员模块
  */
 const routes = [
-  ...authRoutes,
   ...commonRoutes,
   ...studentRoutes,
   ...enterpriseRoutes,
@@ -76,8 +73,7 @@ const router = createRouter({
 })
 
 // 配置路由守卫
-// TODO: 开发阶段暂时注释，便于开发调试
-// setupGuards(router)
+setupGuards(router)
 
 // 导出路由实例
 export default router

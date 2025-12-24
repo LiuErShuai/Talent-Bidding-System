@@ -1,1 +1,0 @@
-import{_ as o,a as t,b as e,h as a,k as c,o as n}from"./index-BAqyxCOb.js";const _={},r={class:"message-page"},d={class:"message-container"},i={class:"message-content"};function m(p,l){const s=c("el-empty");return n(),t("div",r,[e("div",d,[e("div",i,[a(s,{description:"暂无消息"})])])])}const h=o(_,[["render",m],["__scopeId","data-v-7109aab4"]]);export{h as default};

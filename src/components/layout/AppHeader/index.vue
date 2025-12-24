@@ -127,6 +127,7 @@ const authDialogVisible = ref(false)
 const authDialogMode = ref('login')
 const pendingRedirect = ref('')
 let authDialogListener = null
+const PENDING_AUTH_DIALOG_KEY = 'pendingAuthDialog'
 
 // 处理需要登录的功能
 const handleRequireLogin = (redirectPath, feature) => {
@@ -174,6 +175,20 @@ const goMessages = () => requireLoginAndGo('/messages', '消息')
 // 初始化认证状态与未读数
 onMounted(() => {
   authStore.initAuth()
+
+  // 兜底处理：如果路由守卫在组件挂载前触发了弹窗事件，这里从 sessionStorage 恢复一次
+  try {
+    const raw = sessionStorage.getItem(PENDING_AUTH_DIALOG_KEY)
+    if (raw) {
+      sessionStorage.removeItem(PENDING_AUTH_DIALOG_KEY)
+      const payload = JSON.parse(raw) || {}
+      const { mode = 'login', redirect = '' } = payload
+      if (redirect) pendingRedirect.value = redirect
+      openAuthDialog(mode)
+    }
+  } catch {
+    // 忽略解析/存储异常
+  }
 
   // 监听全局弹窗事件
   authDialogListener = (event) => {
