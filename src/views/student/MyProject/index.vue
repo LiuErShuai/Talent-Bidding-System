@@ -136,24 +136,14 @@
                       <span>发布方：{{ project.publisher }}</span>
                     </div>
 
-                    <p class="project-brief">{{ project.brief }}</p>
-
-                    <div class="project-actions-row">
-                      <div class="project-actions">
-                        <button
-                          class="ghost-chip"
-                          @click.stop="manageProject(project)"
-                        >
-                          管理项目
-                        </button>
-                        <button
-                          v-if="project.canUpload"
-                          class="primary-chip"
-                          @click.stop="uploadDeliverable(project)"
-                        >
-                          {{ project.uploadLabel }}
-                        </button>
-                      </div>
+                    <div class="project-content-row">
+                      <p class="project-brief">{{ project.brief }}</p>
+                      <button
+                        class="ghost-chip manage-btn"
+                        @click.stop="manageProject(project)"
+                      >
+                        管理项目
+                      </button>
                     </div>
                   </div>
                 </article>
@@ -645,6 +635,7 @@ onMounted(() => {
   border-radius: 999px;
   font-size: 12px;
   color: #fff;
+  margin-right: 13px; 
 }
 
 .project-tag.ongoing {
@@ -675,6 +666,37 @@ onMounted(() => {
   font-size: 13px;
   color: #4f5d7a;
   margin: 0;
+}
+
+/* 项目内容行：简介文本和按钮水平排列 */
+.project-content-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.project-content-row .project-brief {
+  flex: 1;
+  margin: 0;
+}
+
+.project-content-row .manage-btn {
+  flex-shrink: 0;
+  align-self: flex-start;
+  background: #1890ff;
+  color: #fff;
+  border-color: #1890ff;
+}
+
+.project-content-row .manage-btn:hover {
+  background: #40a9ff;
+  border-color: #40a9ff;
+}
+
+.project-content-row .manage-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
 }
 
 .project-actions-row {
