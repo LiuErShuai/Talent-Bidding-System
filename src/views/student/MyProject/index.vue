@@ -163,6 +163,12 @@
                     <div class="project-actions-row">
                       <div class="project-actions">
                         <button
+                          class="ghost-chip"
+                          @click.stop="manageProject(project)"
+                        >
+                          📋 管理项目
+                        </button>
+                        <button
                           v-if="project.canUpload"
                           class="primary-chip"
                           @click.stop="uploadDeliverable(project)"
@@ -497,6 +503,10 @@ const filteredProjects = computed(() => {
 
 const viewDetail = (project) => {
   router.push(`/projects/${project.id}`)
+}
+
+const manageProject = (project) => {
+  router.push(`/projects/${project.id}/manage`)
 }
 
 const uploadDeliverable = (project) => {

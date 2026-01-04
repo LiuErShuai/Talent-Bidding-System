@@ -36,6 +36,16 @@ export default [
         }
       },
       {
+        path: 'projects/:id/manage',
+        name: 'ProjectManage',
+        component: () => import('@/views/project/Manage/index.vue'),
+        meta: {
+          title: '项目管理',
+          transition: 'fade',
+          requiresAuth: true
+        }
+      },
+      {
         path: 'projects/:id',
         name: 'ProjectDetail',
         component: () => import('@/views/project/Detail/index.vue'),
