@@ -1,5 +1,5 @@
 <template>
-  <header class="main-header">
+  <header class="main-header" :class="{ fixed: shouldFixHeader }">
     <div class="header-inner">
       <div class="brand">
         <router-link to="/home" class="brand-link">
@@ -75,8 +75,13 @@ const myProjectsPath = computed(() => {
   return '/my-projects'
 })
 
-// 判断当前路由是否落在“我的项目”相关路径下，用于高亮
+// 判断当前路由是否落在"我的项目"相关路径下，用于高亮
 const isMyProjectsActive = computed(() => route.path.startsWith(myProjectsPath.value))
+
+// 判断是否需要固定导航栏（我的项目和项目管理页面）
+const shouldFixHeader = computed(() => {
+  return route.path === '/my-projects' || route.path.match(/^\/projects\/\d+\/manage$/)
+})
 
 // 头像下拉菜单（按角色）统一收纳隐藏导航
 const quickActions = computed(() => {
@@ -212,7 +217,16 @@ onUnmounted(() => {
   position: relative;
   background: rgba(255, 255, 255, 0.96);
   box-shadow: 0 6px 30px rgba(15, 39, 106, 0.1);
-  z-index: 10;
+  z-index: 1000;
+}
+
+/* 在我的项目和项目管理页面固定导航栏 */
+.main-header.fixed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
 }
 
 .header-inner {

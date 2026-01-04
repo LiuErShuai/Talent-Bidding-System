@@ -1,25 +1,12 @@
 <template>
   <div class="project-manage-root">
     <!-- ========== 面包屑导航 ========== -->
-    <div class="breadcrumb-section">
-      <el-breadcrumb separator=">">
-        <el-breadcrumb-item :to="{ path: '/home' }">首页</el-breadcrumb-item>
-        <el-breadcrumb-item :to="{ path: '/my-projects' }">我的项目</el-breadcrumb-item>
-        <el-breadcrumb-item>项目管理（承接方）</el-breadcrumb-item>
-      </el-breadcrumb>
-      <div class="page-hint">
-        <el-icon><InfoFilled /></el-icon>
-        <span>承接方管理视图：可查看项目信息、上传成果、查看进度</span>
-      </div>
-    </div>
-
-    <!-- ========== 项目概览卡片 ========== -->
-    <project-overview
-      v-if="project"
-      :project="project"
-      :canEdit="canEditProject"
-      @edit="onProjectEdit"
-    />
+    <el-breadcrumb separator=">" class="breadcrumb-nav">
+      <el-breadcrumb-item :to="{ path: '/home' }">首页</el-breadcrumb-item>
+      <el-breadcrumb-item :to="{ path: '/my-projects' }">我的项目</el-breadcrumb-item>
+      <el-breadcrumb-item>我承接的</el-breadcrumb-item>
+      <el-breadcrumb-item>项目管理</el-breadcrumb-item>
+    </el-breadcrumb>
 
     <!-- ========== 加载状态 ========== -->
     <div v-if="loading" class="loading-container">
@@ -27,215 +14,240 @@
       <span>加载中...</span>
     </div>
 
-    <!-- ========== Tab 切换区域 ========== -->
-    <el-tabs v-else-if="project" v-model="activeTab" class="manage-tabs" @tab-change="onTabChange">
-      <!-- 概览 Tab -->
-      <el-tab-pane label="概览" name="overview">
-        <overview-panel
+    <!-- ========== 双栏布局：快捷面板 + (概览+时间线) ========== -->
+    <div v-else-if="project" class="main-layout">
+      <!-- 左侧：快捷操作面板 -->
+      <quick-action-panel
+        :milestones="milestones"
+        @upload="handleQuickUpload"
+        @viewRequirements="handleViewRequirements"
+        @jump="handleQuickJump"
+        @alertClick="handleAlertClick"
+      />
+
+      <!-- 右侧：项目概览 + 里程碑时间线 -->
+      <div class="right-content">
+        <!-- 项目概览卡片 -->
+        <project-overview
           :project="project"
-          :statistics="projectStatistics"
+          :canEdit="false"
+          class="overview-in-right"
         />
-      </el-tab-pane>
 
-      <!-- 里程碑 Tab（核心） -->
-      <el-tab-pane label="里程碑" name="milestones">
-        <milestone-manage-list
+        <!-- 里程碑时间线 -->
+        <milestone-timeline
           :milestones="milestones"
-          :canEdit="canEditMilestone"
-          :canReview="canReview"
-          @edit="openMilestoneEdit"
-          @delete="deleteMilestone"
-          @review="handleMilestoneReview"
+          @upload="handleUpload"
+          @viewSubmission="handleViewSubmission"
+          @downloadSubmission="handleDownloadSubmission"
+          @guideAction="handleGuideAction"
         />
-      </el-tab-pane>
 
-      <!-- 成果 Tab -->
-      <el-tab-pane label="成果" name="outcomes">
-        <outcome-panel
-          :projectId="projectId"
-          :outcomes="outcomes"
-          :canUpload="canUploadOutcome"
-          @upload="handleOutcomeUpload"
-        />
-      </el-tab-pane>
+        <!-- 团队信息（可折叠） -->
+        <el-collapse v-model="activeCollapse" class="bottom-sections">
+          <el-collapse-item title="👥 团队信息" name="team">
+            <team-panel :members="project.members || []" :canEdit="false" />
+          </el-collapse-item>
 
-      <!-- 团队 Tab -->
-      <el-tab-pane label="团队" name="team">
-        <team-panel
-          :members="project?.members || []"
-          :canEdit="canManageTeam"
-        />
-      </el-tab-pane>
+          <el-collapse-item title="📜 审核历史与项目动态" name="timeline">
+            <timeline-panel :events="timelineEvents" :reviewHistory="reviewHistory" />
+          </el-collapse-item>
+        </el-collapse>
+      </div>
+    </div>
 
-      <!-- 日志 Tab -->
-      <el-tab-pane label="日志" name="timeline">
-        <timeline-panel
-          :events="timelineEvents"
-          :reviewHistory="reviewHistory"
-        />
-      </el-tab-pane>
-    </el-tabs>
+    <!-- ========== 上传交付物对话框 ========== -->
+    <el-dialog
+      v-model="uploadDialogVisible"
+      :title="`上传交付物 - ${currentMilestone?.title || ''}`"
+      width="600px"
+      :close-on-click-modal="false"
+    >
+      <el-form :model="uploadForm" label-width="80px">
+        <el-form-item label="选择文件" required>
+          <el-upload
+            class="upload-demo"
+            drag
+            :auto-upload="false"
+            :on-change="handleFileChange"
+            :limit="1"
+            :file-list="fileList"
+          >
+            <el-icon class="el-icon--upload"><UploadFilled /></el-icon>
+            <div class="el-upload__text">
+              将文件拖到此处，或<em>点击上传</em>
+            </div>
+            <template #tip>
+              <div class="el-upload__tip">
+                支持上传 PDF、Word、Excel、压缩包等文件，单个文件不超过 500MB
+              </div>
+            </template>
+          </el-upload>
+        </el-form-item>
+
+        <el-form-item label="版本说明" required>
+          <el-input
+            v-model="uploadForm.versionNote"
+            type="textarea"
+            :rows="3"
+            placeholder="请说明本次提交的主要修改内容或特点..."
+            maxlength="500"
+            show-word-limit
+          />
+        </el-form-item>
+
+        <!-- 显示交付物要求 -->
+        <el-alert
+          v-if="currentMilestone"
+          type="info"
+          :closable="false"
+          class="deliverables-hint"
+        >
+          <template #title>
+            <div class="hint-title">本里程碑要求提交以下交付物：</div>
+            <ul class="hint-list">
+              <li v-for="d in currentMilestone.deliverables" :key="d.id">
+                ✓ {{ d.name }} - {{ d.requirement }}
+              </li>
+            </ul>
+          </template>
+        </el-alert>
+      </el-form>
+
+      <template #footer>
+        <el-button @click="uploadDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleConfirmUpload">确认上传</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- ========== 查看提交详情对话框 ========== -->
+    <el-dialog
+      v-model="viewDialogVisible"
+      :title="`${currentSubmission?.fileName || '提交详情'}`"
+      width="600px"
+    >
+      <div v-if="currentSubmission" class="submission-detail">
+        <div class="detail-section">
+          <h4>📄 文件信息</h4>
+          <div class="detail-grid">
+            <div class="detail-item">
+              <span class="label">文件名：</span>
+              <span class="value">{{ currentSubmission.fileName }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">文件大小：</span>
+              <span class="value">{{ currentSubmission.fileSize }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">版本号：</span>
+              <span class="value">v{{ currentSubmission.version }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">上传时间：</span>
+              <span class="value">{{ currentSubmission.uploadTime }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">上传人：</span>
+              <span class="value">{{ currentSubmission.uploader }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="currentSubmission.versionNote" class="detail-section">
+          <h4>📝 版本说明</h4>
+          <p class="version-note">{{ currentSubmission.versionNote }}</p>
+        </div>
+
+        <div v-if="currentSubmission.reviewResult" class="detail-section">
+          <h4>
+            {{ currentSubmission.status === 'approved' ? '✅' : '❌' }}
+            审核结果：{{ currentSubmission.status === 'approved' ? '已通过' : '被驳回' }}
+          </h4>
+          <div class="review-info">
+            <div class="review-meta">
+              <span>审核人：{{ currentSubmission.reviewResult.reviewer }}</span>
+              <span>审核时间：{{ currentSubmission.reviewResult.reviewTime }}</span>
+            </div>
+            <el-alert
+              :type="currentSubmission.status === 'approved' ? 'success' : 'warning'"
+              :closable="false"
+            >
+              <template #title>💬 审核反馈</template>
+              <p>{{ currentSubmission.reviewResult.comment }}</p>
+              <div v-if="currentSubmission.reviewResult.rating" class="rating">
+                <span>评分：</span>
+                <el-rate v-model="currentSubmission.reviewResult.rating" disabled />
+              </div>
+            </el-alert>
+          </div>
+        </div>
+
+        <div v-else class="detail-section">
+          <el-alert type="info" :closable="false">
+            <template #title>⏳ 待审核</template>
+            <p>交付物已提交，等待企业审核...</p>
+          </el-alert>
+        </div>
+      </div>
+
+      <template #footer>
+        <el-button @click="viewDialogVisible = false">关闭</el-button>
+        <el-button type="primary" @click="handleDownload(currentSubmission)">
+          <el-icon><Download /></el-icon>
+          下载文件
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { Loading, InfoFilled } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
+import { Loading, UploadFilled, Download } from '@element-plus/icons-vue'
 
 // 组件导入
 import ProjectOverview from '@/components/ProjectOverview.vue'
-import MilestoneManageList from '@/components/MilestoneManageList.vue'
+import QuickActionPanel from '@/components/QuickActionPanel.vue'
+import MilestoneTimeline from '@/components/MilestoneTimeline.vue'
 import TeamPanel from '@/components/TeamPanel.vue'
-import OverviewPanel from '@/components/OverviewPanel.vue'
-import OutcomePanel from '@/components/OutcomePanel.vue'
 import TimelinePanel from '@/components/TimelinePanel.vue'
+
+// Mock 数据导入
+import { mockProjectManageData, formatFileSize } from '@/mock/projectManage'
 
 const route = useRoute()
 const projectId = route.params.id
 
 // ========== 状态定义 ==========
-const activeTab = ref('overview') // 默认打开概览 Tab
 const loading = ref(true)
 const project = ref(null)
 const milestones = ref([])
-const outcomes = ref([])
 const timelineEvents = ref([])
 const reviewHistory = ref([])
 
-// 承接方（学生）权限设置
-const canEditProject = ref(false) // 不能编辑项目基本信息
-const canEditMilestone = ref(false) // 不能编辑/删除里程碑
-const canUploadOutcome = ref(true) // 可以上传成果/交付物
-const canReview = ref(false) // 不能审核里程碑
-const canManageTeam = ref(false) // 不能管理团队
+// 折叠面板状态
+const activeCollapse = ref(['team', 'timeline'])
 
-// ========== Mock 数据 ==========
-const mockProjectData = {
-  id: projectId,
-  name: 'AI智能客服系统开发',
-  status: 'ongoing',
-  statusText: '进行中',
-  progress: 60,
-  reward: 15000,
-  description: '为平台构建基于NLP的智能客服系统，提高客户服务效率和满意度。',
-  startDate: '2025-11-01',
-  endDate: '2025-12-31',
-  category: '人工智能',
-  publisher: 'XX科技有限公司',
-  members: [
-    { id: 1, name: '张三', avatar: 'https://picsum.photos/seed/user1/40/40', role: '项目负责人', skills: ['Python', 'NLP'] },
-    { id: 2, name: '李四', avatar: 'https://picsum.photos/seed/user2/40/40', role: '前端开发', skills: ['Vue', 'React'] },
-    { id: 3, name: '王五', avatar: 'https://picsum.photos/seed/user3/40/40', role: '后端开发', skills: ['Java', 'Spring'] }
-  ]
-}
+// 上传对话框
+const uploadDialogVisible = ref(false)
+const currentMilestoneId = ref(null)
+const uploadForm = reactive({
+  file: null,
+  versionNote: ''
+})
+const fileList = ref([])
 
-const mockMilestones = [
-  {
-    id: 1,
-    title: '需求分析与方案设计',
-    description: '完成项目需求调研，输出详细的技术方案文档',
-    status: 'completed',
-    statusText: '已完成',
-    plannedStartDate: '2025-11-01',
-    plannedEndDate: '2025-11-10',
-    actualEndDate: '2025-11-09',
-    progress: 100,
-    deliverableCount: 3
-  },
-  {
-    id: 2,
-    title: '原型开发与测试',
-    description: '开发系统原型，完成基础功能验证',
-    status: 'in-progress',
-    statusText: '进行中',
-    plannedStartDate: '2025-11-11',
-    plannedEndDate: '2025-11-25',
-    actualEndDate: null,
-    progress: 60,
-    deliverableCount: 1
-  },
-  {
-    id: 3,
-    title: '系统集成与部署',
-    description: '完成系统集成，部署到生产环境',
-    status: 'pending',
-    statusText: '待开始',
-    plannedStartDate: '2025-11-26',
-    plannedEndDate: '2025-12-10',
-    actualEndDate: null,
-    progress: 0,
-    deliverableCount: 0
-  }
-]
+// 查看详情对话框
+const viewDialogVisible = ref(false)
+const currentSubmission = ref(null)
 
-const mockOutcomes = [
-  {
-    id: 1,
-    name: '需求分析文档 v1.0',
-    type: 'document',
-    version: 'v1.0',
-    uploadTime: '2025-11-09 14:30',
-    uploader: '张三',
-    size: '2.3 MB',
-    status: 'approved',
-    statusText: '已通过'
-  },
-  {
-    id: 2,
-    name: '技术方案PPT',
-    type: 'document',
-    version: 'v1.0',
-    uploadTime: '2025-11-09 16:20',
-    uploader: '张三',
-    size: '5.1 MB',
-    status: 'approved',
-    statusText: '已通过'
-  }
-]
-
-const mockTimelineEvents = [
-  {
-    id: 1,
-    time: '2025-11-09 14:30',
-    type: 'milestone',
-    title: '完成里程碑：需求分析与方案设计',
-    description: '张三提交了里程碑成果',
-    user: '张三',
-    icon: 'success'
-  },
-  {
-    id: 2,
-    time: '2025-11-10 09:15',
-    type: 'review',
-    title: '里程碑审核通过',
-    description: '企业方审核通过了"需求分析与方案设计"里程碑',
-    user: '企业审核员',
-    icon: 'success'
-  },
-  {
-    id: 3,
-    time: '2025-11-11 10:00',
-    type: 'milestone',
-    title: '开始里程碑：原型开发与测试',
-    description: '张三开始执行新的里程碑任务',
-    user: '张三',
-    icon: 'info'
-  }
-]
-
-const mockReviewHistory = [
-  {
-    id: 1,
-    time: '2025-11-10 09:15',
-    reviewer: '企业审核员',
-    action: '通过',
-    target: '需求分析与方案设计',
-    comment: '方案详细，技术路线清晰，同意进入下一阶段。',
-    rating: 5
-  }
-]
+// ========== 计算属性 ==========
+const currentMilestone = computed(() => {
+  if (!currentMilestoneId.value) return null
+  return milestones.value.find(m => m.id === currentMilestoneId.value)
+})
 
 // ========== 数据加载 ==========
 async function fetchManageData() {
@@ -245,19 +257,17 @@ async function fetchManageData() {
     await new Promise(resolve => setTimeout(resolve, 800))
 
     // 使用 Mock 数据
-    project.value = mockProjectData
-    milestones.value = mockMilestones
-    outcomes.value = mockOutcomes
-    timelineEvents.value = mockTimelineEvents
-    reviewHistory.value = mockReviewHistory
+    const data = mockProjectManageData
+    project.value = data.project
+    milestones.value = data.milestones
+    timelineEvents.value = data.timelineEvents
+    reviewHistory.value = data.reviewHistory
 
-    // 承接方（学生）权限：只能查看和上传，不能编辑和审核
-    // 注意：这是Mock数据，实际应从后端获取当前用户角色并判断权限
-    canEditProject.value = false      // 不能编辑项目信息
-    canEditMilestone.value = false    // 不能编辑/删除里程碑
-    canUploadOutcome.value = true     // 可以上传成果
-    canReview.value = false           // 不能审核
-    canManageTeam.value = false       // 不能管理团队
+    console.log('项目数据加载成功：', {
+      项目名称: project.value.name,
+      里程碑数量: milestones.value.length,
+      当前里程碑: milestones.value.find(m => m.status === 'in-progress')?.title
+    })
   } catch (error) {
     ElMessage.error('加载项目数据失败')
     console.error(error)
@@ -268,112 +278,202 @@ async function fetchManageData() {
 
 onMounted(fetchManageData)
 
-// ========== 计算属性：项目统计 ==========
-const projectStatistics = computed(() => {
-  return {
-    totalMilestones: milestones.value.length,
-    completedMilestones: milestones.value.filter(m => m.status === 'completed').length,
-    inProgressMilestones: milestones.value.filter(m => m.status === 'in-progress').length,
-    totalOutcomes: outcomes.value.length,
-    teamSize: project.value?.members?.length || 0,
-    progress: project.value?.progress || 0,
-    completionRate: milestones.value.length > 0
-      ? Math.round((milestones.value.filter(m => m.status === 'completed').length / milestones.value.length) * 100)
-      : 0
+// ========== 快捷面板事件处理 ==========
+function handleQuickUpload() {
+  // 找到当前进行中的里程碑
+  const current = milestones.value.find(m => m.status === 'in-progress')
+  if (current) {
+    handleUpload(current.id)
+    // 滚动到当前里程碑
+    setTimeout(() => {
+      const element = document.querySelector('.timeline-item-current')
+      element?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }, 100)
+  } else {
+    ElMessage.warning('当前没有进行中的里程碑')
   }
-})
-
-// ========== 事件处理 ==========
-function onTabChange(tabName) {
-  console.log('切换到 Tab:', tabName)
 }
 
-function onProjectEdit(payload) {
-  // 承接方不应该能编辑项目，这个函数理论上不会被调用
-  console.log('编辑项目（承接方无权限）:', payload)
-  ElMessage.error('承接方无权编辑项目信息')
+function handleViewRequirements() {
+  // 滚动到当前里程碑并展开
+  const current = milestones.value.find(m => m.status === 'in-progress')
+  if (current) {
+    setTimeout(() => {
+      const element = document.querySelector('.timeline-item-current')
+      element?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }, 100)
+  }
 }
 
-// ========== 里程碑管理 ==========
-function openMilestoneEdit(milestone) {
-  // 承接方不能编辑里程碑，这个函数理论上不会被调用
-  console.log('编辑里程碑（承接方无权限）:', milestone)
-  ElMessage.error('承接方无权编辑里程碑')
+function handleQuickJump(target) {
+  if (target === 'history') {
+    // 跳转到第一个已完成的里程碑
+    const firstCompleted = document.querySelector('.timeline-item-completed')
+    firstCompleted?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  } else if (target === 'future') {
+    // 跳转到第一个待开始的里程碑
+    const firstPending = document.querySelector('.timeline-item-pending')
+    firstPending?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  } else if (target === 'reviews') {
+    // 展开审核历史区域
+    if (!activeCollapse.value.includes('timeline')) {
+      activeCollapse.value.push('timeline')
+    }
+    setTimeout(() => {
+      const element = document.querySelector('.bottom-sections')
+      element?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 300)
+  }
 }
 
-function deleteMilestone(milestoneId) {
-  // 承接方不能删除里程碑，这个函数理论上不会被调用
-  console.log('删除里程碑（承接方无权限）:', milestoneId)
-  ElMessage.error('承接方无权删除里程碑')
+function handleAlertClick(alert) {
+  // 跳转到对应的里程碑
+  const index = milestones.value.findIndex(m => m.id === alert.milestoneId)
+  if (index >= 0) {
+    const element = document.querySelector(`.timeline-item:nth-child(${index + 1})`)
+    element?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }
 }
 
-function handleMilestoneReview(payload) {
-  // 承接方不能审核里程碑，这个函数理论上不会被调用
-  console.log('审核里程碑（承接方无权限）:', payload)
-  ElMessage.error('承接方无权审核里程碑')
+// ========== 上传交付物 ==========
+function handleUpload(milestoneId) {
+  currentMilestoneId.value = milestoneId
+  uploadForm.file = null
+  uploadForm.versionNote = ''
+  fileList.value = []
+  uploadDialogVisible.value = true
 }
 
-// ========== 成果管理 ==========
-function handleOutcomeUpload(payload) {
-  console.log('上传成果:', payload)
-  ElMessage.success('成果上传成功（Mock）')
-  // 模拟添加新成果
-  outcomes.value.push({
-    id: outcomes.value.length + 1,
-    name: payload.name || '新成果文件',
-    type: 'document',
-    version: `v${outcomes.value.length + 1}.0`,
-    uploadTime: new Date().toLocaleString('zh-CN'),
+function handleFileChange(file) {
+  uploadForm.file = file.raw
+  fileList.value = [file]
+}
+
+function handleConfirmUpload() {
+  if (!uploadForm.file) {
+    ElMessage.warning('请选择要上传的文件')
+    return
+  }
+  if (!uploadForm.versionNote) {
+    ElMessage.warning('请填写版本说明')
+    return
+  }
+
+  const milestone = milestones.value.find(m => m.id === currentMilestoneId.value)
+  if (!milestone) return
+
+  // 计算新版本号
+  const maxVersion = Math.max(...(milestone.submissions || []).map(s => s.version), 0)
+  const newVersion = maxVersion + 1
+
+  // 创建新提交记录
+  const newSubmission = {
+    id: Date.now(),
+    version: newVersion,
+    deliverableId: milestone.deliverables[0]?.id || 1,
+    fileName: uploadForm.file.name,
+    fileSize: formatFileSize(uploadForm.file.size),
+    uploadTime: new Date().toLocaleString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    }),
     uploader: '张三',
-    size: '1.5 MB',
+    versionNote: uploadForm.versionNote,
     status: 'pending',
-    statusText: '待审核'
+    reviewResult: null
+  }
+
+  // 添加到里程碑的提交记录中
+  if (!milestone.submissions) {
+    milestone.submissions = []
+  }
+  milestone.submissions.push(newSubmission)
+
+  // 更新进度
+  milestone.progressDetail.percentage = Math.round(
+    (milestone.submissions.filter(s => s.status === 'approved').length / milestone.deliverables.length) * 100
+  )
+
+  // 添加时间线事件
+  timelineEvents.value.unshift({
+    id: `event-${Date.now()}`,
+    time: newSubmission.uploadTime,
+    type: 'upload',
+    title: `提交交付物：${milestone.title} v${newVersion}`,
+    description: `提交了"${newSubmission.fileName}"`,
+    user: newSubmission.uploader,
+    icon: 'info'
   })
+
+  ElMessage.success(`成功提交 v${newVersion}，等待审核`)
+  uploadDialogVisible.value = false
+
+  console.log('新提交记录：', newSubmission)
+}
+
+// ========== 查看提交详情 ==========
+function handleViewSubmission(submission) {
+  currentSubmission.value = submission
+  viewDialogVisible.value = true
+}
+
+// ========== 下载提交文件 ==========
+function handleDownloadSubmission(submission) {
+  handleDownload(submission)
+}
+
+function handleDownload(submission) {
+  if (!submission) return
+  ElMessage.success(`开始下载：${submission.fileName}`)
+  console.log('下载文件：', submission)
+  // 实际项目中应该调用后端API获取下载链接
+}
+
+// ========== 下一步引导操作 ==========
+function handleGuideAction({ milestone, action }) {
+  if (action === 'upload') {
+    handleUpload(milestone.id)
+  } else if (action === 'view-feedback') {
+    // 查看被驳回的提交反馈
+    const rejected = milestone.submissions?.find(s => s.status === 'rejected')
+    if (rejected) {
+      handleViewSubmission(rejected)
+    }
+  } else if (action === 'next') {
+    // 跳转到下一个里程碑
+    const currentIndex = milestones.value.findIndex(m => m.id === milestone.id)
+    if (currentIndex < milestones.value.length - 1) {
+      const nextElement = document.querySelector(`.timeline-item:nth-child(${currentIndex + 2})`)
+      nextElement?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }
 }
 </script>
 
 <style scoped>
 .project-manage-root {
-  min-height: calc(100vh - 80px);
+  min-height: calc(100vh - 90px); /* 减去导航栏高度 */
   background: #f5f7fb;
-  padding: 24px;
-  max-width: 70%;
+  padding: 24px 24px 24px 24px; /* 保持左右和底部padding，顶部不需要额外padding */
+  max-width: 1400px;
   margin: 0 auto;
 }
 
 /* 面包屑导航 */
-.breadcrumb-section {
+.breadcrumb-nav {
   margin-bottom: 20px;
-  padding: 12px 16px;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(15, 39, 106, 0.06);
 }
 
-.breadcrumb-section :deep(.el-breadcrumb__inner) {
-  color: #606266;
+.breadcrumb-nav :deep(.el-breadcrumb__inner) {
+  color: #1890ff;
   font-weight: 400;
 }
 
-.breadcrumb-section :deep(.el-breadcrumb__inner:hover) {
-  color: #1890ff;
-}
-
-.page-hint {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 12px;
-  padding: 8px 12px;
-  background: #e6f7ff;
-  border-left: 3px solid #1890ff;
-  border-radius: 4px;
-  font-size: 13px;
-  color: #0050b3;
-}
-
-.page-hint .el-icon {
-  font-size: 16px;
+.breadcrumb-nav :deep(.el-breadcrumb__inner:hover) {
+  color: #40a9ff;
 }
 
 /* 加载状态 */
@@ -391,36 +491,158 @@ function handleOutcomeUpload(payload) {
   margin-bottom: 12px;
 }
 
-/* Tab 切换样式 */
-.manage-tabs {
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(15, 39, 106, 0.06);
-  padding: 20px;
+/* 双栏布局 */
+.main-layout {
+  display: flex;
+  gap: 24px;
   margin-top: 20px;
+  align-items: flex-start;
 }
 
-.manage-tabs :deep(.el-tabs__header) {
-  margin-bottom: 20px;
+/* 右侧内容容器 */
+.right-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 
-.manage-tabs :deep(.el-tabs__item) {
+/* 右侧的项目概览卡片 */
+.overview-in-right {
+  margin-bottom: 24px;
+}
+
+/* 底部折叠区域 */
+.bottom-sections {
+  margin-top: 24px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.bottom-sections :deep(.el-collapse-item__header) {
   font-size: 15px;
-  font-weight: 500;
+  font-weight: 600;
   padding: 0 20px;
-  height: 44px;
-  line-height: 44px;
+  height: 50px;
 }
 
-.manage-tabs :deep(.el-tabs__item.is-active) {
-  color: #1890ff;
+.bottom-sections :deep(.el-collapse-item__content) {
+  padding: 20px;
 }
 
-.manage-tabs :deep(.el-tabs__active-bar) {
-  background-color: #1890ff;
+/* 上传对话框 */
+.upload-demo {
+  width: 100%;
 }
 
-.manage-tabs :deep(.el-tabs__content) {
-  min-height: 400px;
+.deliverables-hint {
+  margin-top: 16px;
+}
+
+.hint-title {
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.hint-list {
+  margin: 0;
+  padding-left: 20px;
+  list-style: none;
+}
+
+.hint-list li {
+  margin: 4px 0;
+  line-height: 1.6;
+}
+
+/* 查看详情对话框 */
+.submission-detail {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.detail-section {
+  margin-bottom: 24px;
+}
+
+.detail-section:last-child {
+  margin-bottom: 0;
+}
+
+.detail-section h4 {
+  margin: 0 0 12px 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1f274b;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detail-item .label {
+  font-size: 12px;
+  color: #909399;
+}
+
+.detail-item .value {
+  font-size: 14px;
+  color: #303133;
+  font-weight: 500;
+}
+
+.version-note {
+  margin: 0;
+  padding: 12px;
+  background: #f5f7fb;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #606266;
+  line-height: 1.6;
+}
+
+.review-info {
+  margin-top: 12px;
+}
+
+.review-meta {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: #606266;
+}
+
+.rating {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+/* 响应式 */
+@media (max-width: 1200px) {
+  .project-manage-root {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-layout {
+    flex-direction: column;
+  }
+
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
