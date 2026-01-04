@@ -16,15 +16,12 @@
       <!-- 里程碑标记点 -->
       <div class="timeline-marker" :class="getMarkerClass(milestone)">
         <!-- 已完成：打勾图标 -->
-        <el-icon v-if="milestone.status === 'completed'" class="marker-icon completed">
+        <el-icon v-if="milestone.status === 'completed'">
           <CircleCheck />
         </el-icon>
-        <!-- 进行中：脉冲圆点 -->
-        <div v-else-if="milestone.status === 'in-progress'" class="marker-in-progress">
-          <div class="pulse-dot"></div>
-        </div>
-        <!-- 待开始/逾期：空心圆点 -->
-        <div v-else class="marker-pending"></div>
+        <!-- 进行中：脉冲圆点（无需额外嵌套） -->
+        <div v-else-if="milestone.status === 'in-progress'" class="pulse-dot"></div>
+        <!-- 待开始/逾期：通过 CSS ::after 伪元素实现 -->
       </div>
 
       <!-- 里程碑卡片 -->
@@ -164,42 +161,37 @@ function handleGuideAction(payload) {
 /* 时间轴标记点 */
 .timeline-marker {
   position: absolute;
-  left: -32px;
+  left: -26px;  /* 连接线中心位置 */
   top: 12px;
   z-index: 2;
 }
 
 /* 已完成标记：绿色打勾 */
-.marker-completed .marker-icon {
+.marker-completed .el-icon {
   font-size: 24px;
   color: #52c41a;
   background: #fff;
   border-radius: 50%;
+  transform: translateX(-50%);
 }
 
 /* 进行中标记：蓝色脉冲圆点 */
-.marker-in-progress {
-  width: 20px;
-  height: 20px;
-  position: relative;
-  left: -4px;
-  top: -4px;
-}
-
-.pulse-dot {
+.marker-in-progress .pulse-dot {
   width: 16px;
   height: 16px;
   background: #1890ff;
   border-radius: 50%;
   position: relative;
+  transform: translateX(-50%);
   animation: pulse 1.5s ease-in-out infinite;
 }
 
-.pulse-dot::before {
+.marker-in-progress .pulse-dot::before {
   content: '';
   position: absolute;
-  top: -4px;
-  left: -4px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   width: 24px;
   height: 24px;
   background: rgba(24, 144, 255, 0.3);
@@ -229,17 +221,20 @@ function handleGuideAction(payload) {
   }
 }
 
-/* 待开始标记：灰色空心圆 */
-.marker-pending {
+/* 待开始标记：灰色空心圆（使用伪元素） */
+.marker-pending::after {
+  content: '';
+  display: block;
   width: 12px;
   height: 12px;
   background: #fff;
   border: 3px solid #d9d9d9;
   border-radius: 50%;
+  transform: translateX(-50%);
 }
 
 /* 逾期标记：红色空心圆 */
-.marker-delayed .marker-pending {
+.marker-delayed::after {
   border-color: #ff4d4f;
 }
 
@@ -250,7 +245,7 @@ function handleGuideAction(payload) {
   }
 
   .timeline-marker {
-    left: -27px;
+    left: -23px;  /* 调整移动端位置 */
   }
 
   .timeline-connector {

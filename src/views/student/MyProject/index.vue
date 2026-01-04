@@ -132,9 +132,8 @@
 
                     <div class="project-meta-row">
                       <span>状态：{{ project.stageText }}</span>
-                      <span>进度：{{ project.progress }}%</span>
                       <span>剩余时间：{{ project.remainDays }}天</span>
-                      <span>奖金：￥{{ project.reward.toLocaleString() }}</span>
+                      <span>发布方：{{ project.publisher }}</span>
                     </div>
 
                     <p class="project-brief">{{ project.brief }}</p>
@@ -145,7 +144,7 @@
                           class="ghost-chip"
                           @click.stop="manageProject(project)"
                         >
-                          📋 管理项目
+                          管理项目
                         </button>
                         <button
                           v-if="project.canUpload"
@@ -154,22 +153,6 @@
                         >
                           {{ project.uploadLabel }}
                         </button>
-                        <button
-                          v-if="project.canCollaborate"
-                          class="ghost-chip"
-                          @click.stop="openTeamCollab(project)"
-                        >
-                          团队协作
-                        </button>
-                      </div>
-                      <div class="project-progress">
-                        <div class="progress-bar">
-                          <div
-                            class="progress-inner"
-                            :style="{ width: project.progress + '%' }"
-                          ></div>
-                        </div>
-                        <span class="progress-text">{{ project.progress }}%</span>
                       </div>
                     </div>
                   </div>
@@ -389,6 +372,7 @@ const projects = ref([
     progress: 60,
     remainDays: 15,
     reward: 15000,
+    publisher: 'XX科技有限公司',
     brief: '为平台构建基于NLP的智能客服系统，提高服务效率。',
     canUpload: true,
     uploadLabel: '上传成果',
@@ -405,6 +389,7 @@ const projects = ref([
     progress: 80,
     remainDays: 3,
     reward: 8000,
+    publisher: 'YY信息技术有限公司',
     brief: '实现现代化商城前端页面，适配 PC 与移动端。',
     canUpload: true,
     uploadLabel: '上传成果',
@@ -421,6 +406,7 @@ const projects = ref([
     progress: 90,
     remainDays: 7,
     reward: 10000,
+    publisher: 'ZZ数据科技有限公司',
     brief: '对销售数据深度分析并制作可视化报表。',
     canUpload: true,
     uploadLabel: '提交成果',
