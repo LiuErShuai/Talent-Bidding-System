@@ -46,19 +46,7 @@
         <!-- 团队信息（可折叠） -->
         <div class="collapse-section">
           <el-collapse v-model="activeCollapse" class="bottom-sections">
-            <el-collapse-item name="team">
-              <template #title>
-                <div class="collapse-header">
-                  <span class="collapse-title">团队信息</span>
-                  <el-button
-                    text
-                    :icon="activeCollapse.includes('team') ? ArrowUp : ArrowDown"
-                    class="expand-btn"
-                  >
-                    {{ activeCollapse.includes('team') ? '折叠详情' : '展开详情' }}
-                  </el-button>
-                </div>
-              </template>
+            <el-collapse-item title="团队信息" name="team">
               <team-panel :members="project.members || []" :canEdit="false" />
             </el-collapse-item>
           </el-collapse>
@@ -67,19 +55,7 @@
         <!-- 审核历史与项目动态（可折叠） -->
         <div class="collapse-section">
           <el-collapse v-model="activeCollapse" class="bottom-sections">
-            <el-collapse-item name="timeline">
-              <template #title>
-                <div class="collapse-header">
-                  <span class="collapse-title">审核历史与项目动态</span>
-                  <el-button
-                    text
-                    :icon="activeCollapse.includes('timeline') ? ArrowUp : ArrowDown"
-                    class="expand-btn"
-                  >
-                    {{ activeCollapse.includes('timeline') ? '折叠详情' : '展开详情' }}
-                  </el-button>
-                </div>
-              </template>
+            <el-collapse-item title="审核历史与项目动态" name="timeline">
               <timeline-panel :events="timelineEvents" :reviewHistory="reviewHistory" />
             </el-collapse-item>
           </el-collapse>
@@ -236,7 +212,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Loading, UploadFilled, Download, ArrowUp, ArrowDown } from '@element-plus/icons-vue'
+import { Loading, UploadFilled, Download } from '@element-plus/icons-vue'
 
 // 组件导入
 import ProjectOverview from '@/components/ProjectOverview.vue'
@@ -540,13 +516,13 @@ function handleGuideAction({ milestone, action }) {
 
 /* 右侧的项目概览卡片 */
 .overview-in-right {
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
 /* 折叠面板整体容器 */
 .collapse-section {
   margin-top: 16px;
-  margin-bottom: 16px;
+  margin-bottom: 0px;
 }
 
 /* 底部折叠区域 */
@@ -554,10 +530,12 @@ function handleGuideAction({ milestone, action }) {
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  margin-top: 0px;
+  margin-bottom: 0px;
 }
 
 .bottom-sections :deep(.el-collapse-item__header) {
-  font-size: 15px;
+  font-size: 23px;
   font-weight: 600;
   padding: 0 20px;
   height: 50px;
@@ -566,7 +544,7 @@ function handleGuideAction({ milestone, action }) {
 }
 
 .bottom-sections :deep(.el-collapse-item__content) {
-  padding: 20px;
+  padding: 10px;
   margin: 0;  /* 移除默认边距，确保边界对齐 */
   box-sizing: border-box;  /* 统一盒模型，确保宽度计算一致 */
 }
@@ -574,7 +552,7 @@ function handleGuideAction({ milestone, action }) {
 /* 移除内部 el-card 的额外边距和装饰，确保内容与标题对齐 */
 .bottom-sections :deep(.el-collapse-item__content) .team-panel,
 .bottom-sections :deep(.el-collapse-item__content) .el-card {
-  margin: -20px;           /* 抵消 content 的 padding */
+  margin: -10px;           /* 抵消 content 的 padding */
   border-radius: 0;        /* 移除 card 的圆角，使用外层圆角 */
   box-shadow: none;        /* 移除 card 的阴影，使用外层阴影 */
 }
@@ -692,23 +670,5 @@ function handleGuideAction({ milestone, action }) {
   .detail-grid {
     grid-template-columns: 1fr;
   }
-}
-
-/* 自定义折叠面板头部 */
-.collapse-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-}
-
-.collapse-title {
-  font-size: 17px;
-  font-weight: 600;
-  color: #1f274b;
-}
-
-.collapse-header .expand-btn {
-  font-size: 13px;
 }
 </style>

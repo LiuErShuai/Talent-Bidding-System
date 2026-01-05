@@ -75,7 +75,6 @@
       <h4 class="section-title">
         <el-icon><BellFilled /></el-icon>
         待办提醒
-        <span class="alert-badge">{{ alerts.length }}</span>
       </h4>
       <div class="alerts-list">
         <el-alert
@@ -253,6 +252,7 @@ function handleAlertClick(alert) {
   color: #fff;
   font-size: 11px;
   border-radius: 8px;
+  display: none; /* 已移除显示，保留样式以防其他地方使用 */
 }
 
 /* 统计网格 */

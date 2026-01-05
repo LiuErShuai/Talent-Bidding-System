@@ -342,7 +342,7 @@ function handleDownloadSubmission(submission) {
 
 .card-title {
   margin: 0;
-  font-size: 23px;
+  font-size: 20px;
   font-weight: 600;
   color: #1f274b;
 }
@@ -637,7 +637,7 @@ function handleDownloadSubmission(submission) {
   }
 
   .card-title {
-    font-size: 16px;
+    font-size: 20px;
   }
 
   .deliverable-info {

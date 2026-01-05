@@ -73,7 +73,7 @@ const formatEndDate = (endDate) => {
 
 <style scoped>
 .project-overview-card {
-  padding: 20px;
+  padding: 12px;
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
@@ -111,7 +111,7 @@ const formatEndDate = (endDate) => {
 
 .project-title {
   margin: 0;
-  font-size: 18px;
+  font-size: 25px;
   font-weight: 600;
   color: #1f2937;
   flex: 1;
@@ -144,8 +144,8 @@ const formatEndDate = (endDate) => {
 
 /* 项目描述区域 */
 .project-description {
-  margin-top: 12px;
-  padding: 12px;
+  margin-top: 8px;
+  padding: 10px;
   background: #f8fafc;
   border-radius: 8px;
   border-left: 3px solid #e5e7eb;

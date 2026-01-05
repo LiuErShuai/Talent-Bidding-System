@@ -1,14 +1,14 @@
 <template>
-  <div v-if="members && members.length" class="members-list">
-    <div v-for="m in members" :key="m.id" class="member-item">
-      <img :src="m.avatar" alt="avatar" class="avatar" />
-      <div class="info">
-        <div class="name">{{ m.name }}</div>
-        <div class="role">{{ m.role }}</div>
+    <div v-if="members && members.length" class="members-list">
+      <div v-for="m in members" :key="m.id" class="member-item">
+        <img :src="m.avatar" alt="avatar" class="avatar" />
+        <div class="info">
+          <div class="name">{{ m.name }}</div>
+          <div class="role">{{ m.role }}</div>
+        </div>
       </div>
     </div>
-  </div>
-  <div v-else class="empty">暂无成员</div>
+    <div v-else class="empty">暂无成员</div>
 </template>
 
 <script setup>

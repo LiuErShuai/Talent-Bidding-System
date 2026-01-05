@@ -1,5 +1,8 @@
 <template>
   <div class="milestone-timeline">
+    <!-- 里程碑任务标题 -->
+    <h3 class="milestone-title">里程碑任务</h3>
+
     <div
       v-for="(milestone, index) in milestones"
       :key="milestone.id"
@@ -76,7 +79,21 @@ function handleGuideAction(payload) {
 <style scoped>
 .milestone-timeline {
   position: relative;
-  padding: 20px 0;
+  padding: 20px;
+  background: #fff;
+  border-radius: 0px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  margin-bottom: 16px;
+}
+
+/* 里程碑任务标题 */
+.milestone-title {
+  font-size: 23px;
+  font-weight: 600;
+  color: #1f274b;
+  margin: 0 0 16px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f0f0f0;
 }
 
 /* 时间线项目 */
@@ -98,7 +115,7 @@ function handleGuideAction(payload) {
 /* 响应式 */
 @media (max-width: 768px) {
   .milestone-timeline {
-    padding: 20px 10px;  /* 移动端适当减少padding */
+    padding: 16px;  /* 移动端适当减少padding */
   }
 }
 </style>

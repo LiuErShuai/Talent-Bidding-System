@@ -2,19 +2,15 @@
   <div class="timeline-panel">
     <!-- 审核历史 -->
     <div v-if="reviewHistory && reviewHistory.length > 0" class="review-section">
-      <h3 class="section-title">审核历史</h3>
       <div class="review-list">
         <div
           v-for="review in reviewHistory"
           :key="review.id"
           class="review-card"
         >
-          <div class="review-header">
+              <div class="review-header">
             <div class="review-info">
               <span class="review-target">{{ review.target }}</span>
-              <el-tag :type="getReviewTagType(review.action)" size="small">
-                {{ review.action }}
-              </el-tag>
             </div>
             <span class="review-time">{{ review.time }}</span>
           </div>
@@ -24,64 +20,21 @@
               <span>{{ review.reviewer }}</span>
             </div>
             <p class="review-comment">{{ review.comment }}</p>
-            <div v-if="review.rating" class="review-rating">
-              <span>评分：</span>
-              <el-rate v-model="review.rating" disabled />
-            </div>
+            <!-- 评分已移除，保留评分数据但不展示 -->
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 项目动态时间线 -->
-    <div class="timeline-section">
-      <h3 class="section-title">项目动态</h3>
-      <el-timeline v-if="events && events.length > 0">
-        <el-timeline-item
-          v-for="event in events"
-          :key="event.id"
-          :timestamp="event.time"
-          placement="top"
-          :type="getTimelineType(event.type)"
-          :icon="getTimelineIcon(event.icon)"
-          :size="getTimelineSize(event.type)"
-        >
-          <div class="timeline-card">
-            <div class="timeline-header">
-              <h4 class="timeline-title">{{ event.title }}</h4>
-              <el-tag :type="getEventTagType(event.type)" size="small">
-                {{ getEventTypeText(event.type) }}
-              </el-tag>
-            </div>
-            <p class="timeline-description">{{ event.description }}</p>
-            <div class="timeline-footer">
-              <span class="timeline-user">
-                <el-icon><User /></el-icon>
-                {{ event.user }}
-              </span>
-            </div>
-          </div>
-        </el-timeline-item>
-      </el-timeline>
-
-      <!-- 空状态 -->
-      <div v-else class="empty-state">
-        <el-icon :size="48" color="#C0C4CC"><Document /></el-icon>
-        <p>暂无项目动态</p>
-      </div>
-    </div>
+    <!-- 项目动态已移除 -->
   </div>
 </template>
 
 <script setup>
-import { User, Document, Check, Close, Warning, Clock } from '@element-plus/icons-vue'
+import { User } from '@element-plus/icons-vue'
 
 // Props
 defineProps({
-  events: {
-    type: Array,
-    default: () => []
-  },
   reviewHistory: {
     type: Array,
     default: () => []
@@ -98,65 +51,17 @@ function getReviewTagType(action) {
   return typeMap[action] || 'info'
 }
 
-// 获取时间线类型
-function getTimelineType(type) {
-  const typeMap = {
-    milestone: 'primary',
-    review: 'success',
-    upload: 'info',
-    warning: 'warning',
-    error: 'danger'
-  }
-  return typeMap[type] || 'primary'
-}
-
-// 获取时间线图标
-function getTimelineIcon(iconType) {
-  const iconMap = {
-    success: Check,
-    warning: Warning,
-    error: Close,
-    info: Clock
-  }
-  return iconMap[iconType] || Clock
-}
-
-// 获取时间线尺寸
-function getTimelineSize(type) {
-  return type === 'milestone' ? 'large' : 'normal'
-}
-
-// 获取事件标签类型
-function getEventTagType(type) {
-  const typeMap = {
-    milestone: 'primary',
-    review: 'success',
-    upload: 'info',
-    warning: 'warning'
-  }
-  return typeMap[type] || 'info'
-}
-
-// 获取事件类型文本
-function getEventTypeText(type) {
-  const textMap = {
-    milestone: '里程碑',
-    review: '审核',
-    upload: '上传',
-    warning: '提醒'
-  }
-  return textMap[type] || '动态'
-}
+/* 项目动态功能已移除，相关事件处理保留于后台数据中 */
 </script>
 
 <style scoped>
 .timeline-panel {
-  padding: 20px 0;
+  padding: 0;
 }
 
 /* 审核历史区域 */
 .review-section {
-  margin-bottom: 40px;
+  margin-bottom: 0px;
 }
 
 .section-title {
