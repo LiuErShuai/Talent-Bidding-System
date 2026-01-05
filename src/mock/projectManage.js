@@ -190,7 +190,7 @@ export const mockProjectManageData = {
         completedDeliverables: 1,
         totalDeliverables: 2,
         status: 'warning',
-        note: '已完成 1/2 项交付物，项目计划待提交'
+        note: '已完成 1/2 项交付物'
       }
     },
 

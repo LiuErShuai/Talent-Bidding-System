@@ -75,7 +75,7 @@ const formatEndDate = (endDate) => {
 .project-overview-card {
   padding: 12px;
   background: #fff;
-  border-radius: 12px;
+  border-radius: 0px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   transition: all 0.3s ease;
 }
@@ -138,8 +138,8 @@ const formatEndDate = (endDate) => {
 }
 
 .reward-small {
-  font-weight: 600;
-  color: #f59e0b;
+  font-weight: 400;
+  color: #7b859f;
 }
 
 /* 项目描述区域 */
