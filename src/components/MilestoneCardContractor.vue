@@ -1,11 +1,32 @@
 <template>
   <div class="milestone-card-contractor" :class="cardClass">
-    <!-- 卡片头部：标题 + 状态 -->
+    <!-- 卡片头部：标题 + 状态 + 元信息 -->
     <div class="card-header">
       <div class="header-left">
         <h3 class="card-title">{{ milestone.title }}</h3>
         <el-tag :type="tagType" size="large">{{ statusText }}</el-tag>
       </div>
+
+      <!-- 元信息区域 -->
+      <div class="header-meta">
+        <div class="meta-item">
+          <el-icon><Calendar /></el-icon>
+          <span>计划: {{ milestone.plannedDate }}</span>
+        </div>
+        <div v-if="milestone.actualDate" class="meta-item">
+          <el-icon><Checked /></el-icon>
+          <span>实际: {{ milestone.actualDate }}</span>
+        </div>
+        <div v-if="remainingDays !== null" class="meta-item" :class="{ 'text-danger': remainingDays < 0 }">
+          <el-icon><Clock /></el-icon>
+          <span>{{ remainingDaysText }}</span>
+        </div>
+        <div class="meta-item">
+          <el-icon><Document /></el-icon>
+          <span>交付物: {{ milestone.deliverables.length }}</span>
+        </div>
+      </div>
+
       <el-button
         text
         :icon="expanded ? ArrowUp : ArrowDown"
@@ -14,26 +35,6 @@
       >
         {{ expanded ? '折叠详情' : '展开详情' }}
       </el-button>
-    </div>
-
-    <!-- 时间和进度信息 -->
-    <div class="card-meta">
-      <div class="meta-item">
-        <el-icon><Calendar /></el-icon>
-        <span>计划: {{ milestone.plannedDate }}</span>
-      </div>
-      <div v-if="milestone.actualDate" class="meta-item">
-        <el-icon><Checked /></el-icon>
-        <span>实际: {{ milestone.actualDate }}</span>
-      </div>
-      <div v-if="remainingDays !== null" class="meta-item" :class="{ 'text-danger': remainingDays < 0 }">
-        <el-icon><Clock /></el-icon>
-        <span>{{ remainingDaysText }}</span>
-      </div>
-      <div class="meta-item">
-        <el-icon><Document /></el-icon>
-        <span>交付物: {{ milestone.deliverables.length }}</span>
-      </div>
     </div>
 
     <!-- 描述（始终可见） -->
@@ -93,12 +94,6 @@
           </el-button>
         </div>
 
-        <!-- 下一步提示 -->
-        <next-step-guide
-          :milestone="milestone"
-          :next-milestone="nextMilestone"
-          @action="handleGuideAction"
-        />
       </div>
     </el-collapse-transition>
   </div>
@@ -119,7 +114,6 @@ import {
   UploadFilled
 } from '@element-plus/icons-vue'
 import SubmissionItem from './SubmissionItem.vue'
-import NextStepGuide from './NextStepGuide.vue'
 import { calculateRemainingDays } from '@/mock/projectManage'
 
 const props = defineProps({
@@ -210,18 +204,15 @@ function handleViewSubmission(submission) {
 function handleDownloadSubmission(submission) {
   emit('downloadSubmission', submission)
 }
-
-function handleGuideAction(action) {
-  emit('guideAction', { milestone: props.milestone, action })
-}
 </script>
 
 <style scoped>
 .milestone-card-contractor {
   background: #fff;
   border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 16px;
+  padding: 18px;
+  margin-bottom: 0px;
+  margin-top: 0px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   transition: all 0.3s ease;
   border-left: 4px solid #e4e7ed;
@@ -258,21 +249,30 @@ function handleGuideAction(action) {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
+  margin-bottom: 10px;
+  padding-bottom: 2px;
   border-bottom: 1px solid #f0f0f0;
+  gap: 16px; /* 添加间距 */
 }
 
 .header-left {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-shrink: 0;
+}
+
+.header-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   flex: 1;
+  justify-content: center;
 }
 
 .card-title {
   margin: 0;
-  font-size: 18px;
+  font-size: 23px;
   font-weight: 600;
   color: #1f274b;
 }
@@ -281,15 +281,8 @@ function handleGuideAction(action) {
   font-size: 13px;
 }
 
-/* 元数据 */
-.card-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  margin-bottom: 12px;
-}
-
-.meta-item {
+/* 头部元数据 */
+.header-meta .meta-item {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -297,17 +290,17 @@ function handleGuideAction(action) {
   color: #606266;
 }
 
-.meta-item .el-icon {
+.header-meta .meta-item .el-icon {
   font-size: 14px;
   color: #909399;
 }
 
-.meta-item.text-danger {
+.header-meta .meta-item.text-danger {
   color: #ff4d4f;
   font-weight: 600;
 }
 
-.meta-item.text-danger .el-icon {
+.header-meta .meta-item.text-danger .el-icon {
   color: #ff4d4f;
 }
 
@@ -316,7 +309,7 @@ function handleGuideAction(action) {
   font-size: 14px;
   color: #606266;
   line-height: 1.6;
-  margin-bottom: 16px;
+  margin-bottom: 0px;
 }
 
 /* 可折叠内容 */
@@ -327,7 +320,8 @@ function handleGuideAction(action) {
 
 /* 区块 */
 .section {
-  margin-bottom: 24px;
+  margin-bottom: 20px;
+  position: relative;
 }
 
 .section:last-child {
@@ -338,10 +332,15 @@ function handleGuideAction(action) {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin: 0 0 12px 0;
+  margin: 0;
   font-size: 15px;
   font-weight: 600;
   color: #1f274b;
+  position: relative;
+  background: #e5e7eb;
+  padding: 8px 12px;
+  border-top: 1px solid #000000;
+  border-bottom: 1px solid #000000;
 }
 
 .section-title .el-icon {
@@ -363,23 +362,26 @@ function handleGuideAction(action) {
 .deliverables-list {
   list-style: none;
   padding: 0;
-  margin: 0;
+  margin: 4px 0 0 0;
+  background: #f5f7fb;
+  border-radius: 0 0 8px 8px;
+  overflow: hidden;
 }
 
 .deliverable-item {
-  padding: 12px;
-  background: #f5f7fb;
-  border-radius: 8px;
-  margin-bottom: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px dashed #9ca3af;
 }
 
 .deliverable-item:last-child {
-  margin-bottom: 0;
+  border-bottom: none;
+  padding-bottom: 12px;
 }
 
 .deliverable-info {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
   margin-bottom: 6px;
 }
@@ -395,8 +397,6 @@ function handleGuideAction(action) {
   font-size: 13px;
   color: #606266;
   line-height: 1.6;
-  padding-left: 8px;
-  border-left: 2px solid #1890ff;
 }
 
 /* 提交记录 */
@@ -437,13 +437,16 @@ function handleGuideAction(action) {
     gap: 8px;
   }
 
-  .card-title {
-    font-size: 16px;
+  .header-meta {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+    justify-content: flex-start;
   }
 
-  .card-meta {
-    flex-direction: column;
-    gap: 8px;
+  .card-title {
+    font-size: 16px;
   }
 
   .deliverable-info {

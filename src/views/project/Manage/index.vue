@@ -46,7 +46,19 @@
         <!-- 团队信息（可折叠） -->
         <div class="collapse-section">
           <el-collapse v-model="activeCollapse" class="bottom-sections">
-            <el-collapse-item title="👥 团队信息" name="team">
+            <el-collapse-item name="team">
+              <template #title>
+                <div class="collapse-header">
+                  <span class="collapse-title">团队信息</span>
+                  <el-button
+                    text
+                    :icon="activeCollapse.includes('team') ? ArrowUp : ArrowDown"
+                    class="expand-btn"
+                  >
+                    {{ activeCollapse.includes('team') ? '折叠详情' : '展开详情' }}
+                  </el-button>
+                </div>
+              </template>
               <team-panel :members="project.members || []" :canEdit="false" />
             </el-collapse-item>
           </el-collapse>
@@ -55,7 +67,19 @@
         <!-- 审核历史与项目动态（可折叠） -->
         <div class="collapse-section">
           <el-collapse v-model="activeCollapse" class="bottom-sections">
-            <el-collapse-item title="📜 审核历史与项目动态" name="timeline">
+            <el-collapse-item name="timeline">
+              <template #title>
+                <div class="collapse-header">
+                  <span class="collapse-title">审核历史与项目动态</span>
+                  <el-button
+                    text
+                    :icon="activeCollapse.includes('timeline') ? ArrowUp : ArrowDown"
+                    class="expand-btn"
+                  >
+                    {{ activeCollapse.includes('timeline') ? '折叠详情' : '展开详情' }}
+                  </el-button>
+                </div>
+              </template>
               <timeline-panel :events="timelineEvents" :reviewHistory="reviewHistory" />
             </el-collapse-item>
           </el-collapse>
@@ -212,7 +236,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Loading, UploadFilled, Download } from '@element-plus/icons-vue'
+import { Loading, UploadFilled, Download, ArrowUp, ArrowDown } from '@element-plus/icons-vue'
 
 // 组件导入
 import ProjectOverview from '@/components/ProjectOverview.vue'
@@ -234,8 +258,8 @@ const milestones = ref([])
 const timelineEvents = ref([])
 const reviewHistory = ref([])
 
-// 折叠面板状态
-const activeCollapse = ref(['team', 'timeline'])
+// 折叠面板状态 - 默认收起
+const activeCollapse = ref([])
 
 // 上传对话框
 const uploadDialogVisible = ref(false)
@@ -668,5 +692,23 @@ function handleGuideAction({ milestone, action }) {
   .detail-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* 自定义折叠面板头部 */
+.collapse-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.collapse-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: #1f274b;
+}
+
+.collapse-header .expand-btn {
+  font-size: 13px;
 }
 </style>
