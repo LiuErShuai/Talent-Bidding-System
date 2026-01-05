@@ -1,17 +1,14 @@
 <template>
-  <el-card class="team-panel">
-    <h4>团队成员</h4>
-    <div v-if="members && members.length" class="members-list">
-      <div v-for="m in members" :key="m.id" class="member-item">
-        <img :src="m.avatar" alt="avatar" class="avatar" />
-        <div class="info">
-          <div class="name">{{ m.name }}</div>
-          <div class="role">{{ m.role }}</div>
-        </div>
+  <div v-if="members && members.length" class="members-list">
+    <div v-for="m in members" :key="m.id" class="member-item">
+      <img :src="m.avatar" alt="avatar" class="avatar" />
+      <div class="info">
+        <div class="name">{{ m.name }}</div>
+        <div class="role">{{ m.role }}</div>
       </div>
     </div>
-    <div v-else class="empty">暂无成员</div>
-  </el-card>
+  </div>
+  <div v-else class="empty">暂无成员</div>
 </template>
 
 <script setup>
@@ -20,13 +17,59 @@ const props = defineProps({ members: { type: Array, default: () => [] }, canEdit
 </script>
 
 <style scoped>
-.team-panel { padding:12px; }
-.members-list { display:flex; flex-direction:column; gap:8px; }
-.member-item { display:flex; gap:8px; align-items:center; }
-.avatar { width:36px; height:36px; border-radius:50%; object-fit:cover; }
-.info .name { font-weight:600; }
-.info .role { color:#6b7280; font-size:12px; }
-.empty { color:#9aa5c2; }
+.members-list {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.member-item {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: #f8fafc;
+  transition: background-color 0.2s;
+}
+
+.member-item:hover {
+  background: #e2e8f0;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.info .name {
+  font-weight: 600;
+  font-size: 14px;
+  color: #1f2937;
+}
+
+.info .role {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.empty {
+  color: #9aa5c2;
+  text-align: center;
+  padding: 20px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .members-list {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+}
 </style>
+
 
 

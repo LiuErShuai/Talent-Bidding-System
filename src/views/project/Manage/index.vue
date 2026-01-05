@@ -44,15 +44,22 @@
         />
 
         <!-- 团队信息（可折叠） -->
-        <el-collapse v-model="activeCollapse" class="bottom-sections">
-          <el-collapse-item title="👥 团队信息" name="team">
-            <team-panel :members="project.members || []" :canEdit="false" />
-          </el-collapse-item>
+        <div class="collapse-section">
+          <el-collapse v-model="activeCollapse" class="bottom-sections">
+            <el-collapse-item title="👥 团队信息" name="team">
+              <team-panel :members="project.members || []" :canEdit="false" />
+            </el-collapse-item>
+          </el-collapse>
+        </div>
 
-          <el-collapse-item title="📜 审核历史与项目动态" name="timeline">
-            <timeline-panel :events="timelineEvents" :reviewHistory="reviewHistory" />
-          </el-collapse-item>
-        </el-collapse>
+        <!-- 审核历史与项目动态（可折叠） -->
+        <div class="collapse-section">
+          <el-collapse v-model="activeCollapse" class="bottom-sections">
+            <el-collapse-item title="📜 审核历史与项目动态" name="timeline">
+              <timeline-panel :events="timelineEvents" :reviewHistory="reviewHistory" />
+            </el-collapse-item>
+          </el-collapse>
+        </div>
       </div>
     </div>
 
@@ -512,9 +519,14 @@ function handleGuideAction({ milestone, action }) {
   margin-bottom: 24px;
 }
 
+/* 折叠面板整体容器 */
+.collapse-section {
+  margin-top: 16px;
+  margin-bottom: 16px;
+}
+
 /* 底部折叠区域 */
 .bottom-sections {
-  margin-top: 24px;
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
@@ -525,10 +537,22 @@ function handleGuideAction({ milestone, action }) {
   font-weight: 600;
   padding: 0 20px;
   height: 50px;
+  margin: 0;  /* 移除默认边距，确保边界对齐 */
+  box-sizing: border-box;  /* 统一盒模型，确保宽度计算一致 */
 }
 
 .bottom-sections :deep(.el-collapse-item__content) {
   padding: 20px;
+  margin: 0;  /* 移除默认边距，确保边界对齐 */
+  box-sizing: border-box;  /* 统一盒模型，确保宽度计算一致 */
+}
+
+/* 移除内部 el-card 的额外边距和装饰，确保内容与标题对齐 */
+.bottom-sections :deep(.el-collapse-item__content) .team-panel,
+.bottom-sections :deep(.el-collapse-item__content) .el-card {
+  margin: -20px;           /* 抵消 content 的 padding */
+  border-radius: 0;        /* 移除 card 的圆角，使用外层圆角 */
+  box-shadow: none;        /* 移除 card 的阴影，使用外层阴影 */
 }
 
 /* 上传对话框 */

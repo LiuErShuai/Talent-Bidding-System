@@ -59,17 +59,13 @@
         快速跳转
       </h4>
       <div class="jump-links">
-        <el-link type="primary" :underline="false" @click="$emit('jump', 'history')">
-          <el-icon><Checked /></el-icon>
-          历史里程碑 ({{ statistics.completed }})
-        </el-link>
-        <el-link type="primary" :underline="false" @click="$emit('jump', 'future')">
-          <el-icon><Clock /></el-icon>
-          未来里程碑 ({{ statistics.pending }})
+        <el-link type="primary" :underline="false" @click="$emit('jump', 'team')">
+          <el-icon><User /></el-icon>
+          团队成员
         </el-link>
         <el-link type="primary" :underline="false" @click="$emit('jump', 'reviews')">
           <el-icon><ChatLineSquare /></el-icon>
-          审核记录
+          审核历史与动态
         </el-link>
       </div>
     </div>
@@ -103,9 +99,8 @@ import {
   DataAnalysis,
   Aim,
   Calendar,
-  Clock,
   Guide,
-  Checked,
+  User,
   ChatLineSquare,
   BellFilled
 } from '@element-plus/icons-vue'
@@ -369,7 +364,7 @@ function handleAlertClick(alert) {
 .jump-links {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 0px;
 }
 
 .jump-links .el-link {
