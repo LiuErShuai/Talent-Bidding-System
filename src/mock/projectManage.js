@@ -74,6 +74,7 @@ export const mockProjectManageData = {
           uploadTime: '2025-11-03 14:20',
           uploader: '张三',
           versionNote: '初次申请，附带个人简历和项目经验说明',
+          description: '这是我的揭榜申请材料，包含了我的技术背景和项目经验，希望能够获得这个项目的承接机会。',
           status: 'approved',
           reviewResult: {
             reviewer: 'XX科技有限公司',
@@ -84,6 +85,7 @@ export const mockProjectManageData = {
           }
         }
       ],
+      feedbacks: [],
       progressDetail: {
         percentage: 100,
         completedDeliverables: 1,
@@ -131,6 +133,7 @@ export const mockProjectManageData = {
           uploadTime: '2025-11-18 14:30',
           uploader: '张三',
           versionNote: '补充了技术选型依据、风险评估章节和数据库ER图',
+          description: '根据上次审核意见进行了全面修改，补充了详细的技术选型依据、完整风险评估章节和数据库ER图设计。',
           status: 'approved',
           reviewResult: {
             reviewer: 'XX科技有限公司',
@@ -150,6 +153,7 @@ export const mockProjectManageData = {
           uploadTime: '2025-11-15 10:00',
           uploader: '张三',
           versionNote: '初版技术方案，包含系统架构设计和技术选型',
+          description: '这是项目的初版技术方案文档，包含了系统架构设计和技术选型方案，希望得到您的指导和建议。',
           status: 'rejected',
           reviewResult: {
             reviewer: 'XX科技有限公司',
@@ -158,6 +162,27 @@ export const mockProjectManageData = {
             comment: '技术栈需要更详细说明，缺少风险评估部分。建议补充：1. 技术选型的详细依据和对比 2. 潜在风险点分析 3. 数据库ER图',
             rating: null
           }
+        }
+      ],
+      feedbacks: [
+        {
+          id: 1,
+          publisher: 'XX科技有限公司',
+          time: '2025-11-18 16:00',
+          content: '技术方案文档整体质量不错，架构设计思路清晰。但仍有一些需要完善的地方。',
+          suggestions: [
+            '技术选型部分需要补充更详细的对比分析，包括至少3种备选方案的优劣势对比',
+            '数据库设计需要增加ER图和索引设计说明',
+            '风险评估部分需要更具体，建议补充应对措施和备用方案',
+            '接口设计需要增加错误码规范和异常处理流程'
+          ]
+        },
+        {
+          id: 2,
+          publisher: 'XX科技有限公司',
+          time: '2025-11-25 10:30',
+          content: '经审核，技术方案文档已按要求完善，各项内容详尽准确，符合项目要求。',
+          suggestions: []
         }
       ],
       progressDetail: {
@@ -189,6 +214,7 @@ export const mockProjectManageData = {
           requirement: '双方签字盖章的正式协议扫描件'
         }
       ],
+      feedbacks: [],
       submissions: [],
       progressDetail: {
         percentage: 0,
@@ -233,6 +259,7 @@ export const mockProjectManageData = {
           requirement: '10-15页，包含项目背景、技术方案、实现进展和效果展示'
         }
       ],
+      feedbacks: [],
       submissions: [],
       progressDetail: {
         percentage: 0,
@@ -284,6 +311,7 @@ export const mockProjectManageData = {
           requirement: '5-10分钟，展示系统主要功能和操作流程'
         }
       ],
+      feedbacks: [],
       submissions: [],
       progressDetail: {
         percentage: 0,

@@ -47,32 +47,41 @@
       <div v-show="expanded" class="card-content">
         <!-- 交付物要求 -->
         <div class="section deliverables-requirements">
-          <h4 class="section-title">
+          <h4 class="section-title collapsible" @click="deliverablesExpanded = !deliverablesExpanded">
             <el-icon><List /></el-icon>
             交付物要求
+            <el-icon class="collapse-icon">
+              <ArrowUp v-if="deliverablesExpanded" />
+              <ArrowDown v-else />
+            </el-icon>
           </h4>
-          <ul class="deliverables-list">
-            <li v-for="d in milestone.deliverables" :key="d.id" class="deliverable-item">
-              <div class="deliverable-info">
-                <span class="deliverable-name">{{ d.name }}</span>
-                <el-tag size="small" type="info">{{ d.format.join(' / ') }}</el-tag>
-              </div>
-              <p class="deliverable-requirement">{{ d.requirement }}</p>
-            </li>
-          </ul>
+          <el-collapse-transition>
+            <ul v-show="deliverablesExpanded" class="deliverables-list">
+              <li v-for="d in milestone.deliverables" :key="d.id" class="deliverable-item">
+                <div class="deliverable-info">
+                  <span class="deliverable-name">{{ d.name }}</span>
+                  <el-tag size="small" type="info">{{ d.format.join(' / ') }}</el-tag>
+                </div>
+                <p class="deliverable-requirement">{{ d.requirement }}</p>
+              </li>
+            </ul>
+          </el-collapse-transition>
         </div>
 
         <!-- 我的提交记录 -->
         <div class="section submissions">
-          <h4 class="section-title">
+          <h4 class="section-title collapsible" @click="submissionsExpanded = !submissionsExpanded">
             <el-icon><Files /></el-icon>
-            我的提交记录
-            <span v-if="milestone.submissions?.length" class="count-badge">
-              {{ milestone.submissions.length }}
-            </span>
+            我的提交
+            <el-icon class="collapse-icon">
+              <ArrowUp v-if="submissionsExpanded" />
+              <ArrowDown v-else />
+            </el-icon>
           </h4>
 
-          <div v-if="milestone.submissions?.length > 0" class="submissions-list">
+          <el-collapse-transition>
+            <div v-show="submissionsExpanded">
+              <div v-if="milestone.submissions?.length > 0" class="submissions-list">
             <submission-item
               v-for="sub in sortedSubmissions"
               :key="sub.id"
@@ -90,8 +99,55 @@
           <!-- 上传按钮 -->
           <el-button type="primary" @click="handleUpload" class="upload-btn">
             <el-icon><UploadFilled /></el-icon>
-            上传新版本
+            上传/更新文件
           </el-button>
+            </div>
+          </el-collapse-transition>
+        </div>
+
+        <!-- 发布方反馈 -->
+        <div class="section feedback">
+          <h4 class="section-title collapsible" @click="feedbackExpanded = !feedbackExpanded">
+            <el-icon><ChatDotRound /></el-icon>
+            发布方反馈
+            <el-icon class="collapse-icon">
+              <ArrowUp v-if="feedbackExpanded" />
+              <ArrowDown v-else />
+            </el-icon>
+          </h4>
+
+          <el-collapse-transition>
+            <div v-show="feedbackExpanded">
+              <div v-if="sortedFeedbacks.length > 0" class="feedbacks-list">
+            <div
+              v-for="feedback in sortedFeedbacks"
+              :key="feedback.id"
+              class="feedback-item"
+            >
+              <div class="feedback-header">
+                <span class="feedback-publisher">{{ feedback.publisher }}</span>
+                <span class="feedback-time">{{ feedback.time }}</span>
+              </div>
+              <div class="feedback-content">
+                {{ feedback.content }}
+                <div v-if="feedback.suggestions?.length > 0" class="suggestions-inline">
+                  <div class="suggestion-title">修改建议：</div>
+                  <ul class="suggestion-list">
+                    <li v-for="(suggestion, index) in feedback.suggestions" :key="index" class="suggestion-item">
+                      {{ suggestion }}
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div v-else class="empty-feedback">
+            <el-icon :size="48" color="#C0C4CC"><ChatDotRound /></el-icon>
+            <p>暂无反馈意见</p>
+          </div>
+            </div>
+          </el-collapse-transition>
         </div>
 
       </div>
@@ -111,7 +167,8 @@ import {
   List,
   Files,
   FolderOpened,
-  UploadFilled
+  UploadFilled,
+  ChatDotRound
 } from '@element-plus/icons-vue'
 import SubmissionItem from './SubmissionItem.vue'
 import { calculateRemainingDays } from '@/mock/projectManage'
@@ -135,6 +192,11 @@ const emit = defineEmits(['upload', 'viewSubmission', 'downloadSubmission', 'gui
 
 // 折叠/展开状态
 const expanded = ref(props.defaultExpanded)
+
+// 各模块折叠状态
+const deliverablesExpanded = ref(true) // 交付物要求默认展开
+const submissionsExpanded = ref(true)  // 我的提交默认展开
+const feedbackExpanded = ref(true)     // 发布方反馈默认展开
 
 function toggleExpand() {
   expanded.value = !expanded.value
@@ -176,6 +238,14 @@ const remainingDays = computed(() => {
     return null
   }
   return calculateRemainingDays(props.milestone.plannedDate)
+})
+
+// 排序后的反馈记录（新到旧）
+const sortedFeedbacks = computed(() => {
+  if (!props.milestone.feedbacks) return []
+  return [...props.milestone.feedbacks].sort((a, b) => {
+    return new Date(b.time) - new Date(a.time)
+  })
 })
 
 // 剩余天数文本
@@ -402,6 +472,9 @@ function handleDownloadSubmission(submission) {
 /* 提交记录 */
 .submissions-list {
   margin-bottom: 16px;
+  background: #f5f7fb;
+  border-radius: 0 0 8px 8px;
+  overflow: hidden;
 }
 
 .empty-submissions {
@@ -417,6 +490,124 @@ function handleDownloadSubmission(submission) {
 
 .upload-btn {
   width: 100%;
+}
+
+/* 发布方反馈 */
+.feedbacks-list {
+  margin-top: 8px;
+}
+
+.feedback-item {
+  background: #f5f7fb;
+  border-radius: 0 0 8px 8px;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+}
+
+.feedback-item:last-child {
+  margin-bottom: 0;
+}
+
+.feedback-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.feedback-publisher {
+  font-weight: 600;
+  color: #303133;
+  font-size: 14px;
+}
+
+.feedback-time {
+  font-size: 12px;
+  color: #909399;
+}
+
+.feedback-content {
+  font-size: 13px;
+  color: #606266;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.suggestions-inline {
+  margin-top: 8px;
+}
+
+.suggestion-title {
+  font-weight: 600;
+  color: #303133;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+.suggestion-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.suggestion-item {
+  font-size: 13px;
+  color: #606266;
+  line-height: 1.5;
+  position: relative;
+  padding-left: 16px;
+  margin-bottom: 4px;
+}
+
+.suggestion-item:before {
+  content: '•';
+  color: #909399;
+  position: absolute;
+  left: 0;
+  font-weight: normal;
+}
+
+.suggestion-item:last-child {
+  margin-bottom: 0;
+}
+
+.empty-feedback {
+  text-align: center;
+  padding: 24px 16px;
+  color: #C0C4CC;
+}
+
+.empty-feedback p {
+  margin-top: 12px;
+  font-size: 14px;
+}
+
+/* 折叠功能样式 */
+.collapsible {
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding-right: 8px;
+}
+
+.collapsible:hover {
+  /* 使用更深的背景以突出高亮（比原来的浅色更明显） */
+  background-color: #cfcfcf;
+}
+
+.collapse-icon {
+  font-size: 16px;
+  color: #000000; /* 改为黑色 */
+  transition: transform 0.3s ease;
+  margin-left: 6px;
+  transform: translateX(-5px); /* 向左微移 */
+}
+
+/* 更高优先级覆盖：确保折叠图标在可折叠标题中为黑色 */
+.section-title.collapsible .collapse-icon {
+  color: #000000 !important;
 }
 
 /* 响应式 */

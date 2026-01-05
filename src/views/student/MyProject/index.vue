@@ -139,8 +139,9 @@
                     <div class="project-content-row">
                       <p class="project-brief">{{ project.brief }}</p>
                       <button
+                        type="button"
                         class="ghost-chip manage-btn"
-                        @click.stop="manageProject(project)"
+                        @click.stop.prevent="manageProject(project)"
                       >
                         管理项目
                       </button>
@@ -425,6 +426,7 @@ const viewDetail = (project) => {
 }
 
 const manageProject = (project) => {
+  console.log('manageProject clicked ->', project?.id)
   router.push(`/projects/${project.id}/manage`)
 }
 
