@@ -10,31 +10,10 @@
               <div class="sidebar-title">我的项目</div>
               <button
                 class="sidebar-item"
-                :class="{ active: activeModule === 'projects' && activeStatus === 'ongoing' }"
-                @click="activeSidebar = 'ongoing'; activeStatus = 'ongoing'; activeModule = 'projects'"
+                :class="{ active: activeModule === 'projects' }"
+                @click="activeModule = 'projects'"
               >
-                进行中 ({{ ongoingCount }})
-              </button>
-              <button
-                class="sidebar-item"
-                :class="{ active: activeModule === 'projects' && activeStatus === 'awarded' }"
-                @click="activeSidebar = 'awarded'; activeStatus = 'awarded'; activeModule = 'projects'"
-              >
-                已揭榜 ({{ awardedCount }})
-              </button>
-              <button
-                class="sidebar-item"
-                :class="{ active: activeModule === 'projects' && activeStatus === 'review' }"
-                @click="activeSidebar = 'review'; activeStatus = 'review'; activeModule = 'projects'"
-              >
-                待评审 ({{ reviewCount }})
-              </button>
-              <button
-                class="sidebar-item"
-                :class="{ active: activeModule === 'projects' && activeStatus === 'finished' }"
-                @click="activeSidebar = 'finished'; activeStatus = 'finished'; activeModule = 'projects'"
-              >
-                已完成 ({{ finishedCount }})
+                我承接的项目 ({{ projects.length }})
               </button>
             </div>
 
@@ -132,13 +111,13 @@
             <div v-if="activeModule === 'projects'">
               <div class="section-header">
                 <h2 class="section-title">
-                  进行中的项目 ({{ filteredProjects.length }})
+                  我承接的项目 ({{ projects.length }})
                 </h2>
               </div>
 
               <div class="project-list">
                 <article
-                  v-for="project in filteredProjects"
+                  v-for="project in projects"
                   :key="project.id"
                   class="project-card"
                   @click="viewDetail(project)"
@@ -153,45 +132,25 @@
 
                     <div class="project-meta-row">
                       <span>状态：{{ project.stageText }}</span>
-                      <span>进度：{{ project.progress }}%</span>
                       <span>剩余时间：{{ project.remainDays }}天</span>
-                      <span>奖金：￥{{ project.reward.toLocaleString() }}</span>
+                      <span>发布方：{{ project.publisher }}</span>
                     </div>
 
-                    <p class="project-brief">{{ project.brief }}</p>
-
-                    <div class="project-actions-row">
-                      <div class="project-actions">
-                        <button
-                          v-if="project.canUpload"
-                          class="primary-chip"
-                          @click.stop="uploadDeliverable(project)"
-                        >
-                          {{ project.uploadLabel }}
-                        </button>
-                        <button
-                          v-if="project.canCollaborate"
-                          class="ghost-chip"
-                          @click.stop="openTeamCollab(project)"
-                        >
-                          团队协作
-                        </button>
-                      </div>
-                      <div class="project-progress">
-                        <div class="progress-bar">
-                          <div
-                            class="progress-inner"
-                            :style="{ width: project.progress + '%' }"
-                          ></div>
-                        </div>
-                        <span class="progress-text">{{ project.progress }}%</span>
-                      </div>
+                    <div class="project-content-row">
+                      <p class="project-brief">{{ project.brief }}</p>
+                      <button
+                        type="button"
+                        class="ghost-chip manage-btn"
+                        @click.stop.prevent="manageProject(project)"
+                      >
+                        管理项目
+                      </button>
                     </div>
                   </div>
                 </article>
 
-                <div v-if="filteredProjects.length === 0" class="empty-state">
-                  暂无符合条件的项目
+                <div v-if="projects.length === 0" class="empty-state">
+                  暂无承接的项目
                 </div>
               </div>
             </div>
@@ -375,35 +334,23 @@ const userInfo = ref({
 
 const userRole = computed(() => (userInfo.value.role === 'enterprise' ? 'enterprise' : 'student'))
 
-// 侧边栏和角色视图
-const activeSidebar = ref('ongoing')
-const activeRoleTab = ref('studentProjects')
-const activeStatus = ref('ongoing')
+// 侧边栏和模块切换
 const activeModule = ref('projects')
 const activeTeam = ref('dev') // dev | ai
 const activeResult = ref('pending') // pending | review | passed
 const activeData = ref('radar') // radar | stats | income
 
-// 角色标签，根据用户角色展示不同入口
+// 企业端角色标签（暂时保留，未来可能使用）
+const activeRoleTab = ref('published')
 const roleTabs = computed(() => {
-  const role = userRole.value
   const tabs = []
-  if (role === 'enterprise') {
+  if (userRole.value === 'enterprise') {
     tabs.push({ key: 'published', label: '我发布的（企业）' })
-  }
-  if (role === 'student') {
-    tabs.push({ key: 'studentProjects', label: '我揭榜的（学生）' })
-    tabs.push({ key: 'studentTeams', label: '我的团队（学生）' })
-  }
-  tabs.push({ key: 'timeline', label: '项目进度跟踪' })
-  // 默认激活第一个 tab
-  if (!tabs.find((t) => t.key === activeRoleTab.value)) {
-    activeRoleTab.value = tabs[0]?.key || 'timeline'
   }
   return tabs
 })
 
-// 示例项目数据
+// 我承接的项目数据
 const projects = ref([
   {
     id: 1,
@@ -416,6 +363,7 @@ const projects = ref([
     progress: 60,
     remainDays: 15,
     reward: 15000,
+    publisher: 'XX科技有限公司',
     brief: '为平台构建基于NLP的智能客服系统，提高服务效率。',
     canUpload: true,
     uploadLabel: '上传成果',
@@ -432,6 +380,7 @@ const projects = ref([
     progress: 80,
     remainDays: 3,
     reward: 8000,
+    publisher: 'YY信息技术有限公司',
     brief: '实现现代化商城前端页面，适配 PC 与移动端。',
     canUpload: true,
     uploadLabel: '上传成果',
@@ -440,7 +389,7 @@ const projects = ref([
   {
     id: 3,
     name: '数据分析与可视化项目',
-    ownerType: 'enterprise',
+    ownerType: 'student',
     stage: 'testing',
     stageText: '测试中',
     status: 'review',
@@ -448,18 +397,13 @@ const projects = ref([
     progress: 90,
     remainDays: 7,
     reward: 10000,
+    publisher: 'ZZ数据科技有限公司',
     brief: '对销售数据深度分析并制作可视化报表。',
     canUpload: true,
     uploadLabel: '提交成果',
     canCollaborate: false
   }
 ])
-
-// 统计数量（示意）
-const ongoingCount = computed(() => projects.value.filter((p) => p.status === 'ongoing').length)
-const awardedCount = computed(() => projects.value.filter((p) => p.status === 'awarded').length)
-const reviewCount = computed(() => projects.value.filter((p) => p.status === 'review').length)
-const finishedCount = computed(() => projects.value.filter((p) => p.status === 'finished').length)
 
 // 切换模块辅助方法
 const setTeamModule = (key) => {
@@ -477,26 +421,13 @@ const setDataModule = (key) => {
   activeData.value = key
 }
 
-// 根据角色和状态过滤项目
-const filteredProjects = computed(() => {
-  return projects.value.filter((p) => {
-    // 按角色 tab 过滤
-    if (activeRoleTab.value === 'published' && p.ownerType !== 'enterprise') return false
-    if (activeRoleTab.value === 'studentProjects' && p.ownerType !== 'student') return false
-    // 时间线、团队等 tab 这里简化为同样展示
-
-    // 按状态筛选
-    if (activeStatus.value === 'ongoing' && p.status !== 'ongoing') return false
-    if (activeStatus.value === 'awarded' && p.status !== 'awarded') return false
-    if (activeStatus.value === 'review' && p.status !== 'review') return false
-    if (activeStatus.value === 'finished' && p.status !== 'finished') return false
-
-    return true
-  })
-})
-
 const viewDetail = (project) => {
   router.push(`/projects/${project.id}`)
+}
+
+const manageProject = (project) => {
+  console.log('manageProject clicked ->', project?.id)
+  router.push(`/projects/${project.id}/manage`)
 }
 
 const uploadDeliverable = (project) => {
@@ -521,9 +452,9 @@ onMounted(() => {
 }
 
 .myproject-container {
-  padding: 24px;
+  padding: 0 24px 24px 24px; /* 移除顶部padding */
   background: #f5f7fa;
-  min-height: calc(100vh - 80px);
+  min-height: calc(100vh - 90px); /* 减去导航栏高度 */
 }
 
 .page-header {
@@ -706,6 +637,7 @@ onMounted(() => {
   border-radius: 999px;
   font-size: 12px;
   color: #fff;
+  margin-right: 13px; 
 }
 
 .project-tag.ongoing {
@@ -736,6 +668,37 @@ onMounted(() => {
   font-size: 13px;
   color: #4f5d7a;
   margin: 0;
+}
+
+/* 项目内容行：简介文本和按钮水平排列 */
+.project-content-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.project-content-row .project-brief {
+  flex: 1;
+  margin: 0;
+}
+
+.project-content-row .manage-btn {
+  flex-shrink: 0;
+  align-self: flex-start;
+  background: #1890ff;
+  color: #fff;
+  border-color: #1890ff;
+}
+
+.project-content-row .manage-btn:hover {
+  background: #40a9ff;
+  border-color: #40a9ff;
+}
+
+.project-content-row .manage-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
 }
 
 .project-actions-row {

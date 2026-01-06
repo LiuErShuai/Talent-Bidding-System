@@ -1,5 +1,5 @@
 <template>
-  <div class="default-layout">
+  <div class="default-layout" :class="{ 'has-fixed-header': shouldFixHeader }">
     <AppHeader
       :nav-items="navConfig.navItems"
       :quick-actions="navConfig.quickActions"
@@ -24,10 +24,18 @@
 
 <script setup>
 import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/store/modules/auth'
 import { getNavByRole } from '@/utils/navConfig'
 import AppHeader from '@/components/layout/AppHeader/index.vue'
 import AppFooter from '@/components/layout/AppFooter/index.vue'
+
+const route = useRoute()
+
+// 判断是否需要固定导航栏
+const shouldFixHeader = computed(() => {
+  return route.path === '/my-projects' || route.path.match(/^\/projects\/\d+\/manage$/)
+})
 
 // ========================================
 // 获取认证状态和角色
@@ -70,6 +78,11 @@ const unreadCount = computed(() => ({
   flex-direction: column;
   min-height: 100vh;
   height: auto;
+}
+
+/* 当导航栏固定时，为内容区域添加顶部间距 */
+.default-layout.has-fixed-header .layout-main {
+  padding-top: 90px; /* 导航栏高度 + 额外间距 */
 }
 
 .layout-main {
