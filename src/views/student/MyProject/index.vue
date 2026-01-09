@@ -427,7 +427,14 @@ const viewDetail = (project) => {
 
 const manageProject = (project) => {
   console.log('manageProject clicked ->', project?.id)
-  router.push(`/projects/${project.id}/manage`)
+  // 根据用户角色跳转到不同的管理页面
+  if (userRole.value === 'enterprise') {
+    // 企业用户跳转到企业方管理页面
+    router.push(`/enterprise/project/${project.id}/manage`)
+  } else {
+    // 学生用户跳转到承接方管理页面
+    router.push(`/projects/${project.id}/manage`)
+  }
 }
 
 const uploadDeliverable = (project) => {
