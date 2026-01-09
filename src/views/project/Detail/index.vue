@@ -384,81 +384,44 @@
                     <div v-else class="marker-icon pending"></div>
                   </div>
                   
-                  <!-- 里程碑内容卡片（缩略版） -->
+                  <!-- 里程碑内容卡片（紧凑版） -->
                   <div class="milestone-card">
+                    <!-- 卡片头部：标题 + 状态 + 元信息 -->
                     <div class="milestone-header">
-                      <div class="milestone-title-row">
+                      <div class="header-left">
                         <h3 class="milestone-title">{{ milestone.title }}</h3>
-                        <div class="milestone-header-actions">
-                          <el-tag
-                            :type="getMilestoneTagType(milestone.status)"
-                            size="small"
-                          >
-                            {{ getMilestoneStatusText(milestone.status) }}
-                          </el-tag>
-                          <!-- 发布方专属：待审核角标 -->
-                          <el-badge
-                            v-if="isPublisher && needsPublisherReview(milestone)"
-                            :value="1"
-                            class="review-badge"
-                          >
-                            <el-icon><Bell /></el-icon>
-                          </el-badge>
-                          <el-button
-                            type="primary"
-                            size="small"
-                            text
-                            @click="openMilestoneDetailDialog(milestone)"
-                          >
-                            查看详情
-                            <el-icon><ArrowRight /></el-icon>
-                          </el-button>
+                        <el-tag
+                          :type="getMilestoneTagType(milestone.status)"
+                          size="large"
+                        >
+                          {{ getMilestoneStatusText(milestone.status) }}
+                        </el-tag>
+                      </div>
+
+                      <!-- 元信息区域 -->
+                      <div class="header-meta">
+                        <div class="meta-item">
+                          <el-icon><Calendar /></el-icon>
+                          <span>计划: {{ milestone.plannedDate }}</span>
+                        </div>
+                        <div v-if="milestone.actualDate" class="meta-item">
+                          <el-icon><Check /></el-icon>
+                          <span>实际: {{ milestone.actualDate }}</span>
+                        </div>
+                        <div v-if="milestone.delayDays && milestone.delayDays > 0" class="meta-item text-danger">
+                          <el-icon><Clock /></el-icon>
+                          <span>逾期 {{ milestone.delayDays }} 天</span>
+                        </div>
+                        <div v-if="milestone.deliverables && milestone.deliverables.length > 0" class="meta-item">
+                          <el-icon><Document /></el-icon>
+                          <span>交付物: {{ milestone.deliverables.length }}</span>
                         </div>
                       </div>
-                      <div class="milestone-meta">
-                        <span class="milestone-date">
-                          <el-icon><Calendar /></el-icon>
-                          {{ milestone.plannedDate }}
-                        </span>
-                        <span v-if="milestone.actualDate" class="milestone-actual-date">
-                          实际完成：{{ milestone.actualDate }}
-                        </span>
-                        <span v-if="milestone.delayDays && milestone.delayDays > 0" class="milestone-delay">
-                          延迟 {{ milestone.delayDays }} 天
-                        </span>
-                      </div>
                     </div>
 
-                    <!-- 缩略描述（最多2行） -->
-                    <div class="milestone-description-short">
-                      <p>{{ truncateText(milestone.description, 100) }}</p>
-                    </div>
-
-                    <!-- 摘要信息 -->
-                    <div class="milestone-summary">
-                      <div v-if="milestone.deliverables && milestone.deliverables.length > 0" class="summary-item">
-                        <el-icon><Document /></el-icon>
-                        <span>交付物：{{ milestone.deliverables.length }} 项</span>
-                      </div>
-                      <div v-if="milestone.progressDetail" class="summary-item">
-                        <el-icon><TrendCharts /></el-icon>
-                        <span>进度：{{ milestone.progressDetail.percentage }}%</span>
-                      </div>
-                      <div v-if="milestone.processChecklist && milestone.processChecklist.length > 0" class="summary-item">
-                        <el-icon><List /></el-icon>
-                        <span>{{ milestone.processChecklist.length }} 个过程任务</span>
-                      </div>
-                    </div>
-
-                    <!-- 发布方专属：待审核提示（仅进行中状态） -->
-                    <div v-if="isPublisher && needsPublisherReview(milestone)" class="review-badge-hint">
-                      <span class="hint-text">待审核</span>
-                    </div>
-
-                    <!-- 发布方专属：已完成提示（已完成状态显示） -->
-                    <div v-if="isPublisher && milestone.submissionSummary && milestone.status === 'completed'" class="submission-hint completed-hint">
-                      <el-icon><Check /></el-icon>
-                      <span>已完成</span>
+                    <!-- 描述 -->
+                    <div class="milestone-description">
+                      {{ truncateText(milestone.description, 100) }}
                     </div>
                   </div>
                 </div>
@@ -3179,150 +3142,106 @@ const calculateRemainingDays = (dateStr) => {
   }
 }
 
-/* 里程碑卡片（缩略版） */
+/* 里程碑卡片（紧凑版） */
 .milestone-card {
   flex: 1;
   background: white;
-  border-radius: 8px;
-  padding: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   border-left: 4px solid #e4e7ed;
   transition: all 0.3s ease;
-  min-height: 180px; /* 固定最小高度，保持卡片一致性 */
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
 }
 
 .milestone-item.milestone-completed .milestone-card {
-  border-left-color: #67c23a;
+  background: #f6ffed;
+  border-left-color: #52c41a;
 }
 
 .milestone-item.milestone-in-progress .milestone-card {
-  border-left-color: #409eff;
+  border-left-color: #1890ff;
+  box-shadow: 0 4px 16px rgba(24, 144, 255, 0.2);
+  transform: scale(1.01);
+}
+
+.milestone-item.milestone-pending .milestone-card {
+  opacity: 0.9;
+  border-left-color: #d9d9d9;
 }
 
 .milestone-item.milestone-delayed .milestone-card {
-  border-left-color: #f56c6c;
+  border-left-color: #ff4d4f;
+  background: #fff1f0;
 }
 
 .milestone-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
+/* 卡片头部 */
 .milestone-header {
-  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  padding-bottom: 2px;
+  border-bottom: 1px solid #f0f0f0;
+  gap: 16px;
 }
 
-.milestone-title-row {
+.header-left {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 8px;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.header-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  justify-content: center;
 }
 
 .milestone-title {
   margin: 0;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 600;
-  color: #333;
+  color: #1f274b;
 }
 
-.milestone-meta {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-  font-size: 14px;
-  color: #666;
-}
-
-.milestone-date {
+/* 头部元数据 */
+.header-meta .meta-item {
   display: flex;
   align-items: center;
   gap: 4px;
-}
-
-.milestone-actual-date {
-  color: #67c23a;
-}
-
-.milestone-delay {
-  color: #f56c6c;
-  font-weight: 500;
-}
-
-.milestone-description-short {
-  margin: 4px 0;
-}
-
-.milestone-description-short p {
-  margin: 0;
+  font-size: 13px;
   color: #606266;
+}
+
+.header-meta .meta-item .el-icon {
   font-size: 14px;
-  line-height: 1.5;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.milestone-summary {
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
-  margin-top: auto; /* 推到底部 */
-}
-
-.summary-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
   color: #909399;
-  font-size: 13px;
 }
 
-/* 发布方专属：待审核提示 */
-.review-badge-hint {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  background: #fef0f0;
-  border-radius: 4px;
-  margin-top: 8px;
+.header-meta .meta-item.text-danger {
+  color: #ff4d4f;
+  font-weight: 600;
 }
 
-.review-badge-hint .hint-text {
-  color: #f56c6c;
-  font-size: 13px;
-  font-weight: 500;
+.header-meta .meta-item.text-danger .el-icon {
+  color: #ff4d4f;
 }
 
-.review-badge {
-  margin-right: 4px;
+/* 描述 */
+.milestone-description {
+  font-size: 14px;
+  color: #606266;
+  line-height: 1.6;
+  margin-bottom: 0px;
 }
 
-/* 发布方专属：承接方已提交提示 */
-.submission-hint {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 12px;
-  background: #ecf5ff;
-  border-radius: 4px;
-  color: #409eff;
-  font-size: 13px;
-  margin-top: 8px;
-}
-
-/* 发布方专属：已完成提示 */
-.submission-hint.completed-hint {
-  background: #f0f9ff;
-  color: #67c23a;
-}
 
 /* 交付物列表 */
 .milestone-deliverables {
@@ -3458,29 +3377,46 @@ const calculateRemainingDays = (dateStr) => {
 }
 
 /* 响应式设计 */
+/* 响应式 */
 @media (max-width: 768px) {
   .milestone-timeline {
     padding-left: 30px;
   }
-  
+
   .milestone-marker {
     left: -30px;
   }
-  
+
   .timeline-connector {
     left: -22px;
   }
-  
-  .milestone-title-row {
+
+  .milestone-card {
+    padding: 16px;
+  }
+
+  .milestone-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .header-left {
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
   }
-  
-  .milestone-meta {
-    flex-direction: column;
-    align-items: flex-start;
+
+  .header-meta {
+    flex-direction: row;
+    flex-wrap: wrap;
     gap: 8px;
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .milestone-title {
+    font-size: 18px;
   }
 }
 /* 里程碑操作按钮区域 */
@@ -3524,44 +3460,6 @@ const calculateRemainingDays = (dateStr) => {
   gap: 12px;
 }
 
-/* 里程碑卡片缩略版样式优化 */
-.milestone-header-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.milestone-description-short {
-  margin: 4px 0;
-}
-
-.milestone-description-short p {
-  margin: 0;
-  color: #666;
-  font-size: 14px;
-  line-height: 1.6;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.milestone-summary {
-  display: flex;
-  gap: 16px;
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px dashed #f0f0f0;
-}
-
-.milestone-summary .summary-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: #666;
-  font-size: 13px;
-}
 
 /* ========== 开始：里程碑详情弹窗样式 (MILESTONE_DETAIL_DIALOG_STYLES) ========== */
 .milestone-detail-content {
