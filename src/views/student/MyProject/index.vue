@@ -21,17 +21,17 @@
               <div class="sidebar-title">我的团队</div>
               <button
                 class="sidebar-item"
-                :class="{ active: activeModule === 'team' && activeTeam === 'dev' }"
-                @click="setTeamModule('dev')"
+                :class="{ active: activeModule === 'team' && activeTeamCategory === 'owned' }"
+                @click="setTeamModule('owned')"
               >
-                智能开发小组
+                我负责的
               </button>
               <button
                 class="sidebar-item"
-                :class="{ active: activeModule === 'team' && activeTeam === 'ai' }"
-                @click="setTeamModule('ai')"
+                :class="{ active: activeModule === 'team' && activeTeamCategory === 'joined' }"
+                @click="setTeamModule('joined')"
               >
-                AI创新团队
+                我参与的
               </button>
             </div>
 
@@ -159,23 +159,52 @@
             <div v-else-if="activeModule === 'team'">
               <div class="section-header">
                 <h2 class="section-title">我的团队</h2>
-              </div>
-              <div class="project-list">
-                <div class="project-card" v-if="activeTeam === 'dev'">
-                  <div class="project-card-main">
-                    <div class="project-card-header">
-                      <h3 class="project-name">智能开发小组</h3>
-                    </div>
-                    <p class="project-brief">负责平台前端与移动端开发的学生团队。</p>
-                  </div>
+                <div v-if="activeTeamCategory" class="section-extra">
+                  <span class="section-chip" :class="{ primary: activeTeamCategory === 'owned' }">
+                    {{ activeTeamCategory === 'owned' ? '负责人视角' : '成员视角' }}
+                  </span>
                 </div>
-                <div class="project-card" v-else-if="activeTeam === 'ai'">
+              </div>
+              <div v-if="!activeTeamCategory" class="empty-state">
+                请选择左侧“我负责的”或“我参与的”查看团队
+              </div>
+              <div v-else class="project-list">
+                <article
+                  v-for="team in currentTeams"
+                  :key="team.id"
+                  class="project-card team-card"
+                  @click="openTeamDetail(team)"
+                >
                   <div class="project-card-main">
                     <div class="project-card-header">
-                      <h3 class="project-name">AI创新团队</h3>
+                      <h3 class="project-name">{{ team.name }}</h3>
+                      <span class="team-role-chip" :class="{ owner: team.isOwner }">
+                        {{ team.isOwner ? '负责人' : '成员' }}
+                      </span>
                     </div>
-                    <p class="project-brief">聚焦人工智能与数据分析方向的创新团队。</p>
+
+                    <div class="project-meta-row">
+                      <span>关联项目：{{ team.project.name }}</span>
+                      <span>阶段：{{ team.project.stage }}</span>
+                      <span>进度：{{ team.project.progress }}%</span>
+                      <span>状态：{{ team.project.statusText }}</span>
+                    </div>
+
+                    <div class="project-content-row">
+                      <p class="project-brief">{{ team.project.brief }}</p>
+                      <button
+                        type="button"
+                        class="ghost-chip manage-btn"
+                        @click.stop.prevent="openTeamDetail(team)"
+                      >
+                        查看详情
+                      </button>
+                    </div>
                   </div>
+                </article>
+
+                <div v-if="currentTeams.length === 0" class="empty-state">
+                  暂无团队数据
                 </div>
               </div>
             </div>
@@ -318,6 +347,63 @@
       </div>
     </div>
   </div>
+
+  <!-- 团队详情弹窗 -->
+  <div v-if="teamDialogVisible && selectedTeam" class="team-dialog-overlay">
+    <div class="team-dialog">
+      <div class="team-dialog-header">
+        <div>
+          <h3 class="dialog-title">{{ selectedTeam.name }}</h3>
+          <p class="dialog-subtitle">
+            关联项目：{{ selectedTeam.project.name }}（{{ selectedTeam.project.stage }} / {{ selectedTeam.project.statusText }}）
+          </p>
+        </div>
+        <button class="close-btn" @click="closeTeamDetail">×</button>
+      </div>
+
+      <div class="team-dialog-body">
+        <div class="dialog-section">
+          <h4>团队简介</h4>
+          <p class="dialog-text">{{ selectedTeam.description }}</p>
+        </div>
+
+        <div class="dialog-section">
+          <h4>项目概况</h4>
+          <div class="dialog-meta-row">
+            <span>阶段：{{ selectedTeam.project.stage }}</span>
+            <span>状态：{{ selectedTeam.project.statusText }}</span>
+            <span>进度：{{ selectedTeam.project.progress }}%</span>
+            <span>截止：{{ selectedTeam.project.deadline }}</span>
+          </div>
+          <p class="dialog-text">{{ selectedTeam.project.detail }}</p>
+        </div>
+
+        <div class="dialog-section">
+          <h4>成员列表</h4>
+          <ul class="member-list">
+            <li v-for="member in selectedTeam.members" :key="member.name" class="member-item">
+              <div class="member-info">
+                <span class="member-name">{{ member.name }}</span>
+                <span class="member-role">{{ member.role }}</span>
+              </div>
+              <span class="member-duty">{{ member.duty }}</span>
+            </li>
+          </ul>
+        </div>
+
+        <div v-if="selectedTeam.isOwner" class="dialog-section manage-actions">
+          <h4>成员管理</h4>
+          <div class="dialog-actions">
+            <button class="ghost-chip" @click="handleManageMember('add')">新增成员</button>
+            <button class="ghost-chip" @click="handleManageMember('edit')">调整角色</button>
+            <button class="ghost-chip danger" @click="handleManageMember('remove')">移除成员</button>
+          </div>
+          <p class="dialog-tip">当前为负责人视角，可在此处进行成员管理（前端占位操作）。</p>
+          <p v-if="manageActionMessage" class="dialog-feedback">{{ manageActionMessage }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -336,7 +422,7 @@ const userRole = computed(() => (userInfo.value.role === 'enterprise' ? 'enterpr
 
 // 侧边栏和模块切换
 const activeModule = ref('projects')
-const activeTeam = ref('dev') // dev | ai
+const activeTeamCategory = ref('') // owned | joined，不默认选中
 const activeResult = ref('pending') // pending | review | passed
 const activeData = ref('radar') // radar | stats | income
 
@@ -405,10 +491,126 @@ const projects = ref([
   }
 ])
 
+// 团队数据：区分负责人视角与成员视角，前端 mock
+const teamData = ref({
+  owned: [
+    {
+      id: 'team-dev',
+      name: '智能开发小组',
+      isOwner: true,
+      description: '负责平台前端与移动端开发的学生团队，承担核心架构与交互体验交付。',
+      project: {
+        name: '智慧校园协同平台',
+        stage: '开发中',
+        statusText: '进行中',
+        progress: 72,
+        deadline: '2024-09-30',
+        brief: '交付多角色协同的前端与移动端界面，聚焦性能与可用性。',
+        detail: '当前迭代聚焦课堂互动、项目协同与消息模块的性能优化与体验提升。'
+      },
+      members: [
+        { name: '张三', role: '负责人', duty: '统筹 / 前端开发' },
+        { name: '李四', role: '前端', duty: 'UI 组件与样式联调' },
+        { name: '王五', role: '后端', duty: '接口联调与接口网关' },
+        { name: '赵六', role: '测试', duty: '功能回归与用例维护' }
+      ]
+    },
+    {
+      id: 'team-mobile',
+      name: '移动端共建组',
+      isOwner: true,
+      description: '移动端专项团队，负责课程与项目的移动端适配与迭代。',
+      project: {
+        name: '实训工厂移动端',
+        stage: '设计评审',
+        statusText: '待开发',
+        progress: 35,
+        deadline: '2024-10-12',
+        brief: '完成实训工厂移动端的交互设计与核心功能开发。',
+        detail: '设计稿已通过一轮评审，正补充离线场景与消息推送方案，后续进入开发。'
+      },
+      members: [
+        { name: '张三', role: '负责人', duty: '需求拆解与计划制定' },
+        { name: '周七', role: '后端', duty: '接口适配与鉴权' },
+        { name: '钱八', role: '客户端', duty: '跨端框架与性能优化' }
+      ]
+    }
+  ],
+  joined: [
+    {
+      id: 'team-ai',
+      name: 'AI创新团队',
+      isOwner: false,
+      description: '聚焦人工智能与数据分析的项目团队，负责算法与数据管道搭建。',
+      project: {
+        name: '智能问答助手',
+        stage: '联调中',
+        statusText: '进行中',
+        progress: 64,
+        deadline: '2024-09-05',
+        brief: '实现面向客服场景的智能问答与知识库检索。',
+        detail: '已完成意图识别与 FAQ 检索，正在对接知识库更新与对话流程监控。'
+      },
+      members: [
+        { name: '陈静', role: '负责人', duty: '算法方案与进度跟进' },
+        { name: '刘阳', role: '算法', duty: '意图识别与召回' },
+        { name: '张三', role: '前端', duty: '对话界面与配置面板' }
+      ]
+    },
+    {
+      id: 'team-data',
+      name: '数据先锋团队',
+      isOwner: false,
+      description: '数据可视化与报表团队，聚焦业务看板建设。',
+      project: {
+        name: '企业运营数据看板',
+        stage: '测试中',
+        statusText: '待验收',
+        progress: 88,
+        deadline: '2024-08-28',
+        brief: '搭建运营数据大屏与核心指标监控。',
+        detail: '指标定义与联调已完成，正在做跨端适配与性能压测，准备提交验收。'
+      },
+      members: [
+        { name: '周远', role: '负责人', duty: '需求对接与验收' },
+        { name: '王一', role: '数据', duty: '指标口径与 ETL' },
+        { name: '张三', role: '前端', duty: '数据大屏可视化' }
+      ]
+    }
+  ]
+})
+
+const currentTeams = computed(() => {
+  if (!activeTeamCategory.value) return []
+  return teamData.value[activeTeamCategory.value] || []
+})
+
 // 切换模块辅助方法
-const setTeamModule = (key) => {
+const setTeamModule = (category) => {
   activeModule.value = 'team'
-  activeTeam.value = key
+  activeTeamCategory.value = category
+}
+
+const teamDialogVisible = ref(false)
+const selectedTeam = ref(null)
+const manageActionMessage = ref('')
+
+// 打开团队详情弹窗
+const openTeamDetail = (team) => {
+  selectedTeam.value = team
+  teamDialogVisible.value = true
+}
+
+// 关闭团队详情弹窗
+const closeTeamDetail = () => {
+  teamDialogVisible.value = false
+  manageActionMessage.value = ''
+}
+
+// 成员管理操作占位（仅负责人可见）
+const handleManageMember = (action) => {
+  // 前端占位反馈，实际对接后可替换为接口调用
+  manageActionMessage.value = `已触发「${action}」操作（团队：${selectedTeam.value?.name}），后续可接入真实接口。`
 }
 
 const setResultModule = (key) => {
@@ -579,6 +781,27 @@ onMounted(() => {
   color: #1f274b;
 }
 
+.section-extra {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.section-chip {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid #e0e6f2;
+  background: #f7f9ff;
+  font-size: 12px;
+  color: #4a5676;
+}
+
+.section-chip.primary {
+  background: #1890ff;
+  border-color: #1890ff;
+  color: #fff;
+}
+
 .status-filters {
   display: flex;
   gap: 8px;
@@ -708,6 +931,23 @@ onMounted(() => {
   box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
 }
 
+.team-card .project-card-header {
+  align-items: flex-start;
+}
+
+.team-role-chip {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  background: #f0f3fa;
+  color: #4a5676;
+}
+
+.team-role-chip.owner {
+  background: #e6f4ff;
+  color: #1890ff;
+}
+
 .project-actions-row {
   display: flex;
   justify-content: space-between;
@@ -780,6 +1020,156 @@ onMounted(() => {
   text-align: center;
   padding: 32px 0;
   color: #9aa5c2;
+}
+
+.team-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(31, 39, 75, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  padding: 12px;
+}
+
+.team-dialog {
+  width: 720px;
+  max-width: 90vw;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 12px 36px rgba(15, 39, 106, 0.2);
+  padding: 18px 20px;
+}
+
+.team-dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.dialog-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1f274b;
+}
+
+.dialog-subtitle {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #7b859f;
+}
+
+.close-btn {
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  cursor: pointer;
+  color: #7b859f;
+  line-height: 1;
+}
+
+.close-btn:hover {
+  color: #1f274b;
+}
+
+.team-dialog-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.dialog-section h4 {
+  margin: 0 0 6px;
+  font-size: 14px;
+  color: #1f274b;
+}
+
+.dialog-text {
+  margin: 0;
+  font-size: 13px;
+  color: #4f5d7a;
+}
+
+.dialog-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 13px;
+  color: #7b859f;
+}
+
+.member-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.member-item {
+  padding: 10px 12px;
+  border: 1px solid #edf1fb;
+  border-radius: 10px;
+  background: #f9fbff;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.member-info {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.member-name {
+  font-weight: 600;
+  color: #1f274b;
+}
+
+.member-role {
+  font-size: 12px;
+  color: #1890ff;
+  background: #e6f4ff;
+  padding: 2px 6px;
+  border-radius: 8px;
+}
+
+.member-duty {
+  font-size: 12px;
+  color: #4f5d7a;
+}
+
+.dialog-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.dialog-tip {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: #7b859f;
+}
+
+.dialog-feedback {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: #1890ff;
+  background: #e6f4ff;
+  padding: 8px 10px;
+  border-radius: 8px;
+}
+
+.ghost-chip.danger {
+  border-color: #ffa39e;
+  color: #cf1322;
+  background: #fff1f0;
 }
 
 @media (max-width: 960px) {
