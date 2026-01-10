@@ -36,31 +36,6 @@
             </div>
 
             <div class="sidebar-section">
-              <div class="sidebar-title">我的成果</div>
-              <button
-                class="sidebar-item"
-                :class="{ active: activeModule === 'results' && activeResult === 'pending' }"
-                @click="setResultModule('pending')"
-              >
-                待提交 (2)
-              </button>
-              <button
-                class="sidebar-item"
-                :class="{ active: activeModule === 'results' && activeResult === 'review' }"
-                @click="setResultModule('review')"
-              >
-                评审中 (3)
-              </button>
-              <button
-                class="sidebar-item"
-                :class="{ active: activeModule === 'results' && activeResult === 'passed' }"
-                @click="setResultModule('passed')"
-              >
-                已通过 (8)
-              </button>
-            </div>
-
-            <div class="sidebar-section">
               <div class="sidebar-title">我的数据</div>
               <button
                 class="sidebar-item"
@@ -205,39 +180,6 @@
 
                 <div v-if="currentTeams.length === 0" class="empty-state">
                   暂无团队数据
-                </div>
-              </div>
-            </div>
-
-            <!-- 我的成果模块 -->
-            <div v-else-if="activeModule === 'results'">
-              <div class="section-header">
-                <h2 class="section-title">我的成果</h2>
-              </div>
-              <div class="project-list">
-                <div class="project-card" v-if="activeResult === 'pending'">
-                  <div class="project-card-main">
-                    <div class="project-card-header">
-                      <h3 class="project-name">待提交 (2)</h3>
-                    </div>
-                    <p class="project-brief">还有 2 个项目待上传最终成果，请尽快完成提交。</p>
-                  </div>
-                </div>
-                <div class="project-card" v-else-if="activeResult === 'review'">
-                  <div class="project-card-main">
-                    <div class="project-card-header">
-                      <h3 class="project-name">评审中 (3)</h3>
-                    </div>
-                    <p class="project-brief">3 个项目成果正在评审中，请耐心等待结果。</p>
-                  </div>
-                </div>
-                <div class="project-card" v-else-if="activeResult === 'passed'">
-                  <div class="project-card-main">
-                    <div class="project-card-header">
-                      <h3 class="project-name">已通过 (8)</h3>
-                    </div>
-                    <p class="project-brief">恭喜！已有 8 个项目成果通过评审。</p>
-                  </div>
                 </div>
               </div>
             </div>
@@ -661,7 +603,11 @@ onMounted(() => {
 }
 
 .myproject-container {
-  padding: 0 24px 24px 24px; /* 移除顶部padding */
+  flex: 1;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px;
+  width: 100%;
   background: #f5f7fa;
   min-height: calc(100vh - 90px); /* 减去导航栏高度 */
 }
@@ -684,65 +630,64 @@ onMounted(() => {
 }
 
 .myproject-layout {
-  display: grid;
-  grid-template-columns: 260px 1fr;
+  display: flex;
   gap: 24px;
+  align-items: flex-start;
 }
 
 .sidebar {
+  width: 240px;
   background: #fff;
-  border-radius: 12px;
-  padding: 16px 12px;
-  box-shadow: 0 6px 18px rgba(15, 39, 106, 0.08);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  flex-shrink: 0;
 }
 
 .sidebar-section {
-  padding-bottom: 8px;
-  border-bottom: 1px solid #f0f3fa;
+  margin-bottom: 24px;
 }
 
 .sidebar-section:last-child {
-  border-bottom: none;
+  margin-bottom: 0;
 }
 
 .sidebar-title {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
-  color: #9aa5c2;
-  margin-bottom: 6px;
+  color: #303133;
+  margin-bottom: 12px;
+  padding-left: 12px;
 }
 
 .sidebar-item {
-  display: block;
   width: 100%;
-  padding: 6px 10px;
-  margin-bottom: 4px;
-  border-radius: 8px;
-  border: none;
+  padding: 10px 12px;
   background: transparent;
+  border: none;
+  border-radius: 6px;
   text-align: left;
   font-size: 14px;
-  color: #4a5676;
+  color: #606266;
   cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 4px;
 }
 
 .sidebar-item:hover {
-  background: #f5f7ff;
+  background: #f5f7fb;
+  color: #409eff;
 }
 
 .sidebar-item.active {
-  background: #e6f4ff;
-  color: #1890ff;
+  background: #ecf5ff;
+  color: #409eff;
+  font-weight: 500;
 }
 
 .main-content {
-  background: #fff;
-  border-radius: 12px;
-  padding: 20px 24px 24px;
-  box-shadow: 0 6px 18px rgba(15, 39, 106, 0.08);
+  flex: 1;
+  min-width: 0;
 }
 
 .role-tabs {

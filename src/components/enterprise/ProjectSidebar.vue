@@ -11,18 +11,34 @@
     <!-- 导航菜单 -->
     <el-menu
       :default-active="activeSection"
+      :default-openeds="['milestones']"
       class="sidebar-menu"
       @select="handleSelect"
     >
-      <!-- 基本信息 -->
+      <!-- 基本信息（一级菜单） -->
       <el-menu-item index="basic">
         <span>基本信息</span>
+      </el-menu-item>
+
+      <!-- 揭榜管理（一级菜单） -->
+      <el-menu-item index="bidding-management">
+        <div class="menu-title-with-status">
+          <span>揭榜管理</span>
+          <el-tag :type="getBiddingStatusType()" size="small">
+            {{ getBiddingStatusText() }}
+          </el-tag>
+        </div>
       </el-menu-item>
 
       <!-- 里程碑计划（可展开） -->
       <el-sub-menu index="milestones">
         <template #title>
-          <span>里程碑计划</span>
+          <div class="menu-title-with-status">
+            <span>里程碑计划</span>
+            <el-tag :type="getMilestonesStatusType()" size="small">
+              {{ getMilestonesStatusText() }}
+            </el-tag>
+          </div>
         </template>
         <el-menu-item
           v-for="milestone in milestones"
@@ -107,6 +123,66 @@ function getMilestoneTagType(status) {
   }
   return map[status] || 'info'
 }
+
+// 揭榜管理状态类型
+function getBiddingStatusType() {
+  // 如果有中标团队，则揭榜阶段已完成
+  if (props.project?.biddingStats?.selectedTeam) {
+    return 'success'
+  }
+  // 如果有申请团队，则揭榜阶段进行中
+  if (props.project?.biddingStats?.totalApplications > 0) {
+    return 'primary'
+  }
+  // 否则未开始
+  return 'info'
+}
+
+// 揭榜管理状态文本
+function getBiddingStatusText() {
+  if (props.project?.biddingStats?.selectedTeam) {
+    return '已完成'
+  }
+  if (props.project?.biddingStats?.totalApplications > 0) {
+    return '进行中'
+  }
+  return '未开始'
+}
+
+// 里程碑计划状态类型
+function getMilestonesStatusType() {
+  // 如果揭榜阶段未完成（没有中标团队），则里程碑计划未开始
+  if (!props.project?.biddingStats?.selectedTeam) {
+    return 'info'
+  }
+  // 检查是否有进行中的里程碑
+  const hasInProgress = props.milestones?.some(m => m.status === 'in-progress')
+  if (hasInProgress) {
+    return 'primary'
+  }
+  // 检查是否所有里程碑都已完成
+  const allCompleted = props.milestones?.every(m => m.status === 'completed')
+  if (allCompleted && props.milestones?.length > 0) {
+    return 'success'
+  }
+  return 'info'
+}
+
+// 里程碑计划状态文本
+function getMilestonesStatusText() {
+  if (!props.project?.biddingStats?.selectedTeam) {
+    return '未开始'
+  }
+  const hasInProgress = props.milestones?.some(m => m.status === 'in-progress')
+  if (hasInProgress) {
+    return '进行中'
+  }
+  const allCompleted = props.milestones?.every(m => m.status === 'completed')
+  if (allCompleted && props.milestones?.length > 0) {
+    return '已完成'
+  }
+  return '未开始'
+}
 </script>
 
 <style scoped>
@@ -123,7 +199,7 @@ function getMilestoneTagType(status) {
 .sidebar-header {
   padding: 20px 16px;
   border-bottom: 1px solid #f0f0f0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #1890ff;
   color: #fff;
 }
 
@@ -194,6 +270,23 @@ function getMilestoneTagType(status) {
 
 .sidebar-menu :deep(.el-sub-menu__title) {
   font-weight: 500;
+}
+
+/* 一级导航标题带状态 */
+.menu-title-with-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 8px;
+}
+
+.menu-title-with-status span:first-child {
+  flex: 1;
+}
+
+.menu-title-with-status .el-tag {
+  flex-shrink: 0;
 }
 
 /* 响应式 */

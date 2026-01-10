@@ -4,7 +4,8 @@
       "Bash(find:*)",
       "Bash(done)",
       "Bash(npm run dev:*)",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "Bash(timeout /t 5 /nobreak)"
     ],
     "deny": [],
     "ask": []

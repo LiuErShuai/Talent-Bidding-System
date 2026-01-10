@@ -39,63 +39,114 @@ export const mockProjectManageData = {
         role: '后端开发',
         skills: ['Java', 'Spring', 'MySQL']
       }
-    ]
+    ],
+    // 揭榜征集统计信息
+    biddingStats: {
+      totalApplications: 4,
+      approvedApplications: 2,
+      pendingApplications: 1,
+      selectedTeam: '创新科技团队'
+    }
   },
+
+  // 揭榜团队申请列表
+  biddingApplications: [
+    {
+      id: 'app-001',
+      teamName: '创新科技团队',
+      leader: '张三',
+      memberCount: 5,
+      contact: '13800138000',
+      applyTime: '2025-11-01 10:30',
+      description: '我们是一支经验丰富的AI开发团队，曾参与多个智能客服项目的开发，对NLP技术有深入研究。团队成员来自计算机科学专业，具备扎实的技术功底。',
+      status: 'selected',
+      detailFiles: [
+        { id: 'f1', name: '团队介绍.pdf', size: '2.3 MB', uploadTime: '2025-11-02 09:00' },
+        { id: 'f2', name: '身份认证.pdf', size: '1.5 MB', uploadTime: '2025-11-02 09:05' },
+        { id: 'f3', name: '技术方案.pdf', size: '4.2 MB', uploadTime: '2025-11-02 09:10' }
+      ],
+      reviewHistory: [
+        {
+          id: 'r1',
+          time: '2025-11-02 14:00',
+          action: 'approved',
+          actionText: '审核通过',
+          comment: '团队资质符合要求，技术方案完善'
+        },
+        {
+          id: 'r2',
+          time: '2025-11-03 10:00',
+          action: 'selected',
+          actionText: '选为中标团队',
+          comment: '技术方案完善，团队经验丰富，综合评分最高'
+        }
+      ]
+    },
+    {
+      id: 'app-002',
+      teamName: '智能开发小组',
+      leader: '李四',
+      memberCount: 4,
+      contact: '13900139000',
+      applyTime: '2025-11-01 11:20',
+      description: '我们团队专注于人工智能领域，有丰富的机器学习和深度学习项目经验。',
+      status: 'approved',
+      detailFiles: [
+        { id: 'f4', name: '团队介绍.pdf', size: '1.8 MB', uploadTime: '2025-11-02 14:00' },
+        { id: 'f5', name: '技术方案.pdf', size: '3.5 MB', uploadTime: '2025-11-02 14:10' }
+      ],
+      reviewHistory: [
+        {
+          id: 'r3',
+          time: '2025-11-02 15:30',
+          action: 'approved',
+          actionText: '审核通过',
+          comment: '团队经验丰富，符合项目要求'
+        }
+      ]
+    },
+    {
+      id: 'app-003',
+      teamName: '未来科技工作室',
+      leader: '王五',
+      memberCount: 3,
+      contact: '13700137000',
+      applyTime: '2025-11-01 14:50',
+      description: '我们是一支年轻但充满活力的团队，虽然经验不多，但学习能力强，愿意接受挑战。',
+      status: 'submitted',
+      detailFiles: [
+        { id: 'f6', name: '团队介绍.pdf', size: '1.2 MB', uploadTime: '2025-11-02 10:00' },
+        { id: 'f7', name: '技术方案.pdf', size: '2.8 MB', uploadTime: '2025-11-02 10:05' }
+      ],
+      reviewHistory: []
+    },
+    {
+      id: 'app-004',
+      teamName: '测试团队',
+      leader: '赵六',
+      memberCount: 2,
+      contact: '13600136000',
+      applyTime: '2025-11-01 16:00',
+      description: '测试申请',
+      status: 'rejected',
+      detailFiles: [
+        { id: 'f8', name: '团队介绍.pdf', size: '800 KB', uploadTime: '2025-11-02 11:00' }
+      ],
+      reviewHistory: [
+        {
+          id: 'r4',
+          time: '2025-11-02 16:30',
+          action: 'rejected',
+          actionText: '拒绝申请',
+          comment: '团队人数不足，经验不符合要求'
+        }
+      ]
+    }
+  ],
 
   // 里程碑列表（按时间顺序）
   milestones: [
-    // ========== 里程碑 1：揭榜征集（已完成） ==========
-    {
-      id: 'milestone-bidding',
-      code: 'BIDDING',
-      title: '揭榜征集',
-      description: '学生查看并提交揭榜申请，企业/学校审核申请人资格，确定承接方',
-      status: 'completed',
-      statusText: '已完成',
-      plannedDate: '2025-11-05',
-      actualDate: '2025-11-04',
-      delayDays: -1, // 负数表示提前完成
-      deliverables: [
-        {
-          id: 1,
-          name: '揭榜申请表',
-          type: 'document',
-          format: ['PDF'],
-          requirement: '填写完整的揭榜申请表，包含个人信息、项目理解和技术背景'
-        }
-      ],
-      submissions: [
-        {
-          id: 1,
-          version: 1,
-          deliverableId: 1,
-          fileName: '揭榜申请-张三.pdf',
-          fileSize: '1.2 MB',
-          uploadTime: '2025-11-03 14:20',
-          uploader: '张三',
-          versionNote: '初次申请，附带个人简历和项目经验说明',
-          description: '这是我的揭榜申请材料，包含了我的技术背景和项目经验，希望能够获得这个项目的承接机会。',
-          status: 'approved',
-          reviewResult: {
-            reviewer: 'XX科技有限公司',
-            reviewTime: '2025-11-04 10:00',
-            action: 'approved',
-            comment: '申请资料完整，技术背景符合要求，团队配置合理，批准揭榜。',
-            rating: 5
-          }
-        }
-      ],
-      feedbacks: [],
-      progressDetail: {
-        percentage: 100,
-        completedDeliverables: 1,
-        totalDeliverables: 1,
-        status: 'success',
-        note: '已完成 1/1 项交付物'
-      }
-    },
-
-    // ========== 里程碑 2：方案提交（进行中） ==========
+    // ========== 里程碑 1：方案提交（进行中） ==========
     {
       id: 'milestone-proposal',
       code: 'PROPOSAL',
@@ -120,6 +171,35 @@ export const mockProjectManageData = {
           type: 'document',
           format: ['Excel', 'Project', 'PDF'],
           requirement: '详细到周级别的任务分解，标注关键里程碑节点和负责人'
+        }
+      ],
+      taskFiles: [
+        {
+          id: 'task-file-3',
+          name: '技术方案编写指南.pdf',
+          type: 'PDF',
+          size: '1.8 MB',
+          uploadTime: '2025-11-06 10:00',
+          uploader: 'XX科技有限公司',
+          description: '技术方案文档的编写规范和要求，包含章节结构、内容要点和评分标准'
+        },
+        {
+          id: 'task-file-4',
+          name: 'AI客服系统参考架构图.png',
+          type: 'PNG',
+          size: '523 KB',
+          uploadTime: '2025-11-06 10:10',
+          uploader: 'XX科技有限公司',
+          description: '企业内部现有系统的架构图，可作为设计参考'
+        },
+        {
+          id: 'task-file-5',
+          name: '接口规范文档.pdf',
+          type: 'PDF',
+          size: '1.2 MB',
+          uploadTime: '2025-11-06 10:15',
+          uploader: 'XX科技有限公司',
+          description: '企业方要求的接口设计规范，包含RESTful API规范、数据格式和认证方式'
         }
       ],
       submissions: [
@@ -214,6 +294,7 @@ export const mockProjectManageData = {
           requirement: '双方签字盖章的正式协议扫描件'
         }
       ],
+      taskFiles: [],
       feedbacks: [],
       submissions: [],
       progressDetail: {
@@ -259,6 +340,7 @@ export const mockProjectManageData = {
           requirement: '10-15页，包含项目背景、技术方案、实现进展和效果展示'
         }
       ],
+      taskFiles: [],
       feedbacks: [],
       submissions: [],
       progressDetail: {
@@ -311,6 +393,7 @@ export const mockProjectManageData = {
           requirement: '5-10分钟，展示系统主要功能和操作流程'
         }
       ],
+      taskFiles: [],
       feedbacks: [],
       submissions: [],
       progressDetail: {

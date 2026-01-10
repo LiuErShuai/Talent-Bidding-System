@@ -3,7 +3,7 @@
     <!-- 面包屑导航 -->
     <el-breadcrumb separator=">" class="breadcrumb-nav">
       <el-breadcrumb-item :to="{ path: '/home' }">首页</el-breadcrumb-item>
-      <el-breadcrumb-item :to="{ path: '/enterprise/projects' }">我的项目</el-breadcrumb-item>
+      <el-breadcrumb-item :to="{ path: '/enterprise/my-projects' }">我的项目</el-breadcrumb-item>
       <el-breadcrumb-item>项目管理</el-breadcrumb-item>
     </el-breadcrumb>
 
@@ -26,11 +26,18 @@
       <!-- 右侧内容区 -->
       <div class="content-area">
         <!-- 基本信息 -->
-        <project-basic-info
+        <bidding-basic-info
           v-if="activeSection === 'basic'"
           :project="project"
           :milestones="milestones"
           @viewMilestone="handleViewMilestone"
+        />
+
+        <!-- 揭榜管理 -->
+        <bidding-management
+          v-else-if="activeSection === 'bidding-management'"
+          :project-id="projectId"
+          @refresh="fetchProjectData"
         />
 
         <!-- 里程碑详情 -->
@@ -59,7 +66,8 @@ import { Loading } from '@element-plus/icons-vue'
 
 // 组件导入
 import ProjectSidebar from '@/components/enterprise/ProjectSidebar.vue'
-import ProjectBasicInfo from '@/components/enterprise/ProjectBasicInfo.vue'
+import BiddingBasicInfo from '@/components/enterprise/BiddingBasicInfo.vue'
+import BiddingManagement from '@/components/enterprise/BiddingManagement.vue'
 import MilestoneDetail from '@/components/enterprise/MilestoneDetail.vue'
 import HistoryRecords from '@/components/enterprise/HistoryRecords.vue'
 

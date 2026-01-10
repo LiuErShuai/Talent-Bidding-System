@@ -67,6 +67,36 @@
       <el-empty v-else description="暂无交付物要求" :image-size="80" />
     </div>
 
+    <!-- 任务文件栏 -->
+    <div class="section task-files-section">
+      <h4 class="section-title">
+        <el-icon><FolderOpened /></el-icon>
+        任务文件
+      </h4>
+
+      <ul v-if="milestone.taskFiles && milestone.taskFiles.length" class="task-files-list">
+        <li v-for="file in milestone.taskFiles" :key="file.id" class="task-file-item">
+          <div class="file-info">
+            <el-icon class="file-icon"><Document /></el-icon>
+            <div class="file-details">
+              <div class="file-name">{{ file.name }}</div>
+              <div class="file-meta">
+                <span>{{ file.type }}</span>
+                <span>{{ file.size }}</span>
+                <span>上传于: {{ file.uploadTime }}</span>
+              </div>
+              <p v-if="file.description" class="file-description">{{ file.description }}</p>
+            </div>
+          </div>
+          <el-button link type="primary" @click="handleDownloadTaskFile(file)">
+            <el-icon><Download /></el-icon>
+            下载
+          </el-button>
+        </li>
+      </ul>
+      <el-empty v-else description="暂无任务文件" :image-size="80" />
+    </div>
+
     <!-- 承接方提交记录区 -->
     <div class="section submissions-section">
       <h4 class="section-title">
@@ -324,7 +354,9 @@ import {
   Plus,
   Check,
   Close,
-  Delete
+  Delete,
+  FolderOpened,
+  Download
 } from '@element-plus/icons-vue'
 import SubmissionItem from './SubmissionItem.vue'
 
@@ -523,6 +555,12 @@ function handleDownload(submission) {
   ElMessage.success(`开始下载：${submission.fileName}`)
   console.log('下载文件：', submission)
 }
+
+// 下载任务文件
+function handleDownloadTaskFile(file) {
+  ElMessage.success(`开始下载：${file.name}`)
+  console.log('下载任务文件：', file)
+}
 </script>
 
 <style scoped>
@@ -688,6 +726,90 @@ function handleDownload(submission) {
   font-size: 13px;
   color: #606266;
   line-height: 1.6;
+}
+
+/* 任务文件栏 */
+.task-files-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.task-file-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px;
+  background: #f5f7fb;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  transition: all 0.3s ease;
+}
+
+.task-file-item:last-child {
+  margin-bottom: 0;
+}
+
+.task-file-item:hover {
+  background: #ecf5ff;
+  box-shadow: 0 2px 8px rgba(64, 158, 255, 0.1);
+}
+
+.file-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.file-icon {
+  font-size: 32px;
+  color: #409eff;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.file-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.file-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #303133;
+  margin-bottom: 6px;
+  word-break: break-all;
+}
+
+.file-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  color: #909399;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+
+.file-meta span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.file-meta span:not(:last-child):after {
+  content: '•';
+  margin-left: 12px;
+  color: #dcdfe6;
+}
+
+.file-description {
+  margin: 0;
+  font-size: 13px;
+  color: #606266;
+  line-height: 1.5;
 }
 
 /* 提交记录 */

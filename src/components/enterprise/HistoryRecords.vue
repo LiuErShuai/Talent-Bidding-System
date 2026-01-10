@@ -28,9 +28,8 @@
           </div>
           <div class="record-actions">
             <el-button
+              link
               type="primary"
-              size="small"
-              text
               @click="handleDownload(record)"
             >
               <el-icon><Download /></el-icon>
