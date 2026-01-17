@@ -253,7 +253,7 @@ function handleViewMilestone() {
 <style scoped>
 .bidding-basic-info {
   width: 100%;
-  padding: 10px;
+  padding: 0;
 }
 
 /* 项目信息区 */

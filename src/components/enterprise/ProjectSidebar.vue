@@ -31,12 +31,7 @@
       <!-- 里程碑计划（可展开） -->
       <el-sub-menu index="milestones">
         <template #title>
-          <div class="menu-title-with-status">
-            <span>里程碑计划</span>
-            <el-tag :type="getMilestonesStatusType()" size="small">
-              {{ getMilestonesStatusText() }}
-            </el-tag>
-          </div>
+          <span>里程碑计划</span>
         </template>
         <el-menu-item
           v-for="milestone in milestones"
@@ -138,41 +133,6 @@ function getBiddingStatusText() {
   }
   return '未开始'
 }
-
-// 里程碑计划状态类型
-function getMilestonesStatusType() {
-  // 如果揭榜阶段未完成（没有中标团队），则里程碑计划未开始
-  if (!props.project?.biddingStats?.selectedTeam) {
-    return 'info'
-  }
-  // 检查是否有进行中的里程碑
-  const hasInProgress = props.milestones?.some(m => m.status === 'in-progress')
-  if (hasInProgress) {
-    return 'primary'
-  }
-  // 检查是否所有里程碑都已完成
-  const allCompleted = props.milestones?.every(m => m.status === 'completed')
-  if (allCompleted && props.milestones?.length > 0) {
-    return 'success'
-  }
-  return 'info'
-}
-
-// 里程碑计划状态文本
-function getMilestonesStatusText() {
-  if (!props.project?.biddingStats?.selectedTeam) {
-    return '未开始'
-  }
-  const hasInProgress = props.milestones?.some(m => m.status === 'in-progress')
-  if (hasInProgress) {
-    return '进行中'
-  }
-  const allCompleted = props.milestones?.every(m => m.status === 'completed')
-  if (allCompleted && props.milestones?.length > 0) {
-    return '已完成'
-  }
-  return '未开始'
-}
 </script>
 
 <style scoped>
@@ -244,6 +204,11 @@ function getMilestonesStatusText() {
 
 .sidebar-menu :deep(.el-sub-menu__title) {
   font-weight: 500;
+}
+
+/* 隐藏里程碑计划的折叠箭头 */
+.sidebar-menu :deep(.el-sub-menu__icon-arrow) {
+  display: none;
 }
 
 /* 一级导航标题带状态 */
