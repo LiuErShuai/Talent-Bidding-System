@@ -1,11 +1,10 @@
 <template>
   <div class="enterprise-project-manage">
-    <!-- 面包屑导航 -->
-    <el-breadcrumb separator=">" class="breadcrumb-nav">
-      <el-breadcrumb-item :to="{ path: '/home' }">首页</el-breadcrumb-item>
-      <el-breadcrumb-item :to="{ path: '/enterprise/my-projects' }">我的项目</el-breadcrumb-item>
-      <el-breadcrumb-item>项目管理</el-breadcrumb-item>
-    </el-breadcrumb>
+    <!-- 自定义导航栏 -->
+    <project-manage-header
+      :breadcrumb-items="breadcrumbItems"
+      :unread-count="0"
+    />
 
     <!-- 加载状态 -->
     <div v-if="loading" class="loading-container">
@@ -65,6 +64,7 @@ import { ElMessage } from 'element-plus'
 import { Loading } from '@element-plus/icons-vue'
 
 // 组件导入
+import ProjectManageHeader from '@/components/layout/ProjectManageHeader.vue'
 import ProjectSidebar from '@/components/enterprise/ProjectSidebar.vue'
 import BiddingBasicInfo from '@/components/enterprise/BiddingBasicInfo.vue'
 import BiddingManagement from '@/components/enterprise/BiddingManagement.vue'
@@ -82,6 +82,13 @@ const loading = ref(true)
 const project = ref(null)
 const milestones = ref([])
 const activeSection = ref('basic') // 默认显示基本信息
+
+// 面包屑导航数据
+const breadcrumbItems = computed(() => [
+  { title: '首页', path: '/home' },
+  { title: '我的项目', path: '/enterprise/my-projects' },
+  { title: '项目管理', path: null }
+])
 
 // 当前选中的里程碑
 const currentMilestone = computed(() => {
@@ -139,25 +146,11 @@ onMounted(() => {
 
 <style scoped>
 .enterprise-project-manage {
-  min-height: calc(100vh - 90px);
+  min-height: auto;
   background: #f5f7fb;
-  padding: 24px;
+  padding: 84px 24px 24px 24px; /* 顶部留出固定 Header 的空间（60px + 24px） */
   max-width: 1600px;
   margin: 0 auto;
-}
-
-/* 面包屑导航 */
-.breadcrumb-nav {
-  margin-bottom: 20px;
-}
-
-.breadcrumb-nav :deep(.el-breadcrumb__inner) {
-  color: #1890ff;
-  font-weight: 400;
-}
-
-.breadcrumb-nav :deep(.el-breadcrumb__inner:hover) {
-  color: #40a9ff;
 }
 
 /* 加载状态 */
@@ -188,7 +181,9 @@ onMounted(() => {
   min-width: 0; /* 防止内容溢出 */
   background: #fff;
   border-radius: 8px;
-  padding: 24px;
+  padding: 14px;
+  padding-top: 4px;
+  padding-bottom: 4px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 

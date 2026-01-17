@@ -12,37 +12,20 @@
       </div>
 
       <div class="publisher-info">
-        <span class="publisher">发布方：{{ project.publisher }}</span>
+        <span class="publisher-label">发布方：</span>
+        <span class="publisher-link" @click="goToPublisherProfile">{{ project.publisher }}</span>
       </div>
 
       <!-- 项目基本信息卡片 -->
       <div class="basic-info-card">
         <div class="info-row">
           <div class="info-item">
-            <span class="label">悬赏金额</span>
-            <span class="value price">¥{{ project.reward?.toLocaleString() }}</span>
-          </div>
-          <div class="info-item">
-            <span class="label">项目领域</span>
-            <span class="value">{{ project.category }}</span>
-          </div>
-        </div>
-
-        <div class="info-row">
-          <div class="info-item">
-            <span class="label">项目周期</span>
-            <span class="value">{{ calculateDuration() }}天</span>
-          </div>
-          <div class="info-item">
             <span class="label">发布时间</span>
             <span class="value">{{ project.startDate }}</span>
           </div>
-        </div>
-
-        <div class="info-row">
           <div class="info-item">
-            <span class="label">截止时间</span>
-            <span class="value">{{ project.endDate }}</span>
+            <span class="label">项目周期</span>
+            <span class="value">{{ calculateDuration() }}天</span>
           </div>
           <div class="info-item">
             <span class="label">揭榜状态</span>
@@ -128,7 +111,7 @@
               {{ currentMilestone.statusText }}
             </el-tag>
           </div>
-          <el-button type="primary" @click="handleViewMilestone">
+          <el-button type="primary" plain @click="handleViewMilestone">
             查看详情
           </el-button>
         </div>
@@ -150,7 +133,10 @@
 
 <script setup>
 import { defineProps, defineEmits, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { User, Check, Clock, Trophy, Calendar, Document } from '@element-plus/icons-vue'
+
+const router = useRouter()
 
 const props = defineProps({
   project: {
@@ -248,6 +234,14 @@ function getStatusTagType(status) {
   return map[status] || 'info'
 }
 
+// 跳转到发布方企业详情页
+function goToPublisherProfile() {
+  // 假设企业ID存储在 project.publisherId
+  // 如果没有，可以根据企业名称生成路径
+  const publisherId = props.project.publisherId || 'default'
+  router.push(`/enterprise/profile/${publisherId}`)
+}
+
 // 查看里程碑详情
 function handleViewMilestone() {
   if (currentMilestone.value) {
@@ -258,16 +252,17 @@ function handleViewMilestone() {
 
 <style scoped>
 .bidding-basic-info {
-  max-width: 1200px;
+  width: 100%;
+  padding: 10px;
 }
 
 /* 项目信息区 */
 .project-info-section {
   background: #fff;
   border-radius: 12px;
-  padding: 24px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  padding: 14px 24px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .project-header {
@@ -300,8 +295,20 @@ function handleViewMilestone() {
   font-size: 14px;
 }
 
-.publisher {
+.publisher-label {
   font-weight: 500;
+  color: #606266;
+}
+
+.publisher-link {
+  font-weight: 500;
+  color: #608bb7;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.publisher-link:hover {
+  color: #66b1ff;
 }
 
 /* 基本信息卡片 */
@@ -316,7 +323,7 @@ function handleViewMilestone() {
 
 .info-row {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 20px;
 }
 
@@ -331,20 +338,20 @@ function handleViewMilestone() {
 }
 
 .label {
-  font-size: 13px;
-  color: #909399;
-  font-weight: 500;
+  font-size: 14px;
+  color: #303133;
+  font-weight: 600;
 }
 
 .value {
-  font-size: 15px;
-  color: #303133;
-  font-weight: 500;
+  font-size: 14px;
+  color: #606266;
+  font-weight: 400;
 }
 
 .value.price {
-  font-size: 20px;
-  color: #f56c6c;
+  font-size: 16px;
+  color: #303133;
   font-weight: 600;
 }
 
@@ -352,21 +359,21 @@ function handleViewMilestone() {
 .bidding-status-section {
   background: #fff;
   border-radius: 12px;
-  padding: 24px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  padding: 14px 24px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
 }
 
 .section-title {
   margin: 0;
-  font-size: 18px;
+  font-size: 24px;
   font-weight: 600;
   color: #303133;
 }
@@ -387,14 +394,15 @@ function handleViewMilestone() {
 }
 
 .status-icon {
-  width: 48px;
-  height: 48px;
+  width: 38px;
+  height: 38px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #409eff;
+  background: #fff;
+  border: 2px solid #409eff;
   border-radius: 50%;
-  color: #fff;
+  color: #409eff;
   font-size: 24px;
 }
 
@@ -403,23 +411,24 @@ function handleViewMilestone() {
 }
 
 .status-label {
-  font-size: 13px;
-  color: #909399;
+  font-size: 14px;
+  color: #303133;
+  font-weight: 600;
   margin-bottom: 4px;
 }
 
 .status-value {
-  font-size: 18px;
-  font-weight: 600;
-  color: #303133;
+  font-size: 16px;
+  font-weight: 400;
+  color: #606266;
 }
 
 /* 里程碑状态区 */
 .milestone-status-section {
   background: #fff;
   border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  padding: 14px 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .milestone-card {
@@ -469,6 +478,12 @@ function handleViewMilestone() {
 }
 
 /* 响应式 */
+@media (max-width: 1024px) {
+  .info-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 768px) {
   .info-row {
     grid-template-columns: 1fr;

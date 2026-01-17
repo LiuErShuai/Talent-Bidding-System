@@ -1,6 +1,8 @@
 <template>
-  <div class="default-layout" :class="{ 'has-fixed-header': shouldFixHeader }">
+  <div class="default-layout" :class="{ 'has-fixed-header': shouldFixHeader, 'hide-header': shouldHideHeader }">
+    <!-- 根据路由 meta 决定是否显示 AppHeader -->
     <AppHeader
+      v-if="!shouldHideHeader"
       :nav-items="navConfig.navItems"
       :quick-actions="navConfig.quickActions"
       :variant="navConfig.variant"
@@ -35,6 +37,11 @@ const route = useRoute()
 // 判断是否需要固定导航栏
 const shouldFixHeader = computed(() => {
   return route.path === '/my-projects' || route.path.match(/^\/projects\/\d+\/manage$/)
+})
+
+// 判断是否需要隐藏默认导航栏（项目管理页面使用自定义导航栏）
+const shouldHideHeader = computed(() => {
+  return route.meta.hideHeader === true
 })
 
 // ========================================
@@ -83,6 +90,11 @@ const unreadCount = computed(() => ({
 /* 当导航栏固定时，为内容区域添加顶部间距 */
 .default-layout.has-fixed-header .layout-main {
   padding-top: 90px; /* 导航栏高度 + 额外间距 */
+}
+
+/* 当隐藏默认导航栏时，不添加顶部间距 */
+.default-layout.hide-header .layout-main {
+  padding-top: 0;
 }
 
 .layout-main {

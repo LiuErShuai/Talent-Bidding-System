@@ -1,13 +1,5 @@
 <template>
   <div class="project-sidebar">
-    <!-- 项目标题 -->
-    <div class="sidebar-header">
-      <h3 class="project-name">{{ project?.name }}</h3>
-      <el-tag :type="getStatusType(project?.status)" size="small">
-        {{ project?.statusText }}
-      </el-tag>
-    </div>
-
     <!-- 导航菜单 -->
     <el-menu
       :default-active="activeSection"
@@ -20,6 +12,9 @@
         <span>基本信息</span>
       </el-menu-item>
 
+      <!-- 分割线 -->
+      <div class="menu-divider"></div>
+
       <!-- 揭榜管理（一级菜单） -->
       <el-menu-item index="bidding-management">
         <div class="menu-title-with-status">
@@ -29,6 +24,9 @@
           </el-tag>
         </div>
       </el-menu-item>
+
+      <!-- 分割线 -->
+      <div class="menu-divider"></div>
 
       <!-- 里程碑计划（可展开） -->
       <el-sub-menu index="milestones">
@@ -57,6 +55,9 @@
           </div>
         </el-menu-item>
       </el-sub-menu>
+
+      <!-- 分割线 -->
+      <div class="menu-divider"></div>
 
       <!-- 历史记录 -->
       <el-menu-item index="history">
@@ -89,17 +90,6 @@ const emit = defineEmits(['select'])
 // 处理菜单选择
 function handleSelect(index) {
   emit('select', index)
-}
-
-// 项目状态类型
-function getStatusType(status) {
-  const map = {
-    'ongoing': 'primary',
-    'completed': 'success',
-    'pending': 'info',
-    'cancelled': 'danger'
-  }
-  return map[status] || 'info'
 }
 
 // 里程碑状态文本
@@ -189,33 +179,17 @@ function getMilestonesStatusText() {
 .project-sidebar {
   width: 260px;
   background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   overflow: hidden;
   flex-shrink: 0;
 }
 
-/* 侧边栏头部 */
-.sidebar-header {
-  padding: 20px 16px;
-  border-bottom: 1px solid #f0f0f0;
-  background: #1890ff;
-  color: #fff;
-}
-
-.project-name {
-  margin: 0 0 8px 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: #fff;
-  line-height: 1.4;
-  word-break: break-word;
-}
-
-.sidebar-header .el-tag {
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  color: #fff;
+/* 菜单分割线 */
+.menu-divider {
+  height: 1px;
+  background: #e4e7ed;
+  margin: 0 auto;
+  width: 80%;
 }
 
 /* 菜单样式 */

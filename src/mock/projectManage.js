@@ -15,7 +15,7 @@ export const mockProjectManageData = {
     startDate: '2025-11-01',
     endDate: '2025-12-31',
     category: '人工智能',
-    publisher: 'XX科技有限公司',
+    publisher: '桂林电子科技大学科技有限公司',
     description: '为平台构建基于NLP的智能客服系统，提高客户服务效率和满意度。',
     members: [
       {
