@@ -24,10 +24,6 @@
           
           <div class="publisher-info">
             <span class="publisher">发布方：XX科技有限公司</span>
-            <div class="rating">
-              <el-rate v-model="project.rating" disabled show-score text-color="#ff9900" />
-              <span class="rating-text">4.5分 (28条评价)</span>
-            </div>
           </div>
           
           <!-- 项目基本信息卡片 -->
@@ -253,58 +249,179 @@
             <div class="detail-content">
               <div class="section">
                 <h3>■ 项目背景</h3>
-                <p>随着人工智能技术的发展，智能客服已成为企业提升服务质量的重要工具。当前市场上大多数智能客服系统存在响应速度慢、理解能力有限等问题，急需开发一款高性能的AI智能客服系统。</p>
+                <div class="expandable-content" :class="{ expanded: expandedSections.background }">
+                  <div class="content-preview">
+                    随着人工智能技术的快速发展和深度学习算法的不断突破，智能客服已经成为企业数字化转型和提升客户服务质量的重要工具。然而，当前市场上大多数智能客服系统普遍存在响应速度慢、自然语言理解能力有限...
+                  </div>
+                  <div class="content-full">
+                    <p>随着人工智能技术的快速发展和深度学习算法的不断突破，智能客服已经成为企业数字化转型和提升客户服务质量的重要工具。然而，当前市场上大多数智能客服系统普遍存在响应速度慢、自然语言理解能力有限、多轮对话上下文记忆不足、知识库更新维护困难等问题，导致用户体验不佳，企业服务效率难以提升。本项目旨在开发一款基于最新AI技术的高性能智能客服系统，通过整合自然语言处理、知识图谱、深度学习等前沿技术，打造一个真正智能、高效、易用的企业级客服解决方案。</p>
+                  </div>
+                  <div class="expand-toggle" @click="toggleSection('background')">
+                    <span v-if="!expandedSections.background">
+                      <el-icon><ArrowDown /></el-icon>
+                      展开
+                    </span>
+                    <span v-else>
+                      <el-icon><ArrowUp /></el-icon>
+                      收起
+                    </span>
+                  </div>
+                </div>
               </div>
-              
+
               <div class="section">
                 <h3>■ 项目目标</h3>
-                <ul>
-                  <li>实现7×24小时智能在线客服</li>
-                  <li>支持多轮对话和上下文理解</li>
-                  <li>集成知识库管理系统</li>
-                  <li>支持多种渠道接入（网页、微信、APP）</li>
-                  <li>提供完善的统计分析功能</li>
-                </ul>
+                <ol>
+                  <li>实现7×24小时全天候智能在线客服，保证99.9%以上的系统可用性</li>
+                  <li>支持多轮对话和上下文理解，能够准确把握用户意图并提供连贯的对话体验</li>
+                  <li>集成智能知识库管理系统，支持知识的自动抽取、分类、更新和优化</li>
+                  <li>支持多种渠道无缝接入，包括网页端、微信公众号、微信小程序、移动APP等</li>
+                  <li>提供完善的数据统计分析功能，支持对话质量评估、用户行为分析、业务洞察报告</li>
+                  <li>实现智能学习能力，通过用户反馈和数据分析持续优化对话效果</li>
+                </ol>
               </div>
-              
+
               <div class="section">
                 <h3>■ 成果形式</h3>
-                <ul>
-                  <li>完整的系统源代码</li>
-                  <li>系统部署文档</li>
-                  <li>用户使用手册</li>
-                  <li>项目演示视频</li>
-                </ul>
+                <ol>
+                  <li>完整的系统源代码（包括前端、后端、AI模型等所有模块）</li>
+                  <li>详细的系统部署文档（包含环境配置、依赖安装、部署步骤等）</li>
+                  <li>完整的用户使用手册（面向管理员和普通用户的操作指南）</li>
+                  <li>项目演示视频（不少于10分钟，展示核心功能和使用场景）</li>
+                  <li>API接口文档（详细说明所有接口的调用方式和参数）</li>
+                  <li>数据库设计文档（包含ER图和表结构说明）</li>
+                </ol>
               </div>
-              
+
               <div class="section">
                 <h3>■ 功能要求</h3>
-                <el-collapse>
-                  <el-collapse-item title="点击展开查看详细功能要求">
-                    <div>详细的功能需求包括：用户管理、对话管理、知识库管理、统计分析、系统设置等模块。</div>
-                  </el-collapse-item>
-                </el-collapse>
+                <div class="expandable-content" :class="{ expanded: expandedSections.functions }">
+                  <div class="content-preview">
+                    详细的功能需求包括：1. 用户管理模块 - 支持多角色权限管理、用户信息管理、登录认证等；2. 对话管理模块 - 实现智能对话、多轮对话、对话转人工、对话记录等；3. 知识库管理 - 支持知识分类、知识检索、知识更新、智能推荐等...
+                  </div>
+                  <div class="content-full">
+                    <ol>
+                      <li><strong>用户管理模块</strong>：支持多角色权限管理（管理员、客服人员、普通用户），用户信息管理，登录认证与安全控制</li>
+                      <li><strong>智能对话模块</strong>：实现智能对话引擎，支持意图识别、实体提取、多轮对话、上下文管理、对话转人工客服、对话记录保存与检索</li>
+                      <li><strong>知识库管理</strong>：支持知识分类与标签管理、全文检索、知识自动更新、智能推荐、知识评分与优化、FAQ管理</li>
+                      <li><strong>统计分析模块</strong>：提供实时数据大屏、对话质量分析、用户满意度统计、热点问题分析、业务趋势报告、导出功能</li>
+                      <li><strong>系统设置模块</strong>：支持系统参数配置、机器人形象设置、欢迎语配置、敏感词过滤、日志管理、备份恢复</li>
+                      <li><strong>多渠道接入</strong>：提供统一的接口标准，支持网页端、微信公众号、小程序、APP等多种渠道的快速接入</li>
+                    </ol>
+                  </div>
+                  <div class="expand-toggle" @click="toggleSection('functions')">
+                    <span v-if="!expandedSections.functions">
+                      <el-icon><ArrowDown /></el-icon>
+                      展开
+                    </span>
+                    <span v-else>
+                      <el-icon><ArrowUp /></el-icon>
+                      收起
+                    </span>
+                  </div>
+                </div>
               </div>
-              
+
+              <div class="section">
+                <h3>■ 技术栈要求</h3>
+                <div class="expandable-content" :class="{ expanded: expandedSections.techStack }">
+                  <div class="content-preview">
+                    前端：Vue3 + Element Plus + TypeScript；后端：Spring Boot + MyBatis-Plus + Redis；AI：Python + TensorFlow/PyTorch + BERT；数据库：MySQL + MongoDB + Elasticsearch...
+                  </div>
+                  <div class="content-full">
+                    <ol>
+                      <li><strong>前端技术</strong>：Vue3 + Element Plus + TypeScript + Vite + Pinia + Axios</li>
+                      <li><strong>后端技术</strong>：Spring Boot + Spring Security + MyBatis-Plus + Redis + RabbitMQ</li>
+                      <li><strong>AI技术</strong>：Python + TensorFlow/PyTorch + BERT/GPT + Jieba分词 + HanLP</li>
+                      <li><strong>数据库</strong>：MySQL（关系型数据） + MongoDB（对话记录） + Elasticsearch（全文检索）</li>
+                      <li><strong>部署运维</strong>：Docker + Nginx + Jenkins + Linux + Git</li>
+                    </ol>
+                  </div>
+                  <div class="expand-toggle" @click="toggleSection('techStack')">
+                    <span v-if="!expandedSections.techStack">
+                      <el-icon><ArrowDown /></el-icon>
+                      展开
+                    </span>
+                    <span v-else>
+                      <el-icon><ArrowUp /></el-icon>
+                      收起
+                    </span>
+                  </div>
+                </div>
+              </div>
+
               <div class="section">
                 <h3>■ 性能指标</h3>
-                <el-collapse>
-                  <el-collapse-item title="点击展开查看性能指标">
-                    <div>响应时间小于200ms，并发用户数支持1000+，系统可用性99.9%。</div>
-                  </el-collapse-item>
-                </el-collapse>
+                <div class="expandable-content" :class="{ expanded: expandedSections.performance }">
+                  <div class="content-preview">
+                    响应时间：系统平均响应时间小于200ms，95%请求响应时间小于500ms；并发能力：支持1000+并发用户同时在线，单服务器QPS达到500+...
+                  </div>
+                  <div class="content-full">
+                    <ol>
+                      <li><strong>响应时间</strong>：系统平均响应时间小于200ms，95%请求响应时间小于500ms，99%请求响应时间小于1秒</li>
+                      <li><strong>并发能力</strong>：支持1000+并发用户同时在线，单服务器QPS（每秒查询率）达到500+</li>
+                      <li><strong>系统可用性</strong>：年可用性达到99.9%（允许停机时间不超过8.76小时/年），支持故障自动恢复</li>
+                      <li><strong>准确率要求</strong>：意图识别准确率≥90%，知识匹配准确率≥85%，用户问题解决率≥75%</li>
+                      <li><strong>数据容量</strong>：支持千万级对话记录存储，百万级知识条目管理，TB级日志数据处理</li>
+                    </ol>
+                  </div>
+                  <div class="expand-toggle" @click="toggleSection('performance')">
+                    <span v-if="!expandedSections.performance">
+                      <el-icon><ArrowDown /></el-icon>
+                      展开
+                    </span>
+                    <span v-else>
+                      <el-icon><ArrowUp /></el-icon>
+                      收起
+                    </span>
+                  </div>
+                </div>
               </div>
-              
+
               <div class="section">
                 <h3>■ 评审方式</h3>
-                <p>企业+专家联合评审</p>
+                <div class="expandable-content" :class="{ expanded: expandedSections.reviewMethod }">
+                  <div class="content-preview">
+                    本项目采用<strong>企业 + 专家联合评审</strong>的方式，评审团由3-5名行业专家和企业技术负责人组成。评审将分为中期答辩和成果评审两个阶段...
+                  </div>
+                  <div class="content-full">
+                    <p>本项目采用<strong>企业 + 专家联合评审</strong>的方式，评审团由3-5名行业专家和企业技术负责人组成。评审将分为中期答辩和成果评审两个阶段，综合考察项目的技术实现、功能完整性、创新性、实用性等多个维度，最终给出评审意见和项目评分。</p>
+                  </div>
+                  <div class="expand-toggle" @click="toggleSection('reviewMethod')">
+                    <span v-if="!expandedSections.reviewMethod">
+                      <el-icon><ArrowDown /></el-icon>
+                      展开
+                    </span>
+                    <span v-else>
+                      <el-icon><ArrowUp /></el-icon>
+                      收起
+                    </span>
+                  </div>
+                </div>
               </div>
-              
+
               <div class="section">
                 <h3>■ 知识产权</h3>
-                <p>所有权归学生团队，企业拥有使用权</p>
+                <div class="expandable-content" :class="{ expanded: expandedSections.intellectualProperty }">
+                  <div class="content-preview">
+                    根据产教融合项目原则，项目成果的<strong>知识产权归学生团队所有</strong>，企业拥有永久免费使用权和优先商业化合作权...
+                  </div>
+                  <div class="content-full">
+                    <p>根据产教融合项目原则，项目成果的<strong>知识产权归学生团队所有</strong>，企业拥有永久免费使用权和优先商业化合作权。学生团队可以将项目成果用于学术研究、竞赛参赛、个人作品展示等用途，但不得将完全相同的系统出售给企业的直接竞争对手。</p>
+                  </div>
+                  <div class="expand-toggle" @click="toggleSection('intellectualProperty')">
+                    <span v-if="!expandedSections.intellectualProperty">
+                      <el-icon><ArrowDown /></el-icon>
+                      展开
+                    </span>
+                    <span v-else>
+                      <el-icon><ArrowUp /></el-icon>
+                      收起
+                    </span>
+                  </div>
+                </div>
               </div>
-              
+
               <div class="section">
                 <h3>■ 附件资料</h3>
                 <div class="attachments">
@@ -318,19 +435,119 @@
                     <span>接口文档.docx (856KB)</span>
                     <el-link type="primary">[下载]</el-link>
                   </div>
+                  <div class="attachment-item">
+                    <el-icon><Document /></el-icon>
+                    <span>数据库设计规范.pdf (1.2MB)</span>
+                    <el-link type="primary">[下载]</el-link>
+                  </div>
+                  <div class="attachment-item">
+                    <el-icon><Document /></el-icon>
+                    <span>UI设计稿.zip (15.6MB)</span>
+                    <el-link type="primary">[下载]</el-link>
+                  </div>
                 </div>
               </div>
-              
+
               <div class="section">
                 <h3>■ 联系方式</h3>
-                <p>联系人：李经理</p>
-                <p>联系电话：138****1234 <el-link type="primary">[查看完整]</el-link> (揭榜后可见)</p>
+                <p>联系人：李经理（项目负责人）</p>
+                <p>联系电话：138****1234 <el-link type="primary">[查看完整]</el-link> <span class="contact-tip">(提交揭榜申请后可见完整联系方式)</span></p>
+                <p>电子邮箱：project@****company.com <el-link type="primary">[查看完整]</el-link> <span class="contact-tip">(提交揭榜申请后可见)</span></p>
               </div>
             </div>
           </el-tab-pane>
           
           <el-tab-pane label="揭榜名单" name="bidders">
-            <div class="tab-content">揭榜名单内容将在这里显示</div>
+            <div class="bidders-list-content">
+              <!-- 揭榜申请列表 -->
+              <div v-if="biddingApplications.length > 0" class="application-list">
+                <div
+                  v-for="application in biddingApplications"
+                  :key="application.id"
+                  class="application-item"
+                >
+                  <!-- 团队基本信息（所有人可见） -->
+                  <div class="application-header">
+                    <el-avatar :size="60" :src="application.teamAvatar" class="team-avatar">
+                      {{ application.teamName.charAt(0) }}
+                    </el-avatar>
+                    <div class="team-basic-info">
+                      <h3 class="team-name">{{ application.teamName }}</h3>
+                      <div class="team-meta">
+                        <span class="meta-item">
+                          <el-icon><User /></el-icon>
+                          队长：{{ application.leaderName }}
+                        </span>
+                        <span class="meta-item">
+                          <el-icon><UserFilled /></el-icon>
+                          团队规模：{{ application.teamSize }}人
+                        </span>
+                        <span class="meta-item">
+                          <el-icon><Clock /></el-icon>
+                          {{ application.submitTime }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 详细信息（权限控制） -->
+                  <div class="application-details">
+                    <template v-if="canViewApplicationDetail(application)">
+                      <!-- 有权限：显示完整信息 -->
+                      <div class="detail-section">
+                        <h4 class="detail-title">
+                          <el-icon><Document /></el-icon>
+                          申请理由
+                        </h4>
+                        <p class="application-text">{{ application.applicationReason }}</p>
+                      </div>
+
+                      <div v-if="application.otherInfo" class="detail-section">
+                        <h4 class="detail-title">
+                          <el-icon><InfoFilled /></el-icon>
+                          其他说明
+                        </h4>
+                        <p class="application-text">{{ application.otherInfo }}</p>
+                      </div>
+
+                      <!-- 企业方操作按钮 -->
+                      <div v-if="isPublisher" class="application-actions">
+                        <el-button type="success" size="small">
+                          <el-icon><Check /></el-icon>
+                          通过申请
+                        </el-button>
+                        <el-button type="danger" size="small">
+                          <el-icon><Close /></el-icon>
+                          拒绝申请
+                        </el-button>
+                        <el-button type="primary" size="small" plain>
+                          <el-icon><ChatDotRound /></el-icon>
+                          联系团队
+                        </el-button>
+                      </div>
+                    </template>
+
+                    <template v-else>
+                      <!-- 无权限：显示占位符 -->
+                      <div class="no-permission-placeholder">
+                        <el-icon class="lock-icon"><Lock /></el-icon>
+                        <p class="permission-hint">
+                          详细申请信息仅对项目发布方和申请团队可见
+                        </p>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 空状态 -->
+              <el-empty v-else description="暂无揭榜申请" :image-size="120">
+                <el-button type="primary" @click="goApply">
+                  <el-icon><Trophy /></el-icon>
+                  立即揭榜
+                </el-button>
+              </el-empty>
+            </div>
           </el-tab-pane>
           
           <el-tab-pane label="评论(23)" name="comments">
@@ -384,81 +601,44 @@
                     <div v-else class="marker-icon pending"></div>
                   </div>
                   
-                  <!-- 里程碑内容卡片（缩略版） -->
+                  <!-- 里程碑内容卡片（紧凑版） -->
                   <div class="milestone-card">
+                    <!-- 卡片头部：标题 + 状态 + 元信息 -->
                     <div class="milestone-header">
-                      <div class="milestone-title-row">
+                      <div class="header-left">
                         <h3 class="milestone-title">{{ milestone.title }}</h3>
-                        <div class="milestone-header-actions">
-                          <el-tag
-                            :type="getMilestoneTagType(milestone.status)"
-                            size="small"
-                          >
-                            {{ getMilestoneStatusText(milestone.status) }}
-                          </el-tag>
-                          <!-- 发布方专属：待审核角标 -->
-                          <el-badge
-                            v-if="isPublisher && needsPublisherReview(milestone)"
-                            :value="1"
-                            class="review-badge"
-                          >
-                            <el-icon><Bell /></el-icon>
-                          </el-badge>
-                          <el-button
-                            type="primary"
-                            size="small"
-                            text
-                            @click="openMilestoneDetailDialog(milestone)"
-                          >
-                            查看详情
-                            <el-icon><ArrowRight /></el-icon>
-                          </el-button>
+                        <el-tag
+                          :type="getMilestoneTagType(milestone.status)"
+                          size="large"
+                        >
+                          {{ getMilestoneStatusText(milestone.status) }}
+                        </el-tag>
+                      </div>
+
+                      <!-- 元信息区域 -->
+                      <div class="header-meta">
+                        <div class="meta-item">
+                          <el-icon><Calendar /></el-icon>
+                          <span>计划: {{ milestone.plannedDate }}</span>
+                        </div>
+                        <div v-if="milestone.actualDate" class="meta-item">
+                          <el-icon><Check /></el-icon>
+                          <span>实际: {{ milestone.actualDate }}</span>
+                        </div>
+                        <div v-if="milestone.delayDays && milestone.delayDays > 0" class="meta-item text-danger">
+                          <el-icon><Clock /></el-icon>
+                          <span>逾期 {{ milestone.delayDays }} 天</span>
+                        </div>
+                        <div v-if="milestone.deliverables && milestone.deliverables.length > 0" class="meta-item">
+                          <el-icon><Document /></el-icon>
+                          <span>交付物: {{ milestone.deliverables.length }}</span>
                         </div>
                       </div>
-                      <div class="milestone-meta">
-                        <span class="milestone-date">
-                          <el-icon><Calendar /></el-icon>
-                          {{ milestone.plannedDate }}
-                        </span>
-                        <span v-if="milestone.actualDate" class="milestone-actual-date">
-                          实际完成：{{ milestone.actualDate }}
-                        </span>
-                        <span v-if="milestone.delayDays && milestone.delayDays > 0" class="milestone-delay">
-                          延迟 {{ milestone.delayDays }} 天
-                        </span>
-                      </div>
                     </div>
 
-                    <!-- 缩略描述（最多2行） -->
-                    <div class="milestone-description-short">
-                      <p>{{ truncateText(milestone.description, 100) }}</p>
-                    </div>
-
-                    <!-- 摘要信息 -->
-                    <div class="milestone-summary">
-                      <div v-if="milestone.deliverables && milestone.deliverables.length > 0" class="summary-item">
-                        <el-icon><Document /></el-icon>
-                        <span>交付物：{{ milestone.deliverables.length }} 项</span>
-                      </div>
-                      <div v-if="milestone.progressDetail" class="summary-item">
-                        <el-icon><TrendCharts /></el-icon>
-                        <span>进度：{{ milestone.progressDetail.percentage }}%</span>
-                      </div>
-                      <div v-if="milestone.processChecklist && milestone.processChecklist.length > 0" class="summary-item">
-                        <el-icon><List /></el-icon>
-                        <span>{{ milestone.processChecklist.length }} 个过程任务</span>
-                      </div>
-                    </div>
-
-                    <!-- 发布方专属：待审核提示（仅进行中状态） -->
-                    <div v-if="isPublisher && needsPublisherReview(milestone)" class="review-badge-hint">
-                      <span class="hint-text">待审核</span>
-                    </div>
-
-                    <!-- 发布方专属：已完成提示（已完成状态显示） -->
-                    <div v-if="isPublisher && milestone.submissionSummary && milestone.status === 'completed'" class="submission-hint completed-hint">
-                      <el-icon><Check /></el-icon>
-                      <span>已完成</span>
+                    <!-- 描述 -->
+                    <div class="milestone-description">
+                      {{ truncateText(milestone.description, 100) }}
                     </div>
                   </div>
                 </div>
@@ -1268,6 +1448,179 @@
       </template>
     </el-dialog>
     <!-- ========== 结束：跳过里程碑弹窗 (SKIP_DIALOG) ========== -->
+
+    <!-- ========== 开始：揭榜申请弹窗 (BIDDING_APPLICATION_DIALOG) ========== -->
+    <el-dialog
+      v-model="biddingDialogVisible"
+      title="揭榜申请"
+      width="800px"
+      :close-on-click-modal="false"
+      destroy-on-close
+    >
+      <el-form
+        ref="biddingFormRef"
+        :model="biddingForm"
+        :rules="biddingRules"
+        label-width="120px"
+      >
+        <!-- 团队信息 -->
+        <div class="form-section">
+          <h4 class="form-section-title">团队信息</h4>
+
+          <el-form-item label="团队名称" prop="teamName">
+            <el-input
+              v-model="biddingForm.teamName"
+              placeholder="请输入团队名称"
+              maxlength="50"
+              show-word-limit
+            />
+          </el-form-item>
+
+          <el-form-item label="团队规模" prop="teamSize">
+            <el-input-number
+              v-model="biddingForm.teamSize"
+              :min="2"
+              :max="20"
+              :step="1"
+              controls-position="right"
+              style="width: 200px"
+            />
+            <span class="form-tip" style="margin-left: 12px;">
+              建议：2-4人
+            </span>
+          </el-form-item>
+        </div>
+
+        <!-- 技能要求 -->
+        <div class="form-section">
+          <h4 class="form-section-title">技能与经验</h4>
+
+          <el-form-item label="必备技能" prop="requiredSkills">
+            <el-select
+              v-model="biddingForm.requiredSkills"
+              multiple
+              filterable
+              allow-create
+              default-first-option
+              :reserve-keyword="false"
+              placeholder="请选择或输入团队掌握的必备技能"
+              style="width: 100%"
+            >
+              <el-option label="Vue.js" value="Vue.js" />
+              <el-option label="React" value="React" />
+              <el-option label="Angular" value="Angular" />
+              <el-option label="Spring Boot" value="Spring Boot" />
+              <el-option label="Node.js" value="Node.js" />
+              <el-option label="Python" value="Python" />
+              <el-option label="Java" value="Java" />
+              <el-option label="MySQL" value="MySQL" />
+              <el-option label="Redis" value="Redis" />
+              <el-option label="MongoDB" value="MongoDB" />
+              <el-option label="Docker" value="Docker" />
+              <el-option label="Kubernetes" value="Kubernetes" />
+              <el-option label="微信小程序" value="微信小程序" />
+              <el-option label="Android" value="Android" />
+              <el-option label="iOS" value="iOS" />
+              <el-option label="人工智能" value="人工智能" />
+              <el-option label="机器学习" value="机器学习" />
+              <el-option label="数据分析" value="数据分析" />
+            </el-select>
+          </el-form-item>
+
+          <el-form-item label="加分技能" prop="bonusSkills">
+            <el-select
+              v-model="biddingForm.bonusSkills"
+              multiple
+              filterable
+              allow-create
+              default-first-option
+              :reserve-keyword="false"
+              placeholder="请选择或输入团队掌握的加分技能（可选）"
+              style="width: 100%"
+            >
+              <el-option label="UI/UX设计" value="UI/UX设计" />
+              <el-option label="软件测试" value="软件测试" />
+              <el-option label="项目管理" value="项目管理" />
+              <el-option label="敏捷开发" value="敏捷开发" />
+              <el-option label="DevOps" value="DevOps" />
+              <el-option label="云计算" value="云计算" />
+              <el-option label="大数据" value="大数据" />
+              <el-option label="区块链" value="区块链" />
+              <el-option label="网络安全" value="网络安全" />
+              <el-option label="英语能力" value="英语能力" />
+            </el-select>
+          </el-form-item>
+
+          <el-form-item label="项目经验" prop="experienceLevel">
+            <el-radio-group v-model="biddingForm.experienceLevel">
+              <el-radio value="none">无项目经验</el-radio>
+              <el-radio value="basic">有基础项目经验</el-radio>
+              <el-radio value="intermediate">有中级项目经验（1-2个项目）</el-radio>
+              <el-radio value="advanced">有高级项目经验（3个以上项目）</el-radio>
+            </el-radio-group>
+          </el-form-item>
+        </div>
+
+        <!-- 申请说明 -->
+        <div class="form-section">
+          <h4 class="form-section-title">申请说明</h4>
+
+          <el-form-item label="申请理由" prop="applicationReason">
+            <el-input
+              v-model="biddingForm.applicationReason"
+              type="textarea"
+              :rows="6"
+              placeholder="请详细说明：&#10;1. 团队优势和成员分工&#10;2. 项目实施计划和时间安排&#10;3. 相关经验和成功案例&#10;4. 为什么你们适合这个项目"
+              maxlength="1000"
+              show-word-limit
+            />
+          </el-form-item>
+
+          <el-form-item label="其他说明">
+            <el-input
+              v-model="biddingForm.otherInfo"
+              type="textarea"
+              :rows="3"
+              placeholder="如有其他需要说明的信息，请在此填写（可选）"
+              maxlength="500"
+              show-word-limit
+            />
+          </el-form-item>
+
+          <el-form-item label="附件资料">
+            <el-upload
+              v-model:file-list="biddingForm.attachments"
+              action="#"
+              :auto-upload="false"
+              :before-upload="beforeBiddingFileUpload"
+              :on-exceed="handleBiddingFileExceed"
+              :limit="5"
+              multiple
+            >
+              <el-button type="primary" plain>
+                <el-icon><Upload /></el-icon>
+                上传文件
+              </el-button>
+              <template #tip>
+                <div class="el-upload__tip">
+                  支持上传团队简介、项目作品、获奖证书等文件，单个文件不超过50MB，最多5个文件
+                </div>
+              </template>
+            </el-upload>
+          </el-form-item>
+        </div>
+      </el-form>
+
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="cancelBidding">取消</el-button>
+          <el-button type="primary" @click="submitBidding" :loading="biddingSubmitting">
+            提交申请
+          </el-button>
+        </div>
+      </template>
+    </el-dialog>
+    <!-- ========== 结束：揭榜申请弹窗 (BIDDING_APPLICATION_DIALOG) ========== -->
   </div>
 </template>
 
@@ -1275,13 +1628,23 @@
 import { ref, onMounted, computed, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Star, ChatDotRound, Document, Trophy, View, User, Check, Calendar, Lock, Edit, Upload, ArrowRight, TrendCharts, Clock, EditPen, Remove, Close, Paperclip, Bell, List, Plus } from '@element-plus/icons-vue'
+import { Star, ChatDotRound, Document, Trophy, View, User, Check, Calendar, Lock, Edit, Upload, ArrowRight, TrendCharts, Clock, EditPen, Remove, Close, Paperclip, Bell, List, Plus, UserFilled, Medal, InfoFilled, ArrowDown, ArrowUp } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/store/modules/auth'
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const activeTab = ref('details')
+
+// 可展开内容区域的状态
+const expandedSections = ref({
+  background: false,
+  functions: false,
+  techStack: false,
+  performance: false,
+  reviewMethod: false,
+  intellectualProperty: false
+})
 
 // 根据项目ID初始化项目数据（模拟数据，后续从API获取）
 const initProjectData = () => {
@@ -1359,201 +1722,95 @@ const milestones = ref([
     code: 'BIDDING',
     title: '揭榜征集',
     description: '学生查看并提交揭榜申请，企业/学校审核通过后确定承接方',
-    status: 'completed',
-    plannedDate: '2025-11-05',
-    actualDate: '2025-11-04',
-    delayDays: -1,
-    deliverables: ['揭榜申请表', '审核结果通过通知'],
+    status: 'in-progress',
+    plannedDate: '2025-11-15',
+    actualDate: null,
+    delayDays: 0,
+    deliverables: ['揭榜申请表', '审核结果通知'],
     progressDetail: {
-      percentage: 100,
-      status: 'success',
-      note: '所有申请已审核完毕，承接方已确定'
+      percentage: 65,
+      status: 'warning',
+      note: '已收到12份揭榜申请，正在进行审核'
     },
     riskLevel: 'low',
     communications: [
       {
         author: '陈老师（教务中心）',
-        time: '2025-11-04 16:30',
-        content: '本次揭榜共收到12份申请，质量整体较高'
+        time: '2025-11-10 16:30',
+        content: '本次揭榜共收到12份申请，质量整体较高，请企业尽快审核'
       }
     ],
     internalNotes: '本期导师资源充足，匹配顺利',
     sensitiveAttachments: [],
-    // 承接方提交摘要（发布方可见）
-    submissionSummary: {
-      version: 1,
-      submitTime: '2025-11-03 14:20',
-      submitterName: '李明 - 计算机科学团队',
-      applicantName: '李明',
-      teamName: '计算机科学团队',
-      reason: '我们团队在AI领域有丰富经验，曾完成多个智能客服项目...',
-      hasHistory: false
-    },
-    // 审核历史记录
-    reviewHistory: [
-      {
-        reviewId: 'review-bidding-001',
-        reviewerId: 'enterprise-001',
-        reviewerName: 'XX科技有限公司',
-        reviewTime: '2025-11-04 10:00',
-        reviewResult: '通过',
-        reviewComment: '团队经验丰富，技术栈匹配度高，通过揭榜申请',
-        attachments: []
-      }
-    ]
+    // 承接方提交摘要（暂时为空，等待审核通过）
+    submissionSummary: null,
+    // 审核历史记录（暂无）
+    reviewHistory: []
   },
   {
     id: 'milestone-proposal',
     code: 'PROPOSAL',
     title: '方案提交',
     description: '提交项目实施方案，包括技术方案、实施计划、团队分工等，经多角色评审后确定最终方案',
-    status: 'completed',
+    status: 'pending',
     plannedDate: '2025-11-20',
-    actualDate: '2025-11-19',
-    delayDays: -1,
+    actualDate: null,
+    delayDays: null,
     deliverables: ['实施方案包', '评审意见清单'],
     progressDetail: {
-      percentage: 100,
-      status: 'success',
-      note: '方案已通过评审，获得专家组一致认可'
+      percentage: 0,
+      status: 'info',
+      note: '等待揭榜征集阶段完成'
     },
     riskLevel: 'low',
-    communications: [
-      {
-        author: '王岚（评审专家）',
-        time: '2025-11-19 16:00',
-        content: '方案整体架构合理，技术选型得当，建议在安全性方面加强'
-      }
-    ],
-    internalNotes: '评审过程顺利，团队表现优秀',
-    sensitiveAttachments: [
-      { name: '评审专家意见汇总.docx', size: '2.3MB' }
-    ],
-    // 承接方提交摘要（发布方可见）
-    submissionSummary: {
-      version: 2,
-      submitTime: '2025-11-19 09:30',
-      submitterName: '李明 - 计算机科学团队',
-      title: 'AI智能客服系统实施方案V2.0',
-      techStack: ['Vue3', 'Python', 'TensorFlow', 'Redis', 'MySQL'],
-      planOverview: '采用微服务架构，前后端分离，集成大模型API...',
-      hasHistory: true
-    },
-    // 审核历史记录
-    reviewHistory: [
-      {
-        reviewId: 'review-proposal-001',
-        reviewerId: 'enterprise-001',
-        reviewerName: 'XX科技有限公司',
-        reviewTime: '2025-11-18 14:00',
-        reviewResult: '要求修改',
-        reviewComment: '技术方案整体可行，但需要补充数据库设计部分，实施计划时间安排过于紧张',
-        attachments: [
-          { name: '修改建议清单.pdf', url: '...', size: '1.2MB' }
-        ],
-        submissionVersion: 1
-      },
-      {
-        reviewId: 'review-proposal-002',
-        reviewerId: 'enterprise-001',
-        reviewerName: 'XX科技有限公司',
-        reviewTime: '2025-11-19 15:30',
-        reviewResult: '通过',
-        reviewComment: '修改后的方案完善，技术架构合理，时间安排可行，批准通过',
-        attachments: [],
-        submissionVersion: 2
-      }
-    ]
+    communications: [],
+    internalNotes: '',
+    sensitiveAttachments: [],
+    submissionSummary: null,
+    reviewHistory: []
   },
   {
     id: 'milestone-agreement',
     code: 'AGREEMENT',
     title: '协议签订',
     description: '双方签订项目合作协议，明确权利义务、交付标准、费用结算等条款',
-    status: 'completed',
+    status: 'pending',
     plannedDate: '2025-11-25',
-    actualDate: '2025-11-22',
-    delayDays: -3,
+    actualDate: null,
+    delayDays: null,
     deliverables: ['项目合作协议', '补充协议（如有）'],
     progressDetail: {
-      percentage: 100,
-      status: 'success',
-      note: '协议已签订，双方确认无误'
+      percentage: 0,
+      status: 'info',
+      note: '等待方案提交阶段完成'
     },
     riskLevel: 'low',
-    communications: [
-      {
-        author: 'XX科技有限公司',
-        time: '2025-11-22 14:30',
-        content: '协议已审核通过，双方已签字确认'
-      }
-    ],
-    internalNotes: '协议签订顺利，条款清晰明确',
-    sensitiveAttachments: [
-      { name: '项目合作协议.pdf', size: '2.1MB' }
-    ],
-    submissionSummary: {
-      version: 1,
-      submitTime: '2025-11-22 10:00',
-      submitterName: 'XX科技有限公司',
-      title: '项目合作协议',
-      hasHistory: false
-    },
-    reviewHistory: [
-      {
-        reviewId: 'review-agreement-001',
-        reviewerId: 'enterprise-001',
-        reviewerName: 'XX科技有限公司',
-        reviewTime: '2025-11-22 14:00',
-        reviewResult: '通过',
-        reviewComment: '协议条款完善，双方已签字确认',
-        attachments: []
-      }
-    ]
+    communications: [],
+    internalNotes: '',
+    sensitiveAttachments: [],
+    submissionSummary: null,
+    reviewHistory: []
   },
   {
     id: 'milestone-midterm',
     code: 'MIDTERM',
     title: '中期答辩',
     description: '项目中期检查，展示项目进展和阶段性成果，专家评审并提出优化建议',
-    status: 'in-progress',
+    status: 'pending',
     plannedDate: '2025-12-25',
     actualDate: null,
-    delayDays: 0,
+    delayDays: null,
     deliverables: ['中期答辩PPT', '阶段成果包', '评审结论'],
     progressDetail: {
-      percentage: 78,
-      status: 'warning',
-      note: '中期答辩已完成，等待评审结论归档'
+      percentage: 0,
+      status: 'info',
+      note: '等待协议签订阶段完成'
     },
     riskLevel: 'medium',
-    communications: [
-      {
-        author: '孙赫（专家委员会）',
-        time: '2025-12-22 15:30',
-        content: '项目进度符合预期，建议加强性能优化'
-      },
-      {
-        author: '林一舟（项目经理）',
-        time: '2025-12-23 09:00',
-        content: '已记录专家建议，将在后续开发中重点关注'
-      }
-    ],
-    internalNotes: '中期进展良好，团队执行力强',
-    sensitiveAttachments: [
-      { name: '中期评审打分表.xlsx', size: '1.2MB' }
-    ],
-    // 承接方提交摘要（发布方可见）
-    submissionSummary: {
-      version: 1,
-      submitTime: '2025-12-22 10:00',
-      submitterName: '李明 - 计算机科学团队',
-      materialType: 'PPT + 演示视频',
-      progressComparison: '已完成核心功能60%，进度符合预期',
-      issueCount: 3,
-      hasHistory: false
-    },
-    // 审核历史记录（发布方审核中，暂无记录）
+    communications: [],
+    internalNotes: '',
+    sensitiveAttachments: [],
+    submissionSummary: null,
     reviewHistory: []
   },
   {
@@ -1567,17 +1824,15 @@ const milestones = ref([
     delayDays: null,
     deliverables: ['成果代码仓', '技术文档', '运维手册', '测试报告'],
     progressDetail: {
-      percentage: 20,
-      status: 'exception',
-      note: '成果整理中，注意截止日期临近'
+      percentage: 0,
+      status: 'info',
+      note: '等待中期答辩阶段完成'
     },
-    riskLevel: 'high',
+    riskLevel: 'medium',
     communications: [],
-    internalNotes: '需要加快进度，确保按时提交',
+    internalNotes: '',
     sensitiveAttachments: [],
-    // 承接方提交摘要（待提交）
     submissionSummary: null,
-    // 审核历史记录（待提交）
     reviewHistory: []
   },
   {
@@ -1595,7 +1850,7 @@ const milestones = ref([
       status: 'info',
       note: '等待成果提交完成后启动评审'
     },
-    riskLevel: 'high',
+    riskLevel: 'low',
     communications: [],
     internalNotes: '',
     sensitiveAttachments: [],
@@ -1617,7 +1872,7 @@ const milestones = ref([
       status: 'info',
       note: '等待成果评审完成后启动公示流程'
     },
-    riskLevel: 'medium',
+    riskLevel: 'low',
     communications: [],
     internalNotes: '',
     sensitiveAttachments: [],
@@ -1639,7 +1894,7 @@ const milestones = ref([
       status: 'info',
       note: '等待评审完成后启动公示流程'
     },
-    riskLevel: 'medium',
+    riskLevel: 'low',
     communications: [],
     internalNotes: '',
     sensitiveAttachments: [],
@@ -2264,37 +2519,37 @@ const projectSteps = ref([
   {
     code: 'BIDDING',
     title: '揭榜征集',
-    status: 'finish',
-    timeInfo: '2025-11-04',
+    status: 'process',  // 当前进行中
+    timeInfo: '剩余3天',
     startDate: '2025-11-01',
-    endDate: '2025-11-05',
-    deadline: '2025-11-05'
+    endDate: null,
+    deadline: '2025-11-15'
   },
   {
     code: 'PROPOSAL',
     title: '方案提交',
-    status: 'finish',
-    timeInfo: '2025-11-19',
-    startDate: '2025-11-06',
-    endDate: '2025-11-20',
+    status: 'wait',
+    timeInfo: '预计15天',
+    startDate: null,
+    endDate: null,
     deadline: '2025-11-20'
   },
   {
     code: 'AGREEMENT',
     title: '协议签订',
-    status: 'finish',
-    timeInfo: '2025-11-22',
-    startDate: '2025-11-21',
-    endDate: '2025-11-25',
+    status: 'wait',
+    timeInfo: '预计5天',
+    startDate: null,
+    endDate: null,
     deadline: '2025-11-25'
   },
   {
     code: 'MIDTERM',
     title: '中期答辩',
-    status: 'process',  // 当前进行中
-    timeInfo: '剩余2天',
-    startDate: '2025-11-26',
-    endDate: '2025-12-25',
+    status: 'wait',
+    timeInfo: '预计30天',
+    startDate: null,
+    endDate: null,
     deadline: '2025-12-25'
   },
   {
@@ -2401,16 +2656,211 @@ const toggleFavorite = () => {
   // TODO: 调用API保存关注状态
 }
 
+// 切换内容区域展开/折叠状态
+const toggleSection = (sectionName) => {
+  expandedSections.value[sectionName] = !expandedSections.value[sectionName]
+}
+
+// ========== 开始：揭榜申请相关 (BIDDING_APPLICATION_LOGIC) ==========
+// 申请弹窗状态
+const biddingDialogVisible = ref(false)
+const biddingFormRef = ref(null)
+const biddingSubmitting = ref(false)
+
+// 申请表单数据
+const biddingForm = ref({
+  teamName: '',
+  teamSize: 2,
+  requiredSkills: [],
+  bonusSkills: [],
+  experienceLevel: 'none',
+  applicationReason: '',
+  otherInfo: '',
+  attachments: []
+})
+
+// 表单验证规则
+const biddingRules = {
+  teamName: [
+    { required: true, message: '请输入团队名称', trigger: 'blur' },
+    { min: 2, max: 50, message: '团队名称长度在 2 到 50 个字符', trigger: 'blur' }
+  ],
+  teamSize: [
+    { required: true, message: '请选择团队规模', trigger: 'change' },
+    { type: 'number', min: 2, max: 20, message: '团队规模在 2 到 20 人之间', trigger: 'change' }
+  ],
+  requiredSkills: [
+    { type: 'array', required: true, message: '请至少选择一项必备技能', trigger: 'change' }
+  ],
+  applicationReason: [
+    { required: true, message: '请填写申请理由', trigger: 'blur' },
+    { min: 50, message: '申请理由至少50个字符，请详细说明团队优势和项目规划', trigger: 'blur' }
+  ]
+}
+
+// 打开申请弹窗
 const goApply = () => {
   if (isBiddingClosed.value) {
     ElMessage.warning('该项目已揭榜完成，无法继续揭榜')
     return
   }
-  const projectId = route.params.id
-  if (projectId) {
-    router.push(`/apply/${projectId}`)
+
+  // 检查登录状态
+  if (!currentUser.value.isLoggedIn) {
+    ElMessage.warning('请先登录')
+    router.push('/auth/login')
+    return
+  }
+
+  // 检查是否为学生角色
+  if (currentUser.value.role !== 'student') {
+    ElMessage.warning('只有学生可以揭榜')
+    return
+  }
+
+  // 打开申请弹窗
+  biddingDialogVisible.value = true
+}
+
+// 取消申请
+const cancelBidding = () => {
+  biddingDialogVisible.value = false
+  // 重置表单
+  if (biddingFormRef.value) {
+    biddingFormRef.value.resetFields()
+  }
+  biddingForm.value = {
+    teamName: '',
+    teamSize: 2,
+    requiredSkills: [],
+    bonusSkills: [],
+    experienceLevel: 'none',
+    applicationReason: '',
+    otherInfo: '',
+    attachments: []
   }
 }
+
+// 提交申请
+const submitBidding = async () => {
+  if (!biddingFormRef.value) return
+
+  try {
+    await biddingFormRef.value.validate()
+    biddingSubmitting.value = true
+
+    // TODO: 调用API提交申请
+    // const response = await submitBiddingApplication(route.params.id, biddingForm.value)
+
+    // 模拟API调用
+    await new Promise(resolve => setTimeout(resolve, 1000))
+
+    ElMessage.success('申请提交成功！')
+    biddingDialogVisible.value = false
+
+    // 重置表单
+    biddingFormRef.value.resetFields()
+  } catch (error) {
+    if (error !== false) {
+      ElMessage.error('提交失败：' + (error.message || '未知错误'))
+    }
+  } finally {
+    biddingSubmitting.value = false
+  }
+}
+
+// 文件上传前检查
+const beforeBiddingFileUpload = (file) => {
+  const isLt50M = file.size / 1024 / 1024 < 50
+  if (!isLt50M) {
+    ElMessage.error('上传文件大小不能超过 50MB!')
+  }
+  return isLt50M
+}
+
+// 文件超出限制
+const handleBiddingFileExceed = (files, fileList) => {
+  ElMessage.warning(`最多只能上传 5 个文件，当前已选择 ${files.length + fileList.length} 个文件`)
+}
+
+// 揭榜名单数据（模拟）
+const biddingApplications = ref([
+  {
+    id: 'app-001',
+    teamName: '创新先锋队',
+    teamAvatar: 'https://picsum.photos/seed/team1/80/80',
+    teamSize: 4,
+    leaderId: 'student-001',
+    leaderName: '张三',
+    requiredSkills: ['Vue.js', 'Spring Boot', 'MySQL'],
+    bonusSkills: ['UI/UX设计', '项目管理'],
+    experienceLevel: 'intermediate',
+    applicationReason: '我们团队在过去两年内成功完成了2个类似的项目，具有丰富的实战经验。团队成员分工明确，包括前端、后端、UI设计和项目管理各1名。我们计划采用敏捷开发模式，每两周进行一次迭代，确保项目按时高质量交付。',
+    otherInfo: '团队成员均获得过校级以上奖项，曾在"互联网+"大赛中获得省级三等奖。',
+    submitTime: '2025-11-08 14:30:00',
+    status: 'pending'
+  },
+  {
+    id: 'app-002',
+    teamName: '智能科技团队',
+    teamAvatar: 'https://picsum.photos/seed/team2/80/80',
+    teamSize: 3,
+    leaderId: 'student-002',
+    leaderName: '李四',
+    requiredSkills: ['Vue.js', 'Node.js', 'MongoDB'],
+    bonusSkills: ['敏捷开发', '英语能力'],
+    experienceLevel: 'advanced',
+    applicationReason: '我们团队已完成3个商业项目，累计服务客户10+。团队核心成员有3年以上开发经验，熟悉完整的项目开发流程。我们承诺7天内完成详细的技术方案，30天内交付可演示的MVP版本。',
+    otherInfo: '团队曾为某知名企业开发过类似的客服系统，对业务场景非常熟悉。',
+    submitTime: '2025-11-08 16:45:00',
+    status: 'pending'
+  },
+  {
+    id: 'app-003',
+    teamName: '测试学生团队',
+    teamAvatar: 'https://picsum.photos/seed/team3/80/80',
+    teamSize: 2,
+    leaderId: 'test_student_001',  // 当前测试用户
+    leaderName: '测试学生',
+    requiredSkills: ['Vue.js', 'Spring Boot'],
+    bonusSkills: ['软件测试'],
+    experienceLevel: 'basic',
+    applicationReason: '作为在校学生，我们非常希望通过这个项目提升实战能力。虽然经验不足，但我们学习能力强，态度认真，愿意投入100%的精力完成项目。团队成员包括1名前端开发和1名后端开发，我们会虚心向导师请教，确保项目质量。',
+    otherInfo: '我们愿意接受更低的报酬，只求一个学习和成长的机会。',
+    submitTime: '2025-11-09 09:20:00',
+    status: 'pending'
+  }
+])
+
+// 判断是否可以查看申请详情
+const canViewApplicationDetail = (application) => {
+  // 发布方（企业）可以查看所有
+  if (isPublisher.value) return true
+
+  // 申请团队的队长可以查看自己的
+  if (currentUser.value.isLoggedIn && currentUser.value.id === application.leaderId) {
+    return true
+  }
+
+  // 管理员和教师可以查看（可选，根据需求调整）
+  // if (currentUser.value.role === 'admin' || currentUser.value.role === 'teacher') {
+  //   return true
+  // }
+
+  return false
+}
+
+// 获取经验等级文本
+const getExperienceLevelText = (level) => {
+  const levelMap = {
+    'none': '无项目经验',
+    'basic': '有基础项目经验',
+    'intermediate': '有中级项目经验（1-2个项目）',
+    'advanced': '有高级项目经验（3个以上项目）'
+  }
+  return levelMap[level] || level
+}
+// ========== 结束：揭榜申请相关 (BIDDING_APPLICATION_LOGIC) ==========
 
 onMounted(() => {
   const projectId = route.params.id
@@ -3059,6 +3509,54 @@ const calculateRemainingDays = (dateStr) => {
   margin-bottom: 8px;
 }
 
+/* 可展开内容样式 */
+.expandable-content {
+  position: relative;
+}
+
+.expandable-content .content-preview {
+  display: block;
+  color: #666;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.expandable-content .content-full {
+  display: none;
+}
+
+.expandable-content.expanded .content-preview {
+  display: none;
+}
+
+.expandable-content.expanded .content-full {
+  display: block;
+}
+
+.expand-toggle {
+  margin-top: 12px;
+  text-align: center;
+  cursor: pointer;
+  color: #409eff;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.expand-toggle:hover {
+  background: #ecf5ff;
+  color: #66b1ff;
+}
+
+.expand-toggle .el-icon {
+  font-size: 14px;
+}
+
 .attachments {
   display: flex;
   flex-direction: column;
@@ -3179,150 +3677,106 @@ const calculateRemainingDays = (dateStr) => {
   }
 }
 
-/* 里程碑卡片（缩略版） */
+/* 里程碑卡片（紧凑版） */
 .milestone-card {
   flex: 1;
   background: white;
-  border-radius: 8px;
-  padding: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   border-left: 4px solid #e4e7ed;
   transition: all 0.3s ease;
-  min-height: 180px; /* 固定最小高度，保持卡片一致性 */
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
 }
 
 .milestone-item.milestone-completed .milestone-card {
-  border-left-color: #67c23a;
+  background: #f6ffed;
+  border-left-color: #52c41a;
 }
 
 .milestone-item.milestone-in-progress .milestone-card {
-  border-left-color: #409eff;
+  border-left-color: #1890ff;
+  box-shadow: 0 4px 16px rgba(24, 144, 255, 0.2);
+  transform: scale(1.01);
+}
+
+.milestone-item.milestone-pending .milestone-card {
+  opacity: 0.9;
+  border-left-color: #d9d9d9;
 }
 
 .milestone-item.milestone-delayed .milestone-card {
-  border-left-color: #f56c6c;
+  border-left-color: #ff4d4f;
+  background: #fff1f0;
 }
 
 .milestone-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
+/* 卡片头部 */
 .milestone-header {
-  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  padding-bottom: 2px;
+  border-bottom: 1px solid #f0f0f0;
+  gap: 16px;
 }
 
-.milestone-title-row {
+.header-left {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 8px;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.header-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  justify-content: center;
 }
 
 .milestone-title {
   margin: 0;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 600;
-  color: #333;
+  color: #1f274b;
 }
 
-.milestone-meta {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-  font-size: 14px;
-  color: #666;
-}
-
-.milestone-date {
+/* 头部元数据 */
+.header-meta .meta-item {
   display: flex;
   align-items: center;
   gap: 4px;
-}
-
-.milestone-actual-date {
-  color: #67c23a;
-}
-
-.milestone-delay {
-  color: #f56c6c;
-  font-weight: 500;
-}
-
-.milestone-description-short {
-  margin: 4px 0;
-}
-
-.milestone-description-short p {
-  margin: 0;
+  font-size: 13px;
   color: #606266;
+}
+
+.header-meta .meta-item .el-icon {
   font-size: 14px;
-  line-height: 1.5;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.milestone-summary {
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
-  margin-top: auto; /* 推到底部 */
-}
-
-.summary-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
   color: #909399;
-  font-size: 13px;
 }
 
-/* 发布方专属：待审核提示 */
-.review-badge-hint {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  background: #fef0f0;
-  border-radius: 4px;
-  margin-top: 8px;
+.header-meta .meta-item.text-danger {
+  color: #ff4d4f;
+  font-weight: 600;
 }
 
-.review-badge-hint .hint-text {
-  color: #f56c6c;
-  font-size: 13px;
-  font-weight: 500;
+.header-meta .meta-item.text-danger .el-icon {
+  color: #ff4d4f;
 }
 
-.review-badge {
-  margin-right: 4px;
+/* 描述 */
+.milestone-description {
+  font-size: 14px;
+  color: #606266;
+  line-height: 1.6;
+  margin-bottom: 0px;
 }
 
-/* 发布方专属：承接方已提交提示 */
-.submission-hint {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 12px;
-  background: #ecf5ff;
-  border-radius: 4px;
-  color: #409eff;
-  font-size: 13px;
-  margin-top: 8px;
-}
-
-/* 发布方专属：已完成提示 */
-.submission-hint.completed-hint {
-  background: #f0f9ff;
-  color: #67c23a;
-}
 
 /* 交付物列表 */
 .milestone-deliverables {
@@ -3458,29 +3912,46 @@ const calculateRemainingDays = (dateStr) => {
 }
 
 /* 响应式设计 */
+/* 响应式 */
 @media (max-width: 768px) {
   .milestone-timeline {
     padding-left: 30px;
   }
-  
+
   .milestone-marker {
     left: -30px;
   }
-  
+
   .timeline-connector {
     left: -22px;
   }
-  
-  .milestone-title-row {
+
+  .milestone-card {
+    padding: 16px;
+  }
+
+  .milestone-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .header-left {
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
   }
-  
-  .milestone-meta {
-    flex-direction: column;
-    align-items: flex-start;
+
+  .header-meta {
+    flex-direction: row;
+    flex-wrap: wrap;
     gap: 8px;
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .milestone-title {
+    font-size: 18px;
   }
 }
 /* 里程碑操作按钮区域 */
@@ -3524,44 +3995,6 @@ const calculateRemainingDays = (dateStr) => {
   gap: 12px;
 }
 
-/* 里程碑卡片缩略版样式优化 */
-.milestone-header-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.milestone-description-short {
-  margin: 4px 0;
-}
-
-.milestone-description-short p {
-  margin: 0;
-  color: #666;
-  font-size: 14px;
-  line-height: 1.6;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.milestone-summary {
-  display: flex;
-  gap: 16px;
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px dashed #f0f0f0;
-}
-
-.milestone-summary .summary-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: #666;
-  font-size: 13px;
-}
 
 /* ========== 开始：里程碑详情弹窗样式 (MILESTONE_DETAIL_DIALOG_STYLES) ========== */
 .milestone-detail-content {
@@ -4337,6 +4770,225 @@ const calculateRemainingDays = (dateStr) => {
   line-height: 1.6;
 }
 /* ========== 结束：跳过弹窗样式 (SKIP_DIALOG_STYLES) ========== */
+
+/* ========== 开始：揭榜申请相关样式 (BIDDING_APPLICATION_STYLES) ========== */
+/* 申请弹窗表单样式 */
+.form-section {
+  margin-bottom: 24px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.form-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.form-section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f274b;
+  margin: 0 0 16px 0;
+  padding-left: 12px;
+  border-left: 4px solid #409eff;
+}
+
+.form-tip {
+  color: #909399;
+  font-size: 13px;
+}
+
+/* 揭榜名单样式 */
+.bidders-list-content {
+  padding: 20px 0;
+}
+
+.application-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.application-item {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #e4e7ed;
+  transition: all 0.3s ease;
+}
+
+.application-item:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border-color: #409eff;
+}
+
+.application-header {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 16px;
+}
+
+.team-avatar {
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.team-basic-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.team-name {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f274b;
+}
+
+.team-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 14px;
+  color: #606266;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.meta-item .el-icon {
+  color: #909399;
+}
+
+.application-details {
+  margin-top: 16px;
+}
+
+.detail-section {
+  margin-bottom: 16px;
+}
+
+.detail-section:last-child {
+  margin-bottom: 0;
+}
+
+.detail-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.detail-title .el-icon {
+  color: #409eff;
+}
+
+.skills-display {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.skill-group {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.skill-label {
+  color: #606266;
+  font-weight: 500;
+  font-size: 14px;
+  min-width: 80px;
+}
+
+.skill-value {
+  color: #303133;
+  font-size: 14px;
+}
+
+.application-text {
+  margin: 0;
+  line-height: 1.8;
+  color: #606266;
+  font-size: 14px;
+  white-space: pre-wrap;
+}
+
+.application-actions {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #f0f0f0;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* 无权限占位符样式 */
+.no-permission-placeholder {
+  text-align: center;
+  padding: 32px 20px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  border: 1px dashed #dcdfe6;
+}
+
+.lock-icon {
+  font-size: 48px;
+  color: #c0c4cc;
+  margin-bottom: 16px;
+}
+
+.placeholder-text {
+  margin: 0 0 12px 0;
+  color: #909399;
+  font-size: 14px;
+  line-height: 1.8;
+  font-family: monospace;
+  letter-spacing: 2px;
+}
+
+.permission-hint {
+  margin: 0;
+  color: #606266;
+  font-size: 13px;
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+  .application-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .team-meta {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .application-actions {
+    flex-direction: column;
+  }
+
+  .application-actions .el-button {
+    width: 100%;
+  }
+}
+/* ========== 结束：揭榜申请相关样式 (BIDDING_APPLICATION_STYLES) ========== */
 
 /* ========== 结束：项目里程碑跟踪样式 (PROJECT_MILESTONE_TRACKING_STYLES) ========== */
 

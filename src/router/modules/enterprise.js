@@ -9,12 +9,11 @@ export default [
     path: '/',
     component: () => import('@/layouts/DefaultLayout.vue'),
     children: [
-      // 注意：企业的"我的项目"和学生的"我的项目"使用不同的组件
-      // 暂时复用学生的MyProject组件，后续需要创建企业专属的MyProject组件
+      // 企业专属的"我的项目"页面
       {
         path: 'enterprise/my-projects',
         name: 'EnterpriseMyProjects',
-        component: () => import('@/views/student/MyProject/index.vue'), // TODO: 创建企业专属组件
+        component: () => import('@/views/enterprise/MyProjects.vue'),
         meta: {
           title: '我的项目',
           transition: 'fade',
@@ -50,6 +49,17 @@ export default [
         component: () => import('@/views/enterprise/ResultsCenter/index.vue'),
         meta: {
           title: '成果中心',
+          transition: 'fade',
+          requiresAuth: true,
+          role: 'enterprise'
+        }
+      },
+      {
+        path: 'enterprise/project/:id/manage',
+        name: 'EnterpriseProjectManage',
+        component: () => import('@/views/enterprise/ProjectManage.vue'),
+        meta: {
+          title: '项目管理',
           transition: 'fade',
           requiresAuth: true,
           role: 'enterprise'
