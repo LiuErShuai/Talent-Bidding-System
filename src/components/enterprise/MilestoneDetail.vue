@@ -1,5 +1,11 @@
 <template>
   <div class="milestone-detail">
+    <!-- 任务描述板块 -->
+    <div class="section task-description-section">
+      <h4 class="section-title">{{ milestone.title }}</h4>
+      <p class="task-description">{{ milestone.description }}</p>
+    </div>
+
     <!-- 任务文件栏 -->
     <div class="section task-files-section">
       <div class="section-header">
@@ -483,6 +489,23 @@ function handleSaveTaskFiles() {
 .section-title .el-icon {
   font-size: 18px;
   color: #409eff;
+}
+
+/* 任务描述板块 */
+.task-description-section {
+  padding: 16px 20px;
+}
+
+.task-description-section .section-title {
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+
+.task-description {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #606266;
 }
 
 /* 任务文件栏 */
