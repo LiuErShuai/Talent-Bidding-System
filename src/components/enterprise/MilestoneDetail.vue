@@ -2,8 +2,19 @@
   <div class="milestone-detail">
     <!-- 任务描述板块 -->
     <div class="section task-description-section">
-      <h4 class="section-title">{{ milestone.title }}</h4>
-      <p class="task-description">{{ milestone.description }}</p>
+      <div class="description-content">
+        <h4 class="section-title">{{ milestone.title }}</h4>
+        <p class="task-description">{{ milestone.description }}</p>
+      </div>
+      <div class="status-badge">
+        <el-tag
+          :type="getStatusType(milestone.status)"
+          size="large"
+          effect="plain"
+        >
+          {{ milestone.statusText }}
+        </el-tag>
+      </div>
     </div>
 
     <!-- 任务文件栏 -->
@@ -366,6 +377,17 @@ function handleApprove() {
   }).catch(() => {})
 }
 
+// 获取状态类型
+function getStatusType(status) {
+  const statusMap = {
+    'pending': 'info',
+    'in-progress': 'warning',
+    'completed': 'success',
+    'overdue': 'danger'
+  }
+  return statusMap[status] || 'info'
+}
+
 // 历史提交记录对话框
 const historyDialogVisible = ref(false)
 
@@ -493,7 +515,16 @@ function handleSaveTaskFiles() {
 
 /* 任务描述板块 */
 .task-description-section {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
   padding: 16px 20px;
+}
+
+.description-content {
+  flex: 1;
+  min-width: 0;
 }
 
 .task-description-section .section-title {
@@ -506,6 +537,12 @@ function handleSaveTaskFiles() {
   font-size: 14px;
   line-height: 1.6;
   color: #606266;
+}
+
+.status-badge {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
 }
 
 /* 任务文件栏 */
