@@ -53,8 +53,8 @@ function handleDownload() {
 }
 
 .file-icon {
-  font-size: 20px;
-  color: #409eff;
+  font-size: 14px;
+  color: #606266;
   flex-shrink: 0;
 }
 
