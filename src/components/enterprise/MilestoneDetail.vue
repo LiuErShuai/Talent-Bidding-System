@@ -5,6 +5,46 @@
       <div class="description-content">
         <h4 class="section-title">{{ milestone.title }}</h4>
         <p class="task-description">{{ milestone.description }}</p>
+
+        <!-- 交付物要求 -->
+        <div v-if="milestone.deliverables && milestone.deliverables.length" class="deliverables-list">
+          <div class="deliverables-header">
+            <h5 class="deliverables-title">交付物要求</h5>
+            <div class="deliverables-actions">
+              <el-button
+                link
+                size="small"
+                class="edit-deliverables-btn"
+                @click="handleEditDeliverables"
+              >
+                <el-icon><Edit /></el-icon>
+                <span class="edit-text">编辑</span>
+              </el-button>
+              <el-button
+                link
+                size="small"
+                class="toggle-btn"
+                @click="deliverablesExpanded = !deliverablesExpanded"
+              >
+                <el-icon class="arrow-icon" :class="{ 'expanded': deliverablesExpanded }">
+                  <ArrowRight />
+                </el-icon>
+                <span class="toggle-text">{{ deliverablesExpanded ? '收起' : '展开' }}</span>
+              </el-button>
+            </div>
+          </div>
+          <ul v-show="deliverablesExpanded" class="deliverables-items">
+            <li v-for="deliverable in milestone.deliverables" :key="deliverable.id" class="deliverable-item">
+              <div class="deliverable-info">
+                <span class="deliverable-name">{{ deliverable.name }}</span>
+                <el-tag size="small" type="info">
+                  {{ deliverable.format.join(' / ') }}
+                </el-tag>
+              </div>
+              <p class="deliverable-requirement">{{ deliverable.requirement }}</p>
+            </li>
+          </ul>
+        </div>
       </div>
       <div class="status-badge">
         <el-tag
@@ -46,7 +86,7 @@
           </el-button>
         </li>
       </ul>
-      <el-empty v-else description="暂无任务文件" :image-size="50" />
+      <el-empty v-else description="暂无任务文件" :image-size="40" />
     </div>
 
     <!-- 承接方提交记录区 -->
@@ -73,7 +113,7 @@
         />
       </div>
 
-      <el-empty v-if="!latestSubmission" description="承接方暂未提交文件" :image-size="50" />
+      <el-empty v-if="!latestSubmission" description="承接方暂未提交文件" :image-size="40" />
     </div>
 
     <!-- 意见反馈区 -->
@@ -129,7 +169,7 @@
         </div>
       </div>
 
-      <el-empty v-else description="暂无反馈意见" :image-size="50" />
+      <el-empty v-else description="暂无反馈意见" :image-size="40" />
     </div>
 
     <!-- 操作按钮区 -->
@@ -203,10 +243,11 @@
       title="编辑任务文件"
       width="800px"
       :close-on-click-modal="false"
+      top="5vh"
     >
       <div class="edit-task-files-dialog">
-        <!-- 文件列表 -->
-        <div class="files-list">
+        <!-- 已上传文件列表 -->
+        <div v-if="editTaskFilesForm.files.length > 0" class="files-list">
           <div
             v-for="(file, index) in editTaskFilesForm.files"
             :key="index"
@@ -214,17 +255,12 @@
           >
             <div class="file-item-content">
               <el-icon class="file-icon"><Document /></el-icon>
-              <div class="file-details">
-                <el-input
-                  v-model="file.name"
-                  placeholder="文件名称"
-                  class="file-name-input"
-                />
-                <el-input
-                  v-model="file.description"
-                  placeholder="文件描述（选填）"
-                  class="file-desc-input"
-                />
+              <div class="file-info-text">
+                <div class="file-name">{{ file.name }}</div>
+                <div class="file-meta">
+                  <span class="file-size">{{ file.size }}</span>
+                  <span class="file-time">{{ file.uploadTime }}</span>
+                </div>
               </div>
             </div>
             <div class="file-item-actions">
@@ -240,21 +276,27 @@
           </div>
         </div>
 
-        <!-- 添加文件按钮 -->
-        <el-button
-          type="primary"
-          plain
-          @click="handleAddFile"
-          class="add-file-btn"
+        <!-- 空状态 -->
+        <el-empty v-else description="暂无任务文件" :image-size="60" />
+
+        <!-- 文件上传 -->
+        <el-upload
+          ref="uploadRef"
+          :auto-upload="false"
+          :on-change="handleFileChange"
+          :show-file-list="false"
+          multiple
+          class="upload-area"
         >
-          <el-icon><Plus /></el-icon>
-          添加文件
-        </el-button>
+          <el-button type="primary" plain class="upload-btn">
+            <el-icon><Plus /></el-icon>
+            上传文件
+          </el-button>
+        </el-upload>
 
         <!-- 上传提示 -->
         <div class="upload-tips">
           <el-alert
-            title="提示"
             type="info"
             :closable="false"
             show-icon
@@ -272,6 +314,83 @@
         <el-button type="primary" @click="handleSaveTaskFiles">保存</el-button>
       </template>
     </el-dialog>
+
+    <!-- 编辑交付物要求对话框 -->
+    <el-dialog
+      v-model="editDeliverablesVisible"
+      title="编辑交付物要求"
+      width="800px"
+      :close-on-click-modal="false"
+      top="5vh"
+    >
+      <div class="edit-deliverables-dialog">
+        <!-- 交付物列表 -->
+        <div class="deliverables-edit-list">
+          <div
+            v-for="(deliverable, index) in editDeliverablesForm.deliverables"
+            :key="index"
+            class="deliverable-edit-item"
+          >
+            <div class="deliverable-edit-header">
+              <span class="deliverable-index">交付物 {{ index + 1 }}</span>
+              <el-button
+                link
+                type="danger"
+                size="small"
+                @click="handleRemoveDeliverable(index)"
+              >
+                <el-icon><Delete /></el-icon>
+                删除
+              </el-button>
+            </div>
+            <div class="deliverable-edit-content">
+              <div class="form-row">
+                <label class="form-label required">交付物名称</label>
+                <el-input
+                  v-model="deliverable.name"
+                  placeholder="请输入交付物名称"
+                  class="form-input"
+                />
+              </div>
+              <div class="form-row">
+                <label class="form-label required">支持格式</label>
+                <el-input
+                  v-model="deliverable.formatStr"
+                  placeholder="例如：PDF / Word / Excel"
+                  class="form-input"
+                />
+              </div>
+              <div class="form-row">
+                <label class="form-label required">具体要求</label>
+                <el-input
+                  v-model="deliverable.requirement"
+                  type="textarea"
+                  :rows="2"
+                  placeholder="请输入具体要求"
+                  class="form-input"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 添加交付物按钮 -->
+        <el-button
+          type="primary"
+          plain
+          @click="handleAddDeliverable"
+          class="add-deliverable-btn"
+        >
+          <el-icon><Plus /></el-icon>
+          添加交付物
+        </el-button>
+      </div>
+
+      <template #footer>
+        <el-button @click="editDeliverablesVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleSaveDeliverables">保存</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -286,7 +405,9 @@ import {
   FolderOpened,
   Download,
   Delete,
-  Plus
+  Plus,
+  Edit,
+  ArrowRight
 } from '@element-plus/icons-vue'
 import SubmissionItem from './SubmissionItem.vue'
 
@@ -302,6 +423,9 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['refresh'])
+
+// 交付物要求展开/收起状态
+const deliverablesExpanded = ref(false)
 
 // 是否可以编辑（已完成的不可编辑）
 const canEdit = computed(() => {
@@ -412,33 +536,74 @@ const editTaskFilesVisible = ref(false)
 const editTaskFilesForm = reactive({
   files: []
 })
+const uploadRef = ref(null)
 
 function handleEditTaskFiles() {
   // 初始化表单数据，复制当前任务文件列表
   editTaskFilesForm.files = props.milestone.taskFiles?.map(file => ({
     id: file.id,
     name: file.name,
-    description: file.description || '',
     size: file.size,
     type: file.type,
     uploadTime: file.uploadTime,
-    uploader: file.uploader
+    uploader: file.uploader,
+    url: file.url // 保存文件URL用于下载
   })) || []
 
   editTaskFilesVisible.value = true
 }
 
-// 添加文件
-function handleAddFile() {
+// 处理文件选择
+function handleFileChange(file, fileList) {
+  // 验证文件大小（500MB）
+  const maxSize = 500 * 1024 * 1024
+  if (file.size > maxSize) {
+    ElMessage.warning(`文件 ${file.name} 超过 500MB 限制`)
+    return
+  }
+
+  // 添加到文件列表
   editTaskFilesForm.files.push({
-    id: `new-${Date.now()}`,
-    name: '',
-    description: '',
-    size: '',
-    type: 'PDF',
+    id: `new-${Date.now()}-${Math.random()}`,
+    name: file.name,
+    size: formatFileSize(file.size),
+    type: getFileType(file.name),
     uploadTime: new Date().toISOString().slice(0, 16).replace('T', ' '),
-    uploader: 'XX科技有限公司'
+    uploader: 'XX科技有限公司',
+    rawFile: file.raw // 保存原始文件对象用于上传
   })
+
+  ElMessage.success(`已添加文件：${file.name}`)
+}
+
+// 格式化文件大小
+function formatFileSize(bytes) {
+  if (bytes === 0) return '0 B'
+  const k = 1024
+  const sizes = ['B', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i]
+}
+
+// 获取文件类型
+function getFileType(fileName) {
+  const ext = fileName.split('.').pop().toLowerCase()
+  const typeMap = {
+    'pdf': 'PDF',
+    'doc': 'Word',
+    'docx': 'Word',
+    'xls': 'Excel',
+    'xlsx': 'Excel',
+    'ppt': 'PPT',
+    'pptx': 'PPT',
+    'zip': 'ZIP',
+    'rar': 'RAR',
+    'jpg': '图片',
+    'jpeg': '图片',
+    'png': '图片',
+    'gif': '图片'
+  }
+  return typeMap[ext] || ext.toUpperCase()
 }
 
 // 删除文件
@@ -459,17 +624,84 @@ function handleRemoveFile(index) {
 
 // 保存任务文件
 function handleSaveTaskFiles() {
-  // 验证文件名不能为空
-  const emptyFiles = editTaskFilesForm.files.filter(file => !file.name.trim())
-  if (emptyFiles.length > 0) {
-    ElMessage.warning('请填写所有文件的名称')
+  if (editTaskFilesForm.files.length === 0) {
+    ElMessage.warning('请至少上传一个任务文件')
     return
+  }
+
+  // 这里应该调用API上传新文件
+  // 实际项目中需要使用FormData上传rawFile
+  const newFiles = editTaskFilesForm.files.filter(f => f.rawFile)
+  if (newFiles.length > 0) {
+    console.log('需要上传的新文件：', newFiles)
+    // TODO: 调用上传API
   }
 
   ElMessage.success('任务文件已保存')
   editTaskFilesVisible.value = false
   emit('refresh')
   console.log('保存任务文件：', editTaskFilesForm.files)
+}
+
+// 编辑交付物要求
+const editDeliverablesVisible = ref(false)
+const editDeliverablesForm = reactive({
+  deliverables: []
+})
+
+function handleEditDeliverables() {
+  // 初始化表单数据，复制当前交付物列表
+  editDeliverablesForm.deliverables = props.milestone.deliverables?.map(deliverable => ({
+    id: deliverable.id,
+    name: deliverable.name,
+    formatStr: deliverable.format.join(' / '),
+    requirement: deliverable.requirement
+  })) || []
+
+  editDeliverablesVisible.value = true
+}
+
+// 添加交付物
+function handleAddDeliverable() {
+  editDeliverablesForm.deliverables.push({
+    id: `new-${Date.now()}`,
+    name: '',
+    formatStr: '',
+    requirement: ''
+  })
+}
+
+// 删除交付物
+function handleRemoveDeliverable(index) {
+  ElMessageBox.confirm(
+    '确认删除该交付物吗？',
+    '确认删除',
+    {
+      confirmButtonText: '确认',
+      cancelButtonText: '取消',
+      type: 'warning'
+    }
+  ).then(() => {
+    editDeliverablesForm.deliverables.splice(index, 1)
+    ElMessage.success('已删除')
+  }).catch(() => {})
+}
+
+// 保存交付物要求
+function handleSaveDeliverables() {
+  // 验证必填字段
+  const emptyDeliverables = editDeliverablesForm.deliverables.filter(
+    d => !d.name.trim() || !d.formatStr.trim() || !d.requirement.trim()
+  )
+  if (emptyDeliverables.length > 0) {
+    ElMessage.warning('请填写所有交付物的必填信息')
+    return
+  }
+
+  ElMessage.success('交付物要求已保存')
+  editDeliverablesVisible.value = false
+  emit('refresh')
+  console.log('保存交付物要求：', editDeliverablesForm.deliverables)
 }
 </script>
 
@@ -528,13 +760,122 @@ function handleSaveTaskFiles() {
 }
 
 .task-description-section .section-title {
-  font-size: 18px;
+  font-size: 20px;
   margin-bottom: 8px;
 }
 
 .task-description {
-  margin: 0;
+  margin: 0 0 16px 0;
   font-size: 14px;
+  line-height: 1.6;
+  color: #606266;
+}
+
+/* 交付物要求 */
+.deliverables-list {
+  margin-top: 16px;
+}
+
+.deliverables-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  min-height: 24px;
+}
+
+.deliverables-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #303133;
+  line-height: 1.5;
+}
+
+.deliverables-actions {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.edit-deliverables-btn {
+  color: #606266;
+  padding: 0;
+  height: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  line-height: 1.5;
+}
+
+.edit-deliverables-btn:hover {
+  color: #303133;
+}
+
+.edit-text {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.toggle-btn {
+  color: #606266;
+  padding: 0;
+  height: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  line-height: 1.5;
+}
+
+.toggle-btn:hover {
+  color: #303133;
+}
+
+.toggle-text {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.arrow-icon {
+  font-size: 15px;
+  transition: transform 0.3s ease;
+}
+
+.arrow-icon.expanded {
+  transform: rotate(90deg);
+}
+
+.deliverables-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.deliverable-item {
+  background: #f5f7fb;
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.deliverable-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.deliverable-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.deliverable-requirement {
+  margin: 0;
+  font-size: 13px;
   line-height: 1.6;
   color: #606266;
 }
@@ -721,36 +1062,43 @@ function handleSaveTaskFiles() {
 
 /* 空状态样式优化 */
 .section :deep(.el-empty) {
-  padding: 12px 0;
-  min-height: 80px;
+  padding: 8px 0;
+  min-height: 60px;
 }
 
 .section :deep(.el-empty__description) {
-  margin-top: 6px;
+  margin-top: 4px;
   font-size: 13px;
+}
+
+.section :deep(.el-empty__image) {
+  margin-bottom: 4px;
 }
 
 /* 编辑任务文件对话框 */
 .edit-task-files-dialog {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
+  max-height: calc(90vh - 200px);
+  overflow: hidden;
 }
 
 .files-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  max-height: 400px;
+  max-height: calc(90vh - 380px);
   overflow-y: auto;
   padding-right: 8px;
 }
 
 .file-item {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
+  justify-content: space-between;
   gap: 12px;
-  padding: 16px;
+  padding: 12px 16px;
   background: #f5f7fb;
   border-radius: 8px;
   border: 1px solid #e4e7ed;
@@ -765,32 +1113,38 @@ function handleSaveTaskFiles() {
 .file-item-content {
   flex: 1;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 12px;
   min-width: 0;
 }
 
 .file-item .file-icon {
-  font-size: 32px;
+  font-size: 28px;
   color: #409eff;
   flex-shrink: 0;
-  margin-top: 4px;
 }
 
-.file-details {
+.file-info-text {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
   min-width: 0;
 }
 
-.file-name-input {
-  width: 100%;
+.file-info-text .file-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #303133;
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.file-desc-input {
-  width: 100%;
+.file-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  color: #909399;
 }
 
 .file-item-actions {
@@ -799,18 +1153,116 @@ function handleSaveTaskFiles() {
   align-items: center;
 }
 
-.add-file-btn {
+.upload-area {
+  flex-shrink: 0;
+}
+
+.upload-btn {
   width: 100%;
 }
 
 .upload-tips {
-  margin-top: 8px;
+  margin-top: 0;
+  flex-shrink: 0;
 }
 
 .upload-tips :deep(.el-alert__content) {
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+.edit-task-files-dialog :deep(.el-empty) {
+  padding: 16px 0;
+  min-height: 100px;
+}
+
+/* 编辑交付物对话框 */
+.edit-deliverables-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: calc(90vh - 200px);
+  overflow: hidden;
+}
+
+.deliverables-edit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: calc(90vh - 280px);
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.deliverable-edit-item {
+  padding: 16px;
+  background: #f5f7fb;
+  border-radius: 8px;
+  border: 1px solid #e4e7ed;
+}
+
+.deliverable-edit-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e4e7ed;
+}
+
+.deliverable-index {
+  font-size: 15px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.deliverable-edit-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.form-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.form-label {
+  flex-shrink: 0;
+  width: 90px;
+  line-height: 32px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #303133;
+  text-align: right;
+  padding-right: 12px;
+}
+
+.form-label.required::before {
+  content: '*';
+  color: #f56c6c;
+  margin-right: 4px;
+}
+
+.form-row .form-label {
+  padding-top: 0;
+}
+
+.form-row:has(textarea) .form-label {
+  line-height: 32px;
+  padding-top: 0;
+}
+
+.form-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.add-deliverable-btn {
+  width: 100%;
+  flex-shrink: 0;
 }
 
 /* 响应式 */
