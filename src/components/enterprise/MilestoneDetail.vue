@@ -18,6 +18,7 @@
                 @click="handleEditDeliverables"
               >
                 <el-icon><Edit /></el-icon>
+                <span class="edit-text">编辑</span>
               </el-button>
               <el-button
                 link
@@ -616,15 +617,21 @@ function handleEditDeliverables() {
 }
 
 .edit-deliverables-btn {
-  font-size: 15px;
   color: #606266;
   padding: 0;
   height: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
   line-height: 1;
 }
 
 .edit-deliverables-btn:hover {
   color: #303133;
+}
+
+.edit-text {
+  font-size: 13px;
 }
 
 .toggle-btn {
