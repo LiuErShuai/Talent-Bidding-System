@@ -595,7 +595,7 @@ function handleEditDeliverables() {
 .deliverables-header {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   margin-bottom: 12px;
 }
 
@@ -607,7 +607,7 @@ function handleEditDeliverables() {
 }
 
 .edit-deliverables-btn {
-  font-size: 14px;
+  font-size: 15px;
   color: #606266;
   padding: 0;
   height: auto;
@@ -618,7 +618,7 @@ function handleEditDeliverables() {
 }
 
 .toggle-btn {
-  font-size: 13px;
+  font-size: 15px;
   color: #606266;
   padding: 0;
   height: auto;
@@ -632,7 +632,7 @@ function handleEditDeliverables() {
 }
 
 .arrow-icon {
-  font-size: 14px;
+  font-size: 15px;
   transition: transform 0.3s ease;
 }
 
