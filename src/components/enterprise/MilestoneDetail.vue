@@ -5,6 +5,22 @@
       <div class="description-content">
         <h4 class="section-title">{{ milestone.title }}</h4>
         <p class="task-description">{{ milestone.description }}</p>
+
+        <!-- 交付物要求 -->
+        <div v-if="milestone.deliverables && milestone.deliverables.length" class="deliverables-list">
+          <h5 class="deliverables-title">交付物要求</h5>
+          <ul class="deliverables-items">
+            <li v-for="deliverable in milestone.deliverables" :key="deliverable.id" class="deliverable-item">
+              <div class="deliverable-info">
+                <span class="deliverable-name">{{ deliverable.name }}</span>
+                <el-tag size="small" type="info">
+                  {{ deliverable.format.join(' / ') }}
+                </el-tag>
+              </div>
+              <p class="deliverable-requirement">{{ deliverable.requirement }}</p>
+            </li>
+          </ul>
+        </div>
       </div>
       <div class="status-badge">
         <el-tag
@@ -533,8 +549,55 @@ function handleSaveTaskFiles() {
 }
 
 .task-description {
-  margin: 0;
+  margin: 0 0 16px 0;
   font-size: 14px;
+  line-height: 1.6;
+  color: #606266;
+}
+
+/* 交付物要求 */
+.deliverables-list {
+  margin-top: 16px;
+}
+
+.deliverables-title {
+  margin: 0 0 12px 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.deliverables-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.deliverable-item {
+  background: #f5f7fb;
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.deliverable-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.deliverable-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.deliverable-requirement {
+  margin: 0;
+  font-size: 13px;
   line-height: 1.6;
   color: #606266;
 }
