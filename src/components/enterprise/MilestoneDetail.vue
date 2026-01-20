@@ -10,25 +10,27 @@
         <div v-if="milestone.deliverables && milestone.deliverables.length" class="deliverables-list">
           <div class="deliverables-header">
             <h5 class="deliverables-title">交付物要求</h5>
-            <el-button
-              link
-              size="small"
-              class="edit-deliverables-btn"
-              @click="handleEditDeliverables"
-            >
-              <el-icon><Edit /></el-icon>
-            </el-button>
-            <el-button
-              link
-              size="small"
-              class="toggle-btn"
-              @click="deliverablesExpanded = !deliverablesExpanded"
-            >
-              <el-icon class="arrow-icon" :class="{ 'expanded': deliverablesExpanded }">
-                <ArrowRight />
-              </el-icon>
-              {{ deliverablesExpanded ? '收起' : '展开' }}
-            </el-button>
+            <div class="deliverables-actions">
+              <el-button
+                link
+                size="small"
+                class="edit-deliverables-btn"
+                @click="handleEditDeliverables"
+              >
+                <el-icon><Edit /></el-icon>
+              </el-button>
+              <el-button
+                link
+                size="small"
+                class="toggle-btn"
+                @click="deliverablesExpanded = !deliverablesExpanded"
+              >
+                <el-icon class="arrow-icon" :class="{ 'expanded': deliverablesExpanded }">
+                  <ArrowRight />
+                </el-icon>
+                <span class="toggle-text">{{ deliverablesExpanded ? '收起' : '展开' }}</span>
+              </el-button>
+            </div>
           </div>
           <ul v-show="deliverablesExpanded" class="deliverables-items">
             <li v-for="deliverable in milestone.deliverables" :key="deliverable.id" class="deliverable-item">
@@ -607,6 +609,12 @@ function handleEditDeliverables() {
   line-height: 1;
 }
 
+.deliverables-actions {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
 .edit-deliverables-btn {
   font-size: 15px;
   color: #606266;
@@ -620,7 +628,6 @@ function handleEditDeliverables() {
 }
 
 .toggle-btn {
-  font-size: 15px;
   color: #606266;
   padding: 0;
   height: auto;
@@ -632,6 +639,10 @@ function handleEditDeliverables() {
 
 .toggle-btn:hover {
   color: #303133;
+}
+
+.toggle-text {
+  font-size: 13px;
 }
 
 .arrow-icon {
