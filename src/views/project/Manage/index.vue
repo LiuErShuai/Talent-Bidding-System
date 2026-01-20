@@ -1,12 +1,10 @@
 <template>
   <div class="project-manage-root">
-    <!-- ========== 面包屑导航 ========== -->
-    <el-breadcrumb separator=">" class="breadcrumb-nav">
-      <el-breadcrumb-item :to="{ path: '/home' }">首页</el-breadcrumb-item>
-      <el-breadcrumb-item :to="{ path: '/my-projects' }">我的项目</el-breadcrumb-item>
-      <el-breadcrumb-item>我承接的</el-breadcrumb-item>
-      <el-breadcrumb-item>项目管理</el-breadcrumb-item>
-    </el-breadcrumb>
+    <!-- ========== 自定义导航栏 ========== -->
+    <project-manage-header
+      :breadcrumb-items="breadcrumbItems"
+      :unread-count="0"
+    />
 
     <!-- ========== 加载状态 ========== -->
     <div v-if="loading" class="loading-container">
@@ -215,6 +213,7 @@ import { ElMessage } from 'element-plus'
 import { Loading, UploadFilled, Download } from '@element-plus/icons-vue'
 
 // 组件导入
+import ProjectManageHeader from '@/components/layout/ProjectManageHeader.vue'
 import ProjectOverview from '@/components/ProjectOverview.vue'
 import QuickActionPanel from '@/components/QuickActionPanel.vue'
 import MilestoneTimeline from '@/components/MilestoneTimeline.vue'
@@ -233,6 +232,14 @@ const project = ref(null)
 const milestones = ref([])
 const timelineEvents = ref([])
 const reviewHistory = ref([])
+
+// 面包屑导航数据
+const breadcrumbItems = computed(() => [
+  { title: '首页', path: '/home' },
+  { title: '我的项目', path: '/my-projects' },
+  { title: '我承接的', path: null },
+  { title: '项目管理', path: null }
+])
 
 // 折叠面板状态 - 默认收起
 const activeCollapse = ref([])
@@ -462,25 +469,11 @@ function handleGuideAction({ milestone, action }) {
 
 <style scoped>
 .project-manage-root {
-  min-height: calc(100vh - 90px); /* 减去导航栏高度 */
+  min-height: 100vh;
   background: #f5f7fb;
-  padding: 24px 24px 24px 24px; /* 保持左右和底部padding，顶部不需要额外padding */
+  padding: 84px 24px 24px; /* 顶部留出固定 Header 的空间（60px + 24px） */
   max-width: 1400px;
   margin: 0 auto;
-}
-
-/* 面包屑导航 */
-.breadcrumb-nav {
-  margin-bottom: 20px;
-}
-
-.breadcrumb-nav :deep(.el-breadcrumb__inner) {
-  color: #1890ff;
-  font-weight: 400;
-}
-
-.breadcrumb-nav :deep(.el-breadcrumb__inner:hover) {
-  color: #40a9ff;
 }
 
 /* 加载状态 */

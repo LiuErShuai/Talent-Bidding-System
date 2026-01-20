@@ -20,8 +20,14 @@
         <template v-else>
           <UserPanel :user-info="userInfo" :user-role="userRole" :quick-actions="quickActions" />
           <div class="header-extra-links">
-            <span class="header-link" @click="goUserProfile">个人中心</span>
-            <span class="header-link" @click="goMessages">消息</span>
+            <span class="header-link" @click="goUserProfile">
+              <el-icon><User /></el-icon>
+              个人中心
+            </span>
+            <span class="header-link" @click="goMessages">
+              <el-icon><Bell /></el-icon>
+              消息
+            </span>
           </div>
         </template>
       </div>
@@ -40,6 +46,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/store/modules/auth'
 import { ElMessage } from 'element-plus'
+import { User, Bell } from '@element-plus/icons-vue'
 import UserPanel from './UserPanel.vue'
 import AuthDialog from '@/components/auth/AuthDialog.vue'
 
@@ -384,6 +391,9 @@ onUnmounted(() => {
 }
 
 .header-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 14px;
   font-weight: 400;
   color: #5a6486;

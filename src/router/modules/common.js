@@ -42,7 +42,9 @@ export default [
         meta: {
           title: '项目管理',
           transition: 'fade',
-          requiresAuth: true
+          requiresAuth: true,
+          hideHeader: true, // 隐藏默认导航栏，使用自定义导航栏
+          hideFooter: true  // 隐藏页脚
         }
       },
       {

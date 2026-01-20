@@ -15,7 +15,7 @@ export const mockProjectManageData = {
     startDate: '2025-11-01',
     endDate: '2025-12-31',
     category: '人工智能',
-    publisher: 'XX科技有限公司',
+    publisher: '桂林电子科技大学科技有限公司',
     description: '为平台构建基于NLP的智能客服系统，提高客户服务效率和满意度。',
     members: [
       {
@@ -39,63 +39,114 @@ export const mockProjectManageData = {
         role: '后端开发',
         skills: ['Java', 'Spring', 'MySQL']
       }
-    ]
+    ],
+    // 揭榜征集统计信息
+    biddingStats: {
+      totalApplications: 4,
+      approvedApplications: 2,
+      pendingApplications: 1,
+      selectedTeam: '创新科技团队'
+    }
   },
+
+  // 揭榜团队申请列表
+  biddingApplications: [
+    {
+      id: 'app-001',
+      teamName: '创新科技团队',
+      leader: '张三',
+      memberCount: 5,
+      contact: '13800138000',
+      applyTime: '2025-11-01 10:30',
+      description: '我们是一支经验丰富的AI开发团队，曾参与多个智能客服项目的开发，对NLP技术有深入研究。团队成员来自计算机科学专业，具备扎实的技术功底。',
+      status: 'selected',
+      detailFiles: [
+        { id: 'f1', name: '团队介绍.pdf', size: '2.3 MB', uploadTime: '2025-11-02 09:00' },
+        { id: 'f2', name: '身份认证.pdf', size: '1.5 MB', uploadTime: '2025-11-02 09:05' },
+        { id: 'f3', name: '技术方案.pdf', size: '4.2 MB', uploadTime: '2025-11-02 09:10' }
+      ],
+      reviewHistory: [
+        {
+          id: 'r1',
+          time: '2025-11-02 14:00',
+          action: 'approved',
+          actionText: '审核通过',
+          comment: '团队资质符合要求，技术方案完善'
+        },
+        {
+          id: 'r2',
+          time: '2025-11-03 10:00',
+          action: 'selected',
+          actionText: '选为中标团队',
+          comment: '技术方案完善，团队经验丰富，综合评分最高'
+        }
+      ]
+    },
+    {
+      id: 'app-002',
+      teamName: '智能开发小组',
+      leader: '李四',
+      memberCount: 4,
+      contact: '13900139000',
+      applyTime: '2025-11-01 11:20',
+      description: '我们团队专注于人工智能领域，有丰富的机器学习和深度学习项目经验。',
+      status: 'approved',
+      detailFiles: [
+        { id: 'f4', name: '团队介绍.pdf', size: '1.8 MB', uploadTime: '2025-11-02 14:00' },
+        { id: 'f5', name: '技术方案.pdf', size: '3.5 MB', uploadTime: '2025-11-02 14:10' }
+      ],
+      reviewHistory: [
+        {
+          id: 'r3',
+          time: '2025-11-02 15:30',
+          action: 'approved',
+          actionText: '审核通过',
+          comment: '团队经验丰富，符合项目要求'
+        }
+      ]
+    },
+    {
+      id: 'app-003',
+      teamName: '未来科技工作室',
+      leader: '王五',
+      memberCount: 3,
+      contact: '13700137000',
+      applyTime: '2025-11-01 14:50',
+      description: '我们是一支年轻但充满活力的团队，虽然经验不多，但学习能力强，愿意接受挑战。',
+      status: 'submitted',
+      detailFiles: [
+        { id: 'f6', name: '团队介绍.pdf', size: '1.2 MB', uploadTime: '2025-11-02 10:00' },
+        { id: 'f7', name: '技术方案.pdf', size: '2.8 MB', uploadTime: '2025-11-02 10:05' }
+      ],
+      reviewHistory: []
+    },
+    {
+      id: 'app-004',
+      teamName: '测试团队',
+      leader: '赵六',
+      memberCount: 2,
+      contact: '13600136000',
+      applyTime: '2025-11-01 16:00',
+      description: '测试申请',
+      status: 'rejected',
+      detailFiles: [
+        { id: 'f8', name: '团队介绍.pdf', size: '800 KB', uploadTime: '2025-11-02 11:00' }
+      ],
+      reviewHistory: [
+        {
+          id: 'r4',
+          time: '2025-11-02 16:30',
+          action: 'rejected',
+          actionText: '拒绝申请',
+          comment: '团队人数不足，经验不符合要求'
+        }
+      ]
+    }
+  ],
 
   // 里程碑列表（按时间顺序）
   milestones: [
-    // ========== 里程碑 1：揭榜征集（已完成） ==========
-    {
-      id: 'milestone-bidding',
-      code: 'BIDDING',
-      title: '揭榜征集',
-      description: '学生查看并提交揭榜申请，企业/学校审核申请人资格，确定承接方',
-      status: 'completed',
-      statusText: '已完成',
-      plannedDate: '2025-11-05',
-      actualDate: '2025-11-04',
-      delayDays: -1, // 负数表示提前完成
-      deliverables: [
-        {
-          id: 1,
-          name: '揭榜申请表',
-          type: 'document',
-          format: ['PDF'],
-          requirement: '填写完整的揭榜申请表，包含个人信息、项目理解和技术背景'
-        }
-      ],
-      submissions: [
-        {
-          id: 1,
-          version: 1,
-          deliverableId: 1,
-          fileName: '揭榜申请-张三.pdf',
-          fileSize: '1.2 MB',
-          uploadTime: '2025-11-03 14:20',
-          uploader: '张三',
-          versionNote: '初次申请，附带个人简历和项目经验说明',
-          description: '这是我的揭榜申请材料，包含了我的技术背景和项目经验，希望能够获得这个项目的承接机会。',
-          status: 'approved',
-          reviewResult: {
-            reviewer: 'XX科技有限公司',
-            reviewTime: '2025-11-04 10:00',
-            action: 'approved',
-            comment: '申请资料完整，技术背景符合要求，团队配置合理，批准揭榜。',
-            rating: 5
-          }
-        }
-      ],
-      feedbacks: [],
-      progressDetail: {
-        percentage: 100,
-        completedDeliverables: 1,
-        totalDeliverables: 1,
-        status: 'success',
-        note: '已完成 1/1 项交付物'
-      }
-    },
-
-    // ========== 里程碑 2：方案提交（进行中） ==========
+    // ========== 里程碑 1：方案提交（进行中） ==========
     {
       id: 'milestone-proposal',
       code: 'PROPOSAL',
@@ -120,6 +171,35 @@ export const mockProjectManageData = {
           type: 'document',
           format: ['Excel', 'Project', 'PDF'],
           requirement: '详细到周级别的任务分解，标注关键里程碑节点和负责人'
+        }
+      ],
+      taskFiles: [
+        {
+          id: 'task-file-3',
+          name: '技术方案编写指南.pdf',
+          type: 'PDF',
+          size: '1.8 MB',
+          uploadTime: '2025-11-06 10:00',
+          uploader: 'XX科技有限公司',
+          description: '技术方案文档的编写规范和要求，包含章节结构、内容要点和评分标准'
+        },
+        {
+          id: 'task-file-4',
+          name: 'AI客服系统参考架构图.png',
+          type: 'PNG',
+          size: '523 KB',
+          uploadTime: '2025-11-06 10:10',
+          uploader: 'XX科技有限公司',
+          description: '企业内部现有系统的架构图，可作为设计参考'
+        },
+        {
+          id: 'task-file-5',
+          name: '接口规范文档.pdf',
+          type: 'PDF',
+          size: '1.2 MB',
+          uploadTime: '2025-11-06 10:15',
+          uploader: 'XX科技有限公司',
+          description: '企业方要求的接口设计规范，包含RESTful API规范、数据格式和认证方式'
         }
       ],
       submissions: [
@@ -167,22 +247,13 @@ export const mockProjectManageData = {
       feedbacks: [
         {
           id: 1,
-          publisher: 'XX科技有限公司',
-          time: '2025-11-18 16:00',
-          content: '技术方案文档整体质量不错，架构设计思路清晰。但仍有一些需要完善的地方。',
-          suggestions: [
-            '技术选型部分需要补充更详细的对比分析，包括至少3种备选方案的优劣势对比',
-            '数据库设计需要增加ER图和索引设计说明',
-            '风险评估部分需要更具体，建议补充应对措施和备用方案',
-            '接口设计需要增加错误码规范和异常处理流程'
-          ]
+          time: '2025-11-16 09:30',
+          content: '技术方案文档整体质量不错，架构设计思路清晰。但仍有一些需要完善的地方：\n\n1. 技术选型部分需要补充更详细的对比分析，建议列出至少3种备选方案的优劣势对比，包括性能、成本、学习曲线等维度。\n\n2. 数据库设计需要增加ER图和索引设计说明，特别是对于高频查询的表需要详细说明索引策略。\n\n3. 风险评估部分需要更具体，建议补充应对措施和备用方案。例如：如果NLP模型训练效果不理想，是否有备选的预训练模型？\n\n4. 接口设计需要增加错误码规范和异常处理流程，确保系统的健壮性。\n\n5. 建议补充系统的可扩展性设计，考虑未来用户量增长的情况。\n\n请在下一版本中完善以上内容，期待看到更完整的技术方案。'
         },
         {
           id: 2,
-          publisher: 'XX科技有限公司',
-          time: '2025-11-25 10:30',
-          content: '经审核，技术方案文档已按要求完善，各项内容详尽准确，符合项目要求。',
-          suggestions: []
+          time: '2025-11-18 16:00',
+          content: '经审核，技术方案文档已按要求完善，各项内容详尽准确，符合项目要求。技术路线清晰，风险评估全面，架构设计合理。同意进入下一阶段。'
         }
       ],
       progressDetail: {
@@ -211,7 +282,36 @@ export const mockProjectManageData = {
           name: '项目合作协议（签字版）',
           type: 'document',
           format: ['PDF'],
-          requirement: '双方签字盖章的正式协议扫描件'
+          requirement: '双方签字盖章的正式协议扫描件，需包含项目范围、交付标准、付款方式、知识产权归属等条款'
+        }
+      ],
+      taskFiles: [
+        {
+          id: 'task-file-6',
+          name: '项目合作协议模板.pdf',
+          type: 'PDF',
+          size: '856 KB',
+          uploadTime: '2025-11-20 09:00',
+          uploader: 'XX科技有限公司',
+          description: '标准项目合作协议模板，包含必要条款和签署说明，请按模板填写相关信息后打印签字盖章'
+        },
+        {
+          id: 'task-file-7',
+          name: '协议签署指南.pdf',
+          type: 'PDF',
+          size: '623 KB',
+          uploadTime: '2025-11-20 09:05',
+          uploader: 'XX科技有限公司',
+          description: '协议签署流程说明，包含填写要求、签字盖章位置、扫描上传规范等'
+        },
+        {
+          id: 'task-file-8',
+          name: '知识产权归属说明.pdf',
+          type: 'PDF',
+          size: '445 KB',
+          uploadTime: '2025-11-20 09:10',
+          uploader: 'XX科技有限公司',
+          description: '项目成果知识产权归属的详细说明，明确双方权益和使用范围'
         }
       ],
       feedbacks: [],
@@ -242,7 +342,7 @@ export const mockProjectManageData = {
           name: '中期进度报告',
           type: 'document',
           format: ['PDF', 'Word'],
-          requirement: '包含已完成功能、遇到的问题、解决方案和下阶段计划'
+          requirement: '包含已完成功能、遇到的问题、解决方案和下阶段计划，不少于8页'
         },
         {
           id: 6,
@@ -257,6 +357,44 @@ export const mockProjectManageData = {
           type: 'document',
           format: ['PPT', 'PPTX', 'PDF'],
           requirement: '10-15页，包含项目背景、技术方案、实现进展和效果展示'
+        }
+      ],
+      taskFiles: [
+        {
+          id: 'task-file-9',
+          name: '中期答辩评审标准.pdf',
+          type: 'PDF',
+          size: '1.1 MB',
+          uploadTime: '2025-12-01 10:00',
+          uploader: 'XX科技有限公司',
+          description: '中期答辩的评审标准和评分细则，包含技术实现、进度管理、团队协作等维度'
+        },
+        {
+          id: 'task-file-10',
+          name: '中期报告模板.docx',
+          type: 'Word',
+          size: '234 KB',
+          uploadTime: '2025-12-01 10:05',
+          uploader: 'XX科技有限公司',
+          description: '中期进度报告的标准模板，包含必填章节和内容要求'
+        },
+        {
+          id: 'task-file-11',
+          name: '答辩PPT参考模板.pptx',
+          type: 'PPT',
+          size: '3.2 MB',
+          uploadTime: '2025-12-01 10:10',
+          uploader: 'XX科技有限公司',
+          description: '答辩PPT的参考模板，包含推荐的页面结构和设计风格'
+        },
+        {
+          id: 'task-file-12',
+          name: '答辩注意事项.pdf',
+          type: 'PDF',
+          size: '567 KB',
+          uploadTime: '2025-12-01 10:15',
+          uploader: 'XX科技有限公司',
+          description: '答辩流程说明、时间安排、常见问题和注意事项'
         }
       ],
       feedbacks: [],
@@ -287,28 +425,75 @@ export const mockProjectManageData = {
           name: '完整源代码包',
           type: 'archive',
           format: ['ZIP', 'RAR'],
-          requirement: '包含前后端完整代码，需有详细的README和环境配置说明'
+          requirement: '包含前后端完整代码，需有详细的README和环境配置说明，代码需有适当注释'
         },
         {
           id: 9,
           name: '系统部署文档',
           type: 'document',
           format: ['PDF', 'Word', 'Markdown'],
-          requirement: '详细的部署步骤、环境要求和常见问题解决方案'
+          requirement: '详细的部署步骤、环境要求和常见问题解决方案，不少于5页'
         },
         {
           id: 10,
           name: '用户使用手册',
           type: 'document',
           format: ['PDF', 'Word'],
-          requirement: '图文并茂的使用说明，面向最终用户'
+          requirement: '图文并茂的使用说明，面向最终用户，不少于10页'
         },
         {
           id: 11,
           name: '项目演示视频',
           type: 'video',
           format: ['MP4', 'AVI'],
-          requirement: '5-10分钟，展示系统主要功能和操作流程'
+          requirement: '5-10分钟，展示系统主要功能和操作流程，需配字幕或语音讲解'
+        }
+      ],
+      taskFiles: [
+        {
+          id: 'task-file-13',
+          name: '成果验收标准.pdf',
+          type: 'PDF',
+          size: '1.5 MB',
+          uploadTime: '2025-12-15 09:00',
+          uploader: 'XX科技有限公司',
+          description: '项目成果的验收标准和评分细则，包含功能完整性、代码质量、文档规范等维度'
+        },
+        {
+          id: 'task-file-14',
+          name: '代码规范要求.pdf',
+          type: 'PDF',
+          size: '892 KB',
+          uploadTime: '2025-12-15 09:05',
+          uploader: 'XX科技有限公司',
+          description: '代码编写规范、注释要求、目录结构规范等，确保代码可维护性'
+        },
+        {
+          id: 'task-file-15',
+          name: '部署文档模板.docx',
+          type: 'Word',
+          size: '156 KB',
+          uploadTime: '2025-12-15 09:10',
+          uploader: 'XX科技有限公司',
+          description: '系统部署文档的标准模板，包含必填章节和格式要求'
+        },
+        {
+          id: 'task-file-16',
+          name: '用户手册模板.docx',
+          type: 'Word',
+          size: '234 KB',
+          uploadTime: '2025-12-15 09:15',
+          uploader: 'XX科技有限公司',
+          description: '用户使用手册的标准模板，包含推荐的章节结构和示例'
+        },
+        {
+          id: 'task-file-17',
+          name: '演示视频制作指南.pdf',
+          type: 'PDF',
+          size: '678 KB',
+          uploadTime: '2025-12-15 09:20',
+          uploader: 'XX科技有限公司',
+          description: '演示视频的制作要求、推荐工具、录制技巧和注意事项'
         }
       ],
       feedbacks: [],
