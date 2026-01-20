@@ -8,8 +8,18 @@
 
         <!-- 交付物要求 -->
         <div v-if="milestone.deliverables && milestone.deliverables.length" class="deliverables-list">
-          <h5 class="deliverables-title">交付物要求</h5>
-          <ul class="deliverables-items">
+          <div class="deliverables-header">
+            <h5 class="deliverables-title">交付物要求</h5>
+            <el-button
+              link
+              size="small"
+              class="toggle-btn"
+              @click="deliverablesExpanded = !deliverablesExpanded"
+            >
+              {{ deliverablesExpanded ? '收起' : '展开' }}
+            </el-button>
+          </div>
+          <ul v-show="deliverablesExpanded" class="deliverables-items">
             <li v-for="deliverable in milestone.deliverables" :key="deliverable.id" class="deliverable-item">
               <div class="deliverable-info">
                 <span class="deliverable-name">{{ deliverable.name }}</span>
@@ -319,6 +329,9 @@ const props = defineProps({
 
 const emit = defineEmits(['refresh'])
 
+// 交付物要求展开/收起状态
+const deliverablesExpanded = ref(false)
+
 // 是否可以编辑（已完成的不可编辑）
 const canEdit = computed(() => {
   return props.milestone.status !== 'completed'
@@ -560,10 +573,28 @@ function handleSaveTaskFiles() {
   margin-top: 16px;
 }
 
+.deliverables-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
 .deliverables-title {
-  margin: 0 0 12px 0;
+  margin: 0;
   font-size: 15px;
   font-weight: 600;
+  color: #303133;
+}
+
+.toggle-btn {
+  font-size: 13px;
+  color: #606266;
+  padding: 0;
+  height: auto;
+}
+
+.toggle-btn:hover {
   color: #303133;
 }
 
