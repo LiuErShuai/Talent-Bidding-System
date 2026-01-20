@@ -312,6 +312,76 @@
         <el-button type="primary" @click="handleSaveTaskFiles">保存</el-button>
       </template>
     </el-dialog>
+
+    <!-- 编辑交付物要求对话框 -->
+    <el-dialog
+      v-model="editDeliverablesVisible"
+      title="编辑交付物要求"
+      width="800px"
+      :close-on-click-modal="false"
+    >
+      <div class="edit-deliverables-dialog">
+        <!-- 交付物列表 -->
+        <div class="deliverables-edit-list">
+          <div
+            v-for="(deliverable, index) in editDeliverablesForm.deliverables"
+            :key="index"
+            class="deliverable-edit-item"
+          >
+            <div class="deliverable-edit-header">
+              <span class="deliverable-index">交付物 {{ index + 1 }}</span>
+              <el-button
+                link
+                type="danger"
+                size="small"
+                @click="handleRemoveDeliverable(index)"
+              >
+                <el-icon><Delete /></el-icon>
+                删除
+              </el-button>
+            </div>
+            <div class="deliverable-edit-content">
+              <el-form-item label="交付物名称" required>
+                <el-input
+                  v-model="deliverable.name"
+                  placeholder="请输入交付物名称"
+                />
+              </el-form-item>
+              <el-form-item label="支持格式" required>
+                <el-input
+                  v-model="deliverable.formatStr"
+                  placeholder="例如：PDF / Word / Excel"
+                />
+              </el-form-item>
+              <el-form-item label="具体要求" required>
+                <el-input
+                  v-model="deliverable.requirement"
+                  type="textarea"
+                  :rows="3"
+                  placeholder="请输入具体要求"
+                />
+              </el-form-item>
+            </div>
+          </div>
+        </div>
+
+        <!-- 添加交付物按钮 -->
+        <el-button
+          type="primary"
+          plain
+          @click="handleAddDeliverable"
+          class="add-deliverable-btn"
+        >
+          <el-icon><Plus /></el-icon>
+          添加交付物
+        </el-button>
+      </div>
+
+      <template #footer>
+        <el-button @click="editDeliverablesVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleSaveDeliverables">保存</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -518,9 +588,64 @@ function handleSaveTaskFiles() {
 }
 
 // 编辑交付物要求
+const editDeliverablesVisible = ref(false)
+const editDeliverablesForm = reactive({
+  deliverables: []
+})
+
 function handleEditDeliverables() {
-  ElMessage.info('编辑交付物要求功能开发中...')
-  console.log('编辑交付物要求')
+  // 初始化表单数据，复制当前交付物列表
+  editDeliverablesForm.deliverables = props.milestone.deliverables?.map(deliverable => ({
+    id: deliverable.id,
+    name: deliverable.name,
+    formatStr: deliverable.format.join(' / '),
+    requirement: deliverable.requirement
+  })) || []
+
+  editDeliverablesVisible.value = true
+}
+
+// 添加交付物
+function handleAddDeliverable() {
+  editDeliverablesForm.deliverables.push({
+    id: `new-${Date.now()}`,
+    name: '',
+    formatStr: '',
+    requirement: ''
+  })
+}
+
+// 删除交付物
+function handleRemoveDeliverable(index) {
+  ElMessageBox.confirm(
+    '确认删除该交付物吗？',
+    '确认删除',
+    {
+      confirmButtonText: '确认',
+      cancelButtonText: '取消',
+      type: 'warning'
+    }
+  ).then(() => {
+    editDeliverablesForm.deliverables.splice(index, 1)
+    ElMessage.success('已删除')
+  }).catch(() => {})
+}
+
+// 保存交付物要求
+function handleSaveDeliverables() {
+  // 验证必填字段
+  const emptyDeliverables = editDeliverablesForm.deliverables.filter(
+    d => !d.name.trim() || !d.formatStr.trim() || !d.requirement.trim()
+  )
+  if (emptyDeliverables.length > 0) {
+    ElMessage.warning('请填写所有交付物的必填信息')
+    return
+  }
+
+  ElMessage.success('交付物要求已保存')
+  editDeliverablesVisible.value = false
+  emit('refresh')
+  console.log('保存交付物要求：', editDeliverablesForm.deliverables)
 }
 </script>
 
@@ -971,6 +1096,63 @@ function handleEditDeliverables() {
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+/* 编辑交付物对话框 */
+.edit-deliverables-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.deliverables-edit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: 500px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.deliverable-edit-item {
+  padding: 16px;
+  background: #f5f7fb;
+  border-radius: 8px;
+  border: 1px solid #e4e7ed;
+}
+
+.deliverable-edit-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e4e7ed;
+}
+
+.deliverable-index {
+  font-size: 15px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.deliverable-edit-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.deliverable-edit-content :deep(.el-form-item) {
+  margin-bottom: 0;
+}
+
+.deliverable-edit-content :deep(.el-form-item__label) {
+  font-weight: 600;
+  color: #303133;
+}
+
+.add-deliverable-btn {
+  width: 100%;
 }
 
 /* 响应式 */
