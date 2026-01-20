@@ -2,10 +2,11 @@
   <div class="milestone-detail">
     <!-- 任务文件栏 -->
     <div class="section task-files-section">
-      <h4 class="section-title">
-        <el-icon><FolderOpened /></el-icon>
-        任务文件
-      </h4>
+      <div class="section-header">
+        <h4 class="section-title">
+          任务文件
+        </h4>
+      </div>
 
       <ul v-if="milestone.taskFiles && milestone.taskFiles.length" class="task-files-list">
         <li v-for="file in milestone.taskFiles" :key="file.id" class="task-file-item">
@@ -20,15 +21,25 @@
           </el-button>
         </li>
       </ul>
-      <el-empty v-else description="暂无任务文件" :image-size="80" />
+      <el-empty v-else description="暂无任务文件" :image-size="60" />
     </div>
 
     <!-- 承接方提交记录区 -->
     <div class="section submissions-section">
-      <h4 class="section-title">
-        <el-icon><Files /></el-icon>
-        承接方提交记录
-      </h4>
+      <div class="section-header">
+        <h4 class="section-title">
+          承接方提交记录
+        </h4>
+        <el-button
+          v-if="historySubmissions.length > 0"
+          type="primary"
+          plain
+          size="small"
+          @click="handleViewHistory"
+        >
+          查看历史提交
+        </el-button>
+      </div>
 
       <div v-if="latestSubmission" class="latest-submission">
         <submission-item
@@ -37,43 +48,16 @@
         />
       </div>
 
-      <!-- 历史版本（折叠） -->
-      <el-collapse v-if="historySubmissions.length > 0" class="history-collapse">
-        <el-collapse-item>
-          <template #title>
-            <span class="collapse-title">历史版本 ({{ historySubmissions.length }})</span>
-          </template>
-          <div class="history-submissions">
-            <submission-item
-              v-for="sub in historySubmissions"
-              :key="sub.id"
-              :submission="sub"
-              @download="handleDownload"
-            />
-          </div>
-        </el-collapse-item>
-      </el-collapse>
-
-      <el-empty v-if="!latestSubmission" description="承接方暂未提交文件" :image-size="80" />
+      <el-empty v-if="!latestSubmission" description="承接方暂未提交文件" :image-size="60" />
     </div>
 
-    <!-- 发布方反馈区 -->
+    <!-- 意见反馈区 -->
     <div class="section feedback-section">
-      <h4 class="section-title">
-        <el-icon><ChatDotRound /></el-icon>
-        发布方反馈
-      </h4>
-
-      <!-- 添加新反馈按钮 -->
-      <el-button
-        v-if="canEdit"
-        type="primary"
-        class="add-feedback-btn"
-        @click="handleAddFeedback"
-      >
-        <el-icon><Plus /></el-icon>
-        添加反馈
-      </el-button>
+      <div class="section-header">
+        <h4 class="section-title">
+          意见反馈
+        </h4>
+      </div>
 
       <!-- 历史反馈列表 -->
       <div v-if="milestone.feedbacks && milestone.feedbacks.length" class="feedbacks-list">
@@ -82,25 +66,45 @@
           :key="feedback.id"
           class="feedback-item"
         >
-          <div class="feedback-header">
-            <span class="feedback-publisher">{{ feedback.publisher }}</span>
+          <!-- 缩略状态 -->
+          <div v-if="!expandedFeedbacks[feedback.id]" class="feedback-collapsed">
+            <span class="feedback-label">反馈内容：</span>
+            <span class="feedback-text-collapsed">{{ feedback.content }}</span>
             <span class="feedback-time">{{ feedback.time }}</span>
+            <el-button
+              link
+              type="primary"
+              size="small"
+              @click="toggleFeedback(feedback.id)"
+              class="expand-btn"
+            >
+              展开
+            </el-button>
           </div>
-          <div class="feedback-content">
-            {{ feedback.content }}
-            <div v-if="feedback.suggestions && feedback.suggestions.length > 0" class="suggestions-inline">
-              <div class="suggestion-title">修改建议：</div>
-              <ul class="suggestion-list">
-                <li v-for="(suggestion, index) in feedback.suggestions" :key="index" class="suggestion-item">
-                  {{ suggestion }}
-                </li>
-              </ul>
+
+          <!-- 展开状态 -->
+          <div v-else class="feedback-expanded">
+            <!-- 第一行：标签 + 时间 + 收起按钮 -->
+            <div class="feedback-expanded-header">
+              <span class="feedback-label">反馈内容：</span>
+              <span class="feedback-time">{{ feedback.time }}</span>
+              <el-button
+                link
+                type="primary"
+                size="small"
+                @click="toggleFeedback(feedback.id)"
+                class="collapse-btn"
+              >
+                收起
+              </el-button>
             </div>
+            <!-- 反馈内容文本 -->
+            <div class="feedback-text-full">{{ feedback.content }}</div>
           </div>
         </div>
       </div>
 
-      <el-empty v-else description="暂无反馈意见" :image-size="80" />
+      <el-empty v-else description="暂无反馈意见" :image-size="60" />
     </div>
 
     <!-- 操作按钮区 -->
@@ -114,152 +118,58 @@
         通过节点
       </el-button>
       <el-button
-        type="danger"
+        type="warning"
         size="large"
-        @click="handleReject"
+        @click="handleFeedback"
       >
-        <el-icon><Close /></el-icon>
-        驳回
+        <el-icon><ChatDotRound /></el-icon>
+        反馈意见
       </el-button>
     </div>
 
-    <!-- 编辑交付物对话框 -->
+    <!-- 反馈意见对话框 -->
     <el-dialog
-      v-model="editDeliverablesVisible"
-      title="编辑交付物要求"
-      width="700px"
-      :close-on-click-modal="false"
-    >
-      <el-form :model="deliverablesForm" label-width="100px">
-        <div
-          v-for="(item, index) in deliverablesForm.items"
-          :key="index"
-          class="deliverable-form-item"
-        >
-          <div class="form-item-header">
-            <span class="item-number">交付物 {{ index + 1 }}</span>
-            <el-button
-              type="danger"
-              size="small"
-              text
-              @click="removeDeliverable(index)"
-            >
-              <el-icon><Delete /></el-icon>
-              删除
-            </el-button>
-          </div>
-
-          <el-form-item label="名称" required>
-            <el-input v-model="item.name" placeholder="请输入交付物名称" />
-          </el-form-item>
-
-          <el-form-item label="格式" required>
-            <el-input v-model="item.format" placeholder="例如：PDF / Word / Excel" />
-          </el-form-item>
-
-          <el-form-item label="要求说明" required>
-            <el-input
-              v-model="item.requirement"
-              type="textarea"
-              :rows="3"
-              placeholder="请详细描述交付物的具体要求"
-            />
-          </el-form-item>
-        </div>
-
-        <el-button type="primary" text @click="addDeliverable">
-          <el-icon><Plus /></el-icon>
-          添加交付物
-        </el-button>
-      </el-form>
-
-      <template #footer>
-        <el-button @click="editDeliverablesVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSaveDeliverables">保存</el-button>
-      </template>
-    </el-dialog>
-
-    <!-- 添加反馈对话框 -->
-    <el-dialog
-      v-model="addFeedbackVisible"
-      title="添加反馈意见"
+      v-model="feedbackVisible"
+      title="反馈意见"
       width="600px"
       :close-on-click-modal="false"
     >
-      <el-form :model="feedbackForm" label-width="100px">
-        <el-form-item label="反馈内容" required>
+      <el-form :model="feedbackForm">
+        <el-form-item required>
+          <template #label>
+            <div style="margin-bottom: 8px;">反馈及修改意见</div>
+          </template>
           <el-input
             v-model="feedbackForm.content"
             type="textarea"
-            :rows="4"
-            placeholder="请输入反馈意见..."
-            maxlength="500"
+            :rows="8"
+            placeholder="请输入反馈及修改意见..."
+            maxlength="1000"
             show-word-limit
           />
         </el-form-item>
-
-        <el-form-item label="修改建议">
-          <el-checkbox v-model="feedbackForm.hasSuggestions">需要修改</el-checkbox>
-        </el-form-item>
-
-        <div v-if="feedbackForm.hasSuggestions" class="suggestions-input">
-          <div
-            v-for="(suggestion, index) in feedbackForm.suggestions"
-            :key="index"
-            class="suggestion-input-item"
-          >
-            <el-input
-              v-model="feedbackForm.suggestions[index]"
-              placeholder="请输入修改建议"
-            >
-              <template #append>
-                <el-button
-                  type="danger"
-                  text
-                  @click="removeSuggestion(index)"
-                >
-                  <el-icon><Delete /></el-icon>
-                </el-button>
-              </template>
-            </el-input>
-          </div>
-          <el-button type="primary" text @click="addSuggestion">
-            <el-icon><Plus /></el-icon>
-            添加建议
-          </el-button>
-        </div>
       </el-form>
 
       <template #footer>
-        <el-button @click="addFeedbackVisible = false">取消</el-button>
+        <el-button @click="feedbackVisible = false">取消</el-button>
         <el-button type="primary" @click="handleSubmitFeedback">提交反馈</el-button>
       </template>
     </el-dialog>
 
-    <!-- 驳回对话框 -->
+    <!-- 历史提交记录对话框 -->
     <el-dialog
-      v-model="rejectVisible"
-      title="驳回里程碑"
-      width="500px"
-      :close-on-click-modal="false"
+      v-model="historyDialogVisible"
+      title="历史提交记录"
+      width="700px"
     >
-      <el-form :model="rejectForm" label-width="100px">
-        <el-form-item label="驳回原因" required>
-          <el-input
-            v-model="rejectForm.reason"
-            type="textarea"
-            :rows="4"
-            placeholder="请输入驳回原因..."
-            maxlength="500"
-            show-word-limit
-          />
-        </el-form-item>
-      </el-form>
-
-      <template #footer>
-        <el-button @click="rejectVisible = false">取消</el-button>
-        <el-button type="danger" @click="handleConfirmReject">确认驳回</el-button>
-      </template>
+      <div class="history-submissions-dialog">
+        <submission-item
+          v-for="sub in historySubmissions"
+          :key="sub.id"
+          :submission="sub"
+          @download="handleDownload"
+        />
+      </div>
     </el-dialog>
   </div>
 </template>
@@ -271,10 +181,7 @@ import {
   Document,
   Files,
   ChatDotRound,
-  Plus,
   Check,
-  Close,
-  Delete,
   FolderOpened,
   Download
 } from '@element-plus/icons-vue'
@@ -322,69 +229,22 @@ const sortedFeedbacks = computed(() => {
   })
 })
 
-// 编辑交付物对话框
-const editDeliverablesVisible = ref(false)
-const deliverablesForm = reactive({
-  items: []
-})
+// 反馈展开/收起状态
+const expandedFeedbacks = ref({})
 
-function handleEditDeliverables() {
-  // 复制当前交付物数据
-  deliverablesForm.items = props.milestone.deliverables.map(d => ({
-    name: d.name,
-    format: d.format.join(' / '),
-    requirement: d.requirement
-  }))
-  editDeliverablesVisible.value = true
+function toggleFeedback(feedbackId) {
+  expandedFeedbacks.value[feedbackId] = !expandedFeedbacks.value[feedbackId]
 }
 
-function addDeliverable() {
-  deliverablesForm.items.push({
-    name: '',
-    format: '',
-    requirement: ''
-  })
-}
-
-function removeDeliverable(index) {
-  deliverablesForm.items.splice(index, 1)
-}
-
-function handleSaveDeliverables() {
-  // 验证
-  for (const item of deliverablesForm.items) {
-    if (!item.name || !item.format || !item.requirement) {
-      ElMessage.warning('请填写完整的交付物信息')
-      return
-    }
-  }
-
-  ElMessage.success('交付物要求已更新')
-  editDeliverablesVisible.value = false
-  emit('refresh')
-}
-
-// 添加反馈对话框
-const addFeedbackVisible = ref(false)
+// 反馈意见对话框
+const feedbackVisible = ref(false)
 const feedbackForm = reactive({
-  content: '',
-  hasSuggestions: false,
-  suggestions: []
+  content: ''
 })
 
-function handleAddFeedback() {
+function handleFeedback() {
   feedbackForm.content = ''
-  feedbackForm.hasSuggestions = false
-  feedbackForm.suggestions = []
-  addFeedbackVisible.value = true
-}
-
-function addSuggestion() {
-  feedbackForm.suggestions.push('')
-}
-
-function removeSuggestion(index) {
-  feedbackForm.suggestions.splice(index, 1)
+  feedbackVisible.value = true
 }
 
 function handleSubmitFeedback() {
@@ -393,17 +253,12 @@ function handleSubmitFeedback() {
     return
   }
 
-  if (feedbackForm.hasSuggestions && feedbackForm.suggestions.length === 0) {
-    ElMessage.warning('请至少添加一条修改建议')
-    return
-  }
-
   ElMessage.success('反馈已提交')
-  addFeedbackVisible.value = false
+  feedbackVisible.value = false
   emit('refresh')
 }
 
-// 通过节点
+// 历史提交记录对话框
 function handleApprove() {
   ElMessageBox.confirm(
     '确认通过该里程碑节点吗？通过后将自动开启下一个里程碑。',
@@ -419,26 +274,11 @@ function handleApprove() {
   }).catch(() => {})
 }
 
-// 驳回节点
-const rejectVisible = ref(false)
-const rejectForm = reactive({
-  reason: ''
-})
+// 历史提交记录对话框
+const historyDialogVisible = ref(false)
 
-function handleReject() {
-  rejectForm.reason = ''
-  rejectVisible.value = true
-}
-
-function handleConfirmReject() {
-  if (!rejectForm.reason) {
-    ElMessage.warning('请输入驳回原因')
-    return
-  }
-
-  ElMessage.success('已驳回，承接方需重新提交')
-  rejectVisible.value = false
-  emit('refresh')
+function handleViewHistory() {
+  historyDialogVisible.value = true
 }
 
 // 下载文件
@@ -464,8 +304,8 @@ function handleDownloadTaskFile(file) {
   background: #fff;
   border: 1px solid #e4e7ed;
   border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 20px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
 }
 
 .section:last-child {
@@ -476,15 +316,15 @@ function handleDownloadTaskFile(file) {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .section-title {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin: 0 0 16px 0;
-  font-size: 16px;
+  margin: 0;
+  font-size: 20px;
   font-weight: 600;
   color: #303133;
 }
@@ -537,8 +377,8 @@ function handleDownloadTaskFile(file) {
 
 .file-name {
   flex: 1;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 400;
   color: #303133;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -553,121 +393,109 @@ function handleDownloadTaskFile(file) {
 
 /* 提交记录 */
 .latest-submission {
-  margin-bottom: 16px;
+  margin-bottom: 0;
 }
 
-.history-collapse {
-  border: none;
-  background: transparent;
+.submissions-section .latest-submission {
+  margin-top: 0;
 }
 
-.history-collapse :deep(.el-collapse-item__header) {
-  background: #f5f7fb;
-  padding: 12px 16px;
-  border-radius: 6px;
-  border: none;
-  font-weight: 500;
-}
-
-.history-collapse :deep(.el-collapse-item__wrap) {
-  border: none;
-  background: transparent;
-}
-
-.history-collapse :deep(.el-collapse-item__content) {
-  padding: 12px 0 0 0;
-}
-
-.collapse-title {
-  font-size: 14px;
-  color: #606266;
-}
-
-.history-submissions {
+.history-submissions-dialog {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  height: 500px;
+  overflow-y: auto;
 }
 
 /* 反馈列表 */
-.add-feedback-btn {
-  margin-bottom: 16px;
-  width: 100%;
-}
-
 .feedbacks-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  margin-top: 0;
 }
 
 .feedback-item {
   background: #f5f7fb;
   border-radius: 6px;
-  padding: 12px 16px;
+  padding: 16px;
 }
 
-.feedback-header {
+/* 缩略状态 */
+.feedback-collapsed {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  gap: 8px;
 }
 
-.feedback-publisher {
+.feedback-label {
   font-weight: 600;
   color: #303133;
   font-size: 14px;
+  flex-shrink: 0;
+}
+
+.feedback-text-collapsed {
+  flex: 1;
+  font-size: 13px;
+  color: #606266;
+  line-height: 1.6;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .feedback-time {
   font-size: 12px;
   color: #909399;
+  flex-shrink: 0;
+  margin-left: 8px;
 }
 
-.feedback-content {
+.expand-btn {
+  flex-shrink: 0;
+  padding: 0;
+  height: auto;
+  font-size: 12px;
+  margin-left: 4px;
+}
+
+/* 展开状态 */
+.feedback-expanded {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.feedback-expanded-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.feedback-expanded-header .feedback-label {
+  flex-shrink: 0;
+}
+
+.feedback-expanded-header .feedback-time {
+  flex: 1;
+  text-align: right;
+  margin-left: auto;
+}
+
+.feedback-expanded-header .collapse-btn {
+  flex-shrink: 0;
+  margin-left: 4px;
+}
+
+.feedback-text-full {
   font-size: 13px;
   color: #606266;
   line-height: 1.6;
-}
-
-.suggestions-inline {
-  margin-top: 8px;
-  padding-top: 8px;
-  border-top: 1px dashed #dcdfe6;
-}
-
-.suggestion-title {
-  font-weight: 600;
-  color: #303133;
-  margin-bottom: 6px;
-  font-size: 13px;
-}
-
-.suggestion-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.suggestion-item {
-  font-size: 13px;
-  color: #606266;
-  line-height: 1.5;
-  position: relative;
-  padding-left: 16px;
-  margin-bottom: 4px;
-}
-
-.suggestion-item:before {
-  content: '•';
-  color: #909399;
-  position: absolute;
-  left: 0;
-}
-
-.suggestion-item:last-child {
-  margin-bottom: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  padding-left: 0;
 }
 
 /* 操作按钮区 */
@@ -680,32 +508,13 @@ function handleDownloadTaskFile(file) {
   border-radius: 8px;
 }
 
-/* 对话框内表单 */
-.deliverable-form-item {
-  padding: 16px;
-  background: #f5f7fb;
-  border-radius: 8px;
-  margin-bottom: 16px;
+/* 空状态样式优化 */
+.section :deep(.el-empty) {
+  padding: 20px 0;
 }
 
-.form-item-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.item-number {
-  font-weight: 600;
-  color: #303133;
-}
-
-.suggestions-input {
-  margin-top: 12px;
-}
-
-.suggestion-input-item {
-  margin-bottom: 12px;
+.section :deep(.el-empty__description) {
+  margin-top: 8px;
 }
 
 /* 响应式 */
