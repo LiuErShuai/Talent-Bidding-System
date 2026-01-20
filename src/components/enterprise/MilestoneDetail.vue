@@ -13,9 +13,20 @@
             <el-button
               link
               size="small"
+              class="edit-deliverables-btn"
+              @click="handleEditDeliverables"
+            >
+              <el-icon><Edit /></el-icon>
+            </el-button>
+            <el-button
+              link
+              size="small"
               class="toggle-btn"
               @click="deliverablesExpanded = !deliverablesExpanded"
             >
+              <el-icon class="arrow-icon" :class="{ 'expanded': deliverablesExpanded }">
+                <ArrowRight />
+              </el-icon>
               {{ deliverablesExpanded ? '收起' : '展开' }}
             </el-button>
           </div>
@@ -312,7 +323,9 @@ import {
   FolderOpened,
   Download,
   Delete,
-  Plus
+  Plus,
+  Edit,
+  ArrowRight
 } from '@element-plus/icons-vue'
 import SubmissionItem from './SubmissionItem.vue'
 
@@ -500,6 +513,12 @@ function handleSaveTaskFiles() {
   emit('refresh')
   console.log('保存任务文件：', editTaskFilesForm.files)
 }
+
+// 编辑交付物要求
+function handleEditDeliverables() {
+  ElMessage.info('编辑交付物要求功能开发中...')
+  console.log('编辑交付物要求')
+}
 </script>
 
 <style scoped>
@@ -587,15 +606,39 @@ function handleSaveTaskFiles() {
   color: #303133;
 }
 
+.edit-deliverables-btn {
+  font-size: 14px;
+  color: #606266;
+  padding: 0;
+  height: auto;
+  margin-left: auto;
+}
+
+.edit-deliverables-btn:hover {
+  color: #303133;
+}
+
 .toggle-btn {
   font-size: 13px;
   color: #606266;
   padding: 0;
   height: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .toggle-btn:hover {
   color: #303133;
+}
+
+.arrow-icon {
+  font-size: 14px;
+  transition: transform 0.3s ease;
+}
+
+.arrow-icon.expanded {
+  transform: rotate(90deg);
 }
 
 .deliverables-items {
