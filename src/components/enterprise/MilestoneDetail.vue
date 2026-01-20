@@ -380,10 +380,10 @@ function handleApprove() {
 // 获取状态类型
 function getStatusType(status) {
   const statusMap = {
-    'pending': 'info',
-    'in-progress': 'warning',
-    'completed': 'success',
-    'overdue': 'danger'
+    'pending': 'info',        // 待开始 - 灰色
+    'in-progress': 'primary', // 进行中 - 蓝色
+    'completed': 'success',   // 已完成 - 绿色
+    'overdue': 'danger'       // 已逾期 - 红色
   }
   return statusMap[status] || 'info'
 }
