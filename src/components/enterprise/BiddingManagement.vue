@@ -54,130 +54,146 @@
     <!-- 团队申请列表 -->
     <div class="applications-list">
       <el-card v-for="app in filteredApplications" :key="app.id" class="application-card">
-        <div class="application-header">
-          <div class="team-info">
+        <!-- 团队概要信息（一行显示） -->
+        <div class="application-summary">
+          <div class="summary-left">
             <h3 class="team-name">{{ app.teamName }}</h3>
             <el-tag :type="getStatusTagType(app.status)" size="small">
               {{ getStatusText(app.status) }}
             </el-tag>
+            <span class="summary-info">负责人：{{ app.leader }}</span>
+            <span class="summary-info">团队人数：{{ app.memberCount }}人</span>
+            <span class="summary-info">申请时间：{{ app.applyTime }}</span>
           </div>
-          <div class="header-actions">
-            <span class="application-time">申请时间：{{ app.applyTime }}</span>
-            <el-button
-              link
-              @click="toggleCardExpand(app.id)"
-              class="expand-btn"
-            >
-              <el-icon>
-                <component :is="expandedCards[app.id] ? 'ArrowUp' : 'ArrowDown'" />
-              </el-icon>
+          <div class="summary-right">
+            <el-button type="primary" plain @click="handleViewTeamDetail(app)">
+              查看详情
             </el-button>
           </div>
         </div>
+      </el-card>
 
-        <el-collapse-transition>
-          <div v-show="expandedCards[app.id]" class="application-body">
-          <!-- 团队基本信息 -->
-          <div class="info-section">
+      <!-- 空状态 -->
+      <el-empty v-if="filteredApplications.length === 0" description="暂无申请团队" />
+    </div>
+
+    <!-- 团队详情弹窗 -->
+    <el-dialog
+      v-model="teamDetailDialogVisible"
+      :title="currentTeam?.teamName"
+      width="800px"
+      class="team-detail-dialog"
+    >
+      <div v-if="currentTeam" class="team-detail-content">
+        <!-- 团队基本信息 -->
+        <div class="detail-section">
+          <div class="section-title">团队基本信息</div>
+          <div class="info-grid">
             <div class="info-item">
               <span class="label">团队负责人：</span>
-              <span class="value">{{ app.leader }}</span>
+              <span class="value">{{ currentTeam.leader }}</span>
             </div>
             <div class="info-item">
               <span class="label">团队人数：</span>
-              <span class="value">{{ app.memberCount }} 人</span>
+              <span class="value">{{ currentTeam.memberCount }} 人</span>
             </div>
             <div class="info-item">
               <span class="label">联系方式：</span>
-              <span class="value">{{ app.contact }}</span>
+              <span class="value">{{ currentTeam.contact }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">申请时间：</span>
+              <span class="value">{{ currentTeam.applyTime }}</span>
             </div>
           </div>
+        </div>
 
-          <!-- 申请说明 -->
-          <div class="description-section">
-            <div class="section-title">申请说明</div>
-            <div class="description-text">{{ app.description }}</div>
+        <!-- 申请说明 -->
+        <div class="detail-section">
+          <div class="section-title">申请说明</div>
+          <div class="description-text">{{ currentTeam.description }}</div>
+        </div>
+
+        <!-- 详细资料 -->
+        <div v-if="currentTeam.detailFiles && currentTeam.detailFiles.length > 0" class="detail-section">
+          <div class="section-title">详细资料</div>
+          <div class="file-list">
+            <div v-for="file in currentTeam.detailFiles" :key="file.id" class="file-item">
+              <el-icon><Document /></el-icon>
+              <span class="file-name">{{ file.name }}</span>
+              <span class="file-size">{{ file.size }}</span>
+              <el-button link type="primary" @click="handleDownloadFile(file)">
+                <el-icon><Download /></el-icon>
+                下载
+              </el-button>
+            </div>
           </div>
+        </div>
 
-          <!-- 详细资料（如果已提交） -->
-          <div v-if="app.detailFiles && app.detailFiles.length > 0" class="detail-files-section">
-            <div class="section-title">详细资料</div>
-            <div class="file-list">
-              <div v-for="file in app.detailFiles" :key="file.id" class="file-item">
-                <el-icon><Document /></el-icon>
-                <span class="file-name">{{ file.name }}</span>
-                <span class="file-size">{{ file.size }}</span>
-                <el-button link type="primary" @click="handleDownloadFile(file)">
-                  <el-icon><Download /></el-icon>
-                  下载
+        <!-- 审核记录 -->
+        <div v-if="currentTeam.reviewHistory && currentTeam.reviewHistory.length > 0" class="detail-section">
+          <div class="section-title">审核记录</div>
+          <el-timeline>
+            <el-timeline-item
+              v-for="record in currentTeam.reviewHistory"
+              :key="record.id"
+              :timestamp="record.time"
+              :type="record.action === 'approved' || record.action === 'selected' ? 'success' : 'danger'"
+            >
+              <div class="review-record">
+                <div class="review-action">{{ record.actionText }}</div>
+                <div class="review-comment">{{ record.comment }}</div>
+              </div>
+            </el-timeline-item>
+          </el-timeline>
+        </div>
+
+        <!-- 操作按钮 -->
+        <div class="detail-actions">
+          <!-- 待审核状态 -->
+          <template v-if="currentTeam.status === 'submitted'">
+            <div class="action-with-note">
+              <el-input
+                v-model="actionNote"
+                type="textarea"
+                :rows="2"
+                placeholder="请输入备注信息（选填）"
+                class="action-note-input"
+              />
+              <div class="action-buttons">
+                <el-button type="success" @click="handleApproveWithNote(currentTeam)">
+                  <el-icon><Select /></el-icon>
+                  审核通过
+                </el-button>
+                <el-button type="danger" @click="handleRejectWithNote(currentTeam)">
+                  <el-icon><Close /></el-icon>
+                  拒绝申请
                 </el-button>
               </div>
             </div>
-          </div>
-
-          <!-- 审核记录 -->
-          <div v-if="app.reviewHistory && app.reviewHistory.length > 0" class="review-history-section">
-            <div class="section-title-with-toggle">
-              <div class="section-title">审核记录</div>
-              <el-button
-                link
-                size="small"
-                @click="toggleReviewHistory(app.id)"
-              >
-                {{ expandedReviews[app.id] ? '收起' : '展开' }}
-              </el-button>
-            </div>
-            <el-collapse-transition>
-              <el-timeline v-show="expandedReviews[app.id]">
-                <el-timeline-item
-                  v-for="record in app.reviewHistory"
-                  :key="record.id"
-                  :timestamp="record.time"
-                  :type="record.action === 'approved' ? 'success' : 'danger'"
-                >
-                  <div class="review-record">
-                    <div class="review-action">{{ record.actionText }}</div>
-                    <div class="review-comment">{{ record.comment }}</div>
-                  </div>
-                </el-timeline-item>
-              </el-timeline>
-            </el-collapse-transition>
-          </div>
-        </div>
-        </el-collapse-transition>
-
-        <!-- 操作按钮 -->
-        <div class="application-footer">
-          <!-- 待审核状态（已提交详细资料） -->
-          <template v-if="app.status === 'submitted'">
-            <el-button type="success" @click="handleApprove(app)">
-              <el-icon><Select /></el-icon>
-              审核通过
-            </el-button>
-            <el-button type="danger" @click="handleReject(app)">
-              <el-icon><Close /></el-icon>
-              拒绝申请
-            </el-button>
-            <el-button @click="handleViewDetail(app)">
-              <el-icon><View /></el-icon>
-              查看详细资料
-            </el-button>
           </template>
 
           <!-- 审核通过状态 -->
-          <template v-if="app.status === 'approved'">
-            <el-button type="success" @click="handleSelectTeam(app)">
-              <el-icon><Trophy /></el-icon>
-              选为中标团队
-            </el-button>
-            <el-button @click="handleViewDetail(app)">
-              <el-icon><View /></el-icon>
-              查看详细资料
-            </el-button>
+          <template v-if="currentTeam.status === 'approved'">
+            <div class="action-with-note">
+              <el-input
+                v-model="actionNote"
+                type="textarea"
+                :rows="2"
+                placeholder="请输入备注信息（选填）"
+                class="action-note-input"
+              />
+              <div class="action-buttons">
+                <el-button type="success" @click="handleSelectTeamWithNote(currentTeam)">
+                  <el-icon><Trophy /></el-icon>
+                  选为中标团队
+                </el-button>
+              </div>
+            </div>
           </template>
 
           <!-- 已中标状态 -->
-          <template v-if="app.status === 'selected'">
+          <template v-if="currentTeam.status === 'selected'">
             <el-tag type="success" size="large">
               <el-icon><Trophy /></el-icon>
               中标团队
@@ -185,15 +201,12 @@
           </template>
 
           <!-- 已拒绝状态 -->
-          <template v-if="app.status === 'rejected'">
+          <template v-if="currentTeam.status === 'rejected'">
             <el-tag type="info" size="large">已拒绝</el-tag>
           </template>
         </div>
-      </el-card>
-
-      <!-- 空状态 -->
-      <el-empty v-if="filteredApplications.length === 0" description="暂无申请团队" />
-    </div>
+      </div>
+    </el-dialog>
 
     <!-- 审核对话框 -->
     <el-dialog v-model="reviewDialogVisible" :title="reviewDialogTitle" width="600px">
@@ -226,9 +239,7 @@ import {
   Document,
   Download,
   Close,
-  View,
-  ArrowUp,
-  ArrowDown
+  View
 } from '@element-plus/icons-vue'
 
 const props = defineProps({
@@ -238,17 +249,10 @@ const props = defineProps({
   }
 })
 
-// 展开/折叠状态
-const expandedCards = ref({})
-const expandedReviews = ref({})
-
-// 初始化所有卡片为展开状态
-const initializeExpandedStates = () => {
-  applications.value.forEach(app => {
-    expandedCards.value[app.id] = true
-    expandedReviews.value[app.id] = false
-  })
-}
+// 团队详情弹窗状态
+const teamDetailDialogVisible = ref(false)
+const currentTeam = ref(null)
+const actionNote = ref('')
 
 // 申请列表数据（从 Mock 数据获取）
 const applications = ref([
@@ -345,9 +349,6 @@ const applications = ref([
   }
 ])
 
-// 初始化展开状态
-initializeExpandedStates()
-
 // 筛选状态
 const filterStatus = ref('all')
 
@@ -376,14 +377,112 @@ const reviewForm = ref({
   applicationId: ''
 })
 
-// 切换卡片展开/折叠
-function toggleCardExpand(appId) {
-  expandedCards.value[appId] = !expandedCards.value[appId]
+// 查看团队详情
+function handleViewTeamDetail(app) {
+  currentTeam.value = app
+  actionNote.value = ''
+  teamDetailDialogVisible.value = true
 }
 
-// 切换审核记录展开/折叠
-function toggleReviewHistory(appId) {
-  expandedReviews.value[appId] = !expandedReviews.value[appId]
+// 带备注的审核通过
+function handleApproveWithNote(app) {
+  const note = actionNote.value.trim() || '审核通过'
+
+  app.status = 'approved'
+  app.reviewHistory.push({
+    id: `r${Date.now()}`,
+    time: new Date().toLocaleString('zh-CN'),
+    action: 'approved',
+    actionText: '审核通过',
+    comment: note
+  })
+
+  ElMessage.success('已审核通过')
+
+  // 更新弹窗内容
+  if (currentTeam.value && currentTeam.value.id === app.id) {
+    currentTeam.value = app
+  }
+
+  actionNote.value = ''
+}
+
+// 带备注的拒绝申请
+function handleRejectWithNote(app) {
+  const note = actionNote.value.trim()
+
+  if (!note) {
+    ElMessage.warning('拒绝申请时必须填写备注信息')
+    return
+  }
+
+  app.status = 'rejected'
+  app.reviewHistory.push({
+    id: `r${Date.now()}`,
+    time: new Date().toLocaleString('zh-CN'),
+    action: 'rejected',
+    actionText: '拒绝申请',
+    comment: note
+  })
+
+  ElMessage.success('已拒绝申请')
+
+  // 更新弹窗内容
+  if (currentTeam.value && currentTeam.value.id === app.id) {
+    currentTeam.value = app
+  }
+
+  actionNote.value = ''
+}
+
+// 带备注的选为中标团队
+function handleSelectTeamWithNote(app) {
+  // 检查是否已经存在中标团队
+  const existingSelectedTeam = applications.value.find(a => a.status === 'selected')
+
+  if (existingSelectedTeam) {
+    ElMessageBox.alert(
+      `已存在中标团队"${existingSelectedTeam.teamName}"，中标团队确定后不可更改。如需更换，请先联系管理员处理。`,
+      '无法选择',
+      {
+        confirmButtonText: '知道了',
+        type: 'warning'
+      }
+    )
+    return
+  }
+
+  const note = actionNote.value.trim() || '恭喜！您的团队已被选为中标团队'
+
+  ElMessageBox.confirm(
+    `确定选择"${app.teamName}"作为中标团队吗？选定后将无法更改。`,
+    '确认选择',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    }
+  ).then(() => {
+    // 设置当前团队为中标
+    app.status = 'selected'
+    app.reviewHistory.push({
+      id: `r${Date.now()}`,
+      time: new Date().toLocaleString('zh-CN'),
+      action: 'selected',
+      actionText: '选为中标团队',
+      comment: note
+    })
+
+    // 更新弹窗内容
+    if (currentTeam.value && currentTeam.value.id === app.id) {
+      currentTeam.value = app
+    }
+
+    ElMessage.success('已选定中标团队')
+    actionNote.value = ''
+  }).catch(() => {
+    // 取消操作
+  })
 }
 
 // 状态标签类型
@@ -454,6 +553,11 @@ function handleConfirmReview() {
     })
 
     ElMessage.success(reviewForm.value.action === 'approved' ? '已审核通过' : '已拒绝申请')
+
+    // 如果当前弹窗显示的是该团队，更新弹窗内容
+    if (currentTeam.value && currentTeam.value.id === app.id) {
+      currentTeam.value = app
+    }
   }
 
   reviewDialogVisible.value = false
@@ -461,6 +565,21 @@ function handleConfirmReview() {
 
 // 选为中标团队
 function handleSelectTeam(app) {
+  // 检查是否已经存在中标团队
+  const existingSelectedTeam = applications.value.find(a => a.status === 'selected')
+
+  if (existingSelectedTeam) {
+    ElMessageBox.alert(
+      `已存在中标团队"${existingSelectedTeam.teamName}"，中标团队确定后不可更改。如需更换，请先联系管理员处理。`,
+      '无法选择',
+      {
+        confirmButtonText: '知道了',
+        type: 'warning'
+      }
+    )
+    return
+  }
+
   ElMessageBox.confirm(
     `确定选择"${app.teamName}"作为中标团队吗？选定后将无法更改。`,
     '确认选择',
@@ -470,21 +589,25 @@ function handleSelectTeam(app) {
       type: 'warning'
     }
   ).then(() => {
-    // 将其他团队状态重置
-    applications.value.forEach(a => {
-      if (a.id === app.id) {
-        a.status = 'selected'
-      }
+    // 设置当前团队为中标
+    app.status = 'selected'
+    app.reviewHistory.push({
+      id: `r${Date.now()}`,
+      time: new Date().toLocaleString('zh-CN'),
+      action: 'selected',
+      actionText: '选为中标团队',
+      comment: '恭喜！您的团队已被选为中标团队'
     })
+
     ElMessage.success('已选定中标团队')
   }).catch(() => {
     // 取消操作
   })
 }
 
-// 查看详细资料
+// 查看详细资料（已废弃，使用 handleViewTeamDetail 代替）
 function handleViewDetail(app) {
-  ElMessage.info('查看详细资料功能开发中')
+  handleViewTeamDetail(app)
 }
 
 // 下载文件
@@ -556,19 +679,20 @@ function handleDownloadFile(file) {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.application-header {
+/* 团队概要信息（一行显示） */
+.application-summary {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #ebeef5;
+  gap: 16px;
 }
 
-.team-info {
+.summary-left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
+  flex: 1;
+  flex-wrap: wrap;
 }
 
 .team-name {
@@ -578,36 +702,46 @@ function handleDownloadFile(file) {
   color: #303133;
 }
 
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 16px;
+.summary-info {
+  font-size: 14px;
+  color: #606266;
+  padding: 0 12px;
+  border-left: 1px solid #dcdfe6;
 }
 
-.application-time {
-  font-size: 13px;
-  color: #909399;
+.summary-info:first-of-type {
+  border-left: none;
+  padding-left: 0;
 }
 
-.expand-btn {
-  font-size: 18px;
-  padding: 4px;
+.summary-right {
+  flex-shrink: 0;
 }
 
-/* 申请内容 */
-.application-body {
+/* 团队详情弹窗 */
+.team-detail-content {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
 }
 
-.info-section {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  padding: 12px;
+.detail-section {
+  padding: 16px;
   background: #f5f7fb;
-  border-radius: 6px;
+  border-radius: 8px;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #303133;
+  margin-bottom: 12px;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
 }
 
 .info-item {
@@ -622,32 +756,6 @@ function handleDownloadFile(file) {
 .value {
   color: #303133;
   font-weight: 500;
-}
-
-.description-section,
-.detail-files-section,
-.review-history-section {
-  padding: 12px;
-  background: #fafafa;
-  border-radius: 6px;
-}
-
-.section-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: #606266;
-  margin-bottom: 8px;
-}
-
-.section-title-with-toggle {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.section-title-with-toggle .section-title {
-  margin-bottom: 0;
 }
 
 .description-text {
@@ -699,23 +807,29 @@ function handleDownloadFile(file) {
   line-height: 1.5;
 }
 
-/* 操作按钮 */
-.application-footer {
+/* 弹窗操作按钮 */
+.detail-actions {
   display: flex;
+  flex-direction: column;
   gap: 12px;
-  margin-top: 16px;
   padding-top: 16px;
   border-top: 1px solid #ebeef5;
 }
 
-/* 对话框内容 */
-.detail-request-content {
-  padding: 12px 0;
+.action-with-note {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.detail-request-content p {
-  margin-bottom: 16px;
-  color: #606266;
+.action-note-input {
+  width: 100%;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
 }
 
 /* 响应式 */
@@ -730,14 +844,32 @@ function handleDownloadFile(file) {
     grid-template-columns: 1fr;
   }
 
-  .info-section {
-    grid-template-columns: 1fr;
-  }
-
-  .application-header {
+  .summary-left {
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
+  }
+
+  .summary-info {
+    border-left: none;
+    padding-left: 0;
+  }
+
+  .application-summary {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .summary-right {
+    width: 100%;
+  }
+
+  .summary-right .el-button {
+    width: 100%;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>

@@ -1,72 +1,5 @@
 <template>
   <div class="milestone-detail">
-    <!-- 顶部卡片（紧凑版） -->
-    <div class="milestone-card-top" :class="cardClass">
-      <div class="card-header">
-        <div class="header-left">
-          <h3 class="card-title">{{ milestone.title }}</h3>
-          <el-tag :type="tagType" size="large">
-            {{ statusText }}
-          </el-tag>
-        </div>
-
-        <!-- 元信息区域 -->
-        <div class="header-meta">
-          <div class="meta-item">
-            <el-icon><Calendar /></el-icon>
-            <span>计划: {{ milestone.plannedDate }}</span>
-          </div>
-          <div v-if="milestone.actualDate" class="meta-item">
-            <el-icon><Checked /></el-icon>
-            <span>实际: {{ milestone.actualDate }}</span>
-          </div>
-          <div v-if="milestone.delayDays && milestone.delayDays > 0" class="meta-item text-danger">
-            <el-icon><Clock /></el-icon>
-            <span>逾期 {{ milestone.delayDays }} 天</span>
-          </div>
-          <div class="meta-item">
-            <el-icon><Document /></el-icon>
-            <span>交付物: {{ milestone.deliverables?.length || 0 }}</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- 描述 -->
-      <div class="card-description">
-        {{ milestone.description }}
-      </div>
-    </div>
-
-    <!-- 交付物要求区 -->
-    <div class="section deliverables-section">
-      <div class="section-header">
-        <h4 class="section-title">
-          <el-icon><List /></el-icon>
-          交付物要求
-        </h4>
-        <el-button
-          v-if="canEdit"
-          type="primary"
-          size="small"
-          @click="handleEditDeliverables"
-        >
-          <el-icon><Edit /></el-icon>
-          编辑
-        </el-button>
-      </div>
-
-      <ul v-if="milestone.deliverables && milestone.deliverables.length" class="deliverables-list">
-        <li v-for="d in milestone.deliverables" :key="d.id" class="deliverable-item">
-          <div class="deliverable-info">
-            <span class="deliverable-name">{{ d.name }}</span>
-            <el-tag size="small" type="info">{{ d.format.join(' / ') }}</el-tag>
-          </div>
-          <p class="deliverable-requirement">{{ d.requirement }}</p>
-        </li>
-      </ul>
-      <el-empty v-else description="暂无交付物要求" :image-size="80" />
-    </div>
-
     <!-- 任务文件栏 -->
     <div class="section task-files-section">
       <h4 class="section-title">
@@ -78,15 +11,8 @@
         <li v-for="file in milestone.taskFiles" :key="file.id" class="task-file-item">
           <div class="file-info">
             <el-icon class="file-icon"><Document /></el-icon>
-            <div class="file-details">
-              <div class="file-name">{{ file.name }}</div>
-              <div class="file-meta">
-                <span>{{ file.type }}</span>
-                <span>{{ file.size }}</span>
-                <span>上传于: {{ file.uploadTime }}</span>
-              </div>
-              <p v-if="file.description" class="file-description">{{ file.description }}</p>
-            </div>
+            <span class="file-name">{{ file.name }}</span>
+            <span class="file-size">{{ file.size }}</span>
           </div>
           <el-button link type="primary" @click="handleDownloadTaskFile(file)">
             <el-icon><Download /></el-icon>
@@ -105,7 +31,6 @@
       </h4>
 
       <div v-if="latestSubmission" class="latest-submission">
-        <div class="submission-label">最新版本</div>
         <submission-item
           :submission="latestSubmission"
           @download="handleDownload"
@@ -343,12 +268,7 @@
 import { ref, computed, reactive } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
-  Calendar,
-  Checked,
-  Clock,
   Document,
-  List,
-  Edit,
   Files,
   ChatDotRound,
   Plus,
@@ -372,35 +292,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['refresh'])
-
-// 卡片样式类
-const cardClass = computed(() => ({
-  'milestone-completed': props.milestone.status === 'completed',
-  'milestone-in-progress': props.milestone.status === 'in-progress',
-  'milestone-pending': props.milestone.status === 'pending'
-}))
-
-// 状态文本
-const statusText = computed(() => {
-  const map = {
-    'completed': '已完成',
-    'in-progress': '进行中',
-    'pending': '待开始',
-    'skipped': '已跳过'
-  }
-  return map[props.milestone.status] || props.milestone.status
-})
-
-// 标签类型
-const tagType = computed(() => {
-  const map = {
-    'completed': 'success',
-    'in-progress': 'primary',
-    'pending': 'info',
-    'skipped': 'warning'
-  }
-  return map[props.milestone.status] || 'info'
-})
 
 // 是否可以编辑（已完成的不可编辑）
 const canEdit = computed(() => {
@@ -568,92 +459,6 @@ function handleDownloadTaskFile(file) {
   max-width: 1200px;
 }
 
-/* 顶部卡片 */
-.milestone-card-top {
-  background: #fff;
-  border-radius: 12px;
-  padding: 18px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  border-left: 4px solid #e4e7ed;
-  transition: all 0.3s ease;
-}
-
-.milestone-completed {
-  background: #f6ffed;
-  border-left-color: #52c41a;
-}
-
-.milestone-in-progress {
-  border-left-color: #1890ff;
-  box-shadow: 0 4px 16px rgba(24, 144, 255, 0.2);
-}
-
-.milestone-pending {
-  opacity: 0.9;
-  border-left-color: #d9d9d9;
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-  padding-bottom: 2px;
-  border-bottom: 1px solid #f0f0f0;
-  gap: 16px;
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-shrink: 0;
-}
-
-.card-title {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 600;
-  color: #1f274b;
-}
-
-.header-meta {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex: 1;
-  justify-content: center;
-}
-
-.meta-item {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 13px;
-  color: #606266;
-}
-
-.meta-item .el-icon {
-  font-size: 14px;
-  color: #909399;
-}
-
-.meta-item.text-danger {
-  color: #ff4d4f;
-  font-weight: 600;
-}
-
-.meta-item.text-danger .el-icon {
-  color: #ff4d4f;
-}
-
-.card-description {
-  font-size: 14px;
-  color: #606266;
-  line-height: 1.6;
-}
-
 /* 区块 */
 .section {
   background: #fff;
@@ -689,45 +494,6 @@ function handleDownloadTaskFile(file) {
   color: #409eff;
 }
 
-/* 交付物列表 */
-.deliverables-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.deliverable-item {
-  padding: 12px;
-  background: #f5f7fb;
-  border-radius: 6px;
-  margin-bottom: 12px;
-}
-
-.deliverable-item:last-child {
-  margin-bottom: 0;
-}
-
-.deliverable-info {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 6px;
-}
-
-.deliverable-name {
-  font-size: 14px;
-  font-weight: 600;
-  color: #303133;
-}
-
-.deliverable-requirement {
-  margin: 0;
-  font-size: 13px;
-  color: #606266;
-  line-height: 1.6;
-}
-
 /* 任务文件栏 */
 .task-files-list {
   list-style: none;
@@ -739,10 +505,10 @@ function handleDownloadTaskFile(file) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px;
+  padding: 10px 12px;
   background: #f5f7fb;
   border-radius: 6px;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   transition: all 0.3s ease;
 }
 
@@ -757,71 +523,37 @@ function handleDownloadTaskFile(file) {
 
 .file-info {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 12px;
   flex: 1;
   min-width: 0;
 }
 
 .file-icon {
-  font-size: 32px;
+  font-size: 24px;
   color: #409eff;
   flex-shrink: 0;
-  margin-top: 2px;
-}
-
-.file-details {
-  flex: 1;
-  min-width: 0;
 }
 
 .file-name {
+  flex: 1;
   font-size: 14px;
   font-weight: 600;
   color: #303133;
-  margin-bottom: 6px;
-  word-break: break-all;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.file-meta {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+.file-size {
   font-size: 12px;
   color: #909399;
-  margin-bottom: 4px;
-  flex-wrap: wrap;
-}
-
-.file-meta span {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.file-meta span:not(:last-child):after {
-  content: '•';
-  margin-left: 12px;
-  color: #dcdfe6;
-}
-
-.file-description {
-  margin: 0;
-  font-size: 13px;
-  color: #606266;
-  line-height: 1.5;
+  flex-shrink: 0;
 }
 
 /* 提交记录 */
 .latest-submission {
   margin-bottom: 16px;
-}
-
-.submission-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: #409eff;
-  margin-bottom: 8px;
 }
 
 .history-collapse {
@@ -978,16 +710,6 @@ function handleDownloadTaskFile(file) {
 
 /* 响应式 */
 @media (max-width: 768px) {
-  .card-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .header-meta {
-    flex-wrap: wrap;
-    justify-content: flex-start;
-  }
-
   .actions-section {
     flex-direction: column;
   }

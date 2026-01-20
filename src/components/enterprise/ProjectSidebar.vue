@@ -34,12 +34,12 @@
           <span>里程碑计划</span>
         </template>
         <el-menu-item
-          v-for="milestone in milestones"
+          v-for="(milestone, index) in milestones"
           :key="milestone.id"
           :index="`milestone-${milestone.id}`"
         >
           <div class="milestone-menu-item">
-            <span class="milestone-name">{{ milestone.title }}</span>
+            <span class="milestone-name">{{ getMilestoneNumber(index) }}{{ milestone.title }}</span>
             <el-tag
               :type="getMilestoneTagType(milestone.status)"
               size="small"
@@ -81,6 +81,12 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['select'])
+
+// 获取里程碑序号（使用圆圈数字）
+function getMilestoneNumber(index) {
+  const numbers = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨', '⑩']
+  return numbers[index] || `${index + 1}.`
+}
 
 // 处理菜单选择
 function handleSelect(index) {
