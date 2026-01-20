@@ -86,7 +86,7 @@
           </el-button>
         </li>
       </ul>
-      <el-empty v-else description="暂无任务文件" :image-size="50" />
+      <el-empty v-else description="暂无任务文件" :image-size="40" />
     </div>
 
     <!-- 承接方提交记录区 -->
@@ -113,7 +113,7 @@
         />
       </div>
 
-      <el-empty v-if="!latestSubmission" description="承接方暂未提交文件" :image-size="50" />
+      <el-empty v-if="!latestSubmission" description="承接方暂未提交文件" :image-size="40" />
     </div>
 
     <!-- 意见反馈区 -->
@@ -169,7 +169,7 @@
         </div>
       </div>
 
-      <el-empty v-else description="暂无反馈意见" :image-size="50" />
+      <el-empty v-else description="暂无反馈意见" :image-size="40" />
     </div>
 
     <!-- 操作按钮区 -->
@@ -243,10 +243,11 @@
       title="编辑任务文件"
       width="800px"
       :close-on-click-modal="false"
+      top="5vh"
     >
       <div class="edit-task-files-dialog">
-        <!-- 文件列表 -->
-        <div class="files-list">
+        <!-- 已上传文件列表 -->
+        <div v-if="editTaskFilesForm.files.length > 0" class="files-list">
           <div
             v-for="(file, index) in editTaskFilesForm.files"
             :key="index"
@@ -254,17 +255,12 @@
           >
             <div class="file-item-content">
               <el-icon class="file-icon"><Document /></el-icon>
-              <div class="file-details">
-                <el-input
-                  v-model="file.name"
-                  placeholder="文件名称"
-                  class="file-name-input"
-                />
-                <el-input
-                  v-model="file.description"
-                  placeholder="文件描述（选填）"
-                  class="file-desc-input"
-                />
+              <div class="file-info-text">
+                <div class="file-name">{{ file.name }}</div>
+                <div class="file-meta">
+                  <span class="file-size">{{ file.size }}</span>
+                  <span class="file-time">{{ file.uploadTime }}</span>
+                </div>
               </div>
             </div>
             <div class="file-item-actions">
@@ -280,21 +276,27 @@
           </div>
         </div>
 
-        <!-- 添加文件按钮 -->
-        <el-button
-          type="primary"
-          plain
-          @click="handleAddFile"
-          class="add-file-btn"
+        <!-- 空状态 -->
+        <el-empty v-else description="暂无任务文件" :image-size="60" />
+
+        <!-- 文件上传 -->
+        <el-upload
+          ref="uploadRef"
+          :auto-upload="false"
+          :on-change="handleFileChange"
+          :show-file-list="false"
+          multiple
+          class="upload-area"
         >
-          <el-icon><Plus /></el-icon>
-          添加文件
-        </el-button>
+          <el-button type="primary" plain class="upload-btn">
+            <el-icon><Plus /></el-icon>
+            上传文件
+          </el-button>
+        </el-upload>
 
         <!-- 上传提示 -->
         <div class="upload-tips">
           <el-alert
-            title="提示"
             type="info"
             :closable="false"
             show-icon
@@ -319,6 +321,7 @@
       title="编辑交付物要求"
       width="800px"
       :close-on-click-modal="false"
+      top="5vh"
     >
       <div class="edit-deliverables-dialog">
         <!-- 交付物列表 -->
@@ -341,26 +344,32 @@
               </el-button>
             </div>
             <div class="deliverable-edit-content">
-              <el-form-item label="交付物名称" required>
+              <div class="form-row">
+                <label class="form-label required">交付物名称</label>
                 <el-input
                   v-model="deliverable.name"
                   placeholder="请输入交付物名称"
+                  class="form-input"
                 />
-              </el-form-item>
-              <el-form-item label="支持格式" required>
+              </div>
+              <div class="form-row">
+                <label class="form-label required">支持格式</label>
                 <el-input
                   v-model="deliverable.formatStr"
                   placeholder="例如：PDF / Word / Excel"
+                  class="form-input"
                 />
-              </el-form-item>
-              <el-form-item label="具体要求" required>
+              </div>
+              <div class="form-row">
+                <label class="form-label required">具体要求</label>
                 <el-input
                   v-model="deliverable.requirement"
                   type="textarea"
-                  :rows="3"
+                  :rows="2"
                   placeholder="请输入具体要求"
+                  class="form-input"
                 />
-              </el-form-item>
+              </div>
             </div>
           </div>
         </div>
@@ -527,33 +536,74 @@ const editTaskFilesVisible = ref(false)
 const editTaskFilesForm = reactive({
   files: []
 })
+const uploadRef = ref(null)
 
 function handleEditTaskFiles() {
   // 初始化表单数据，复制当前任务文件列表
   editTaskFilesForm.files = props.milestone.taskFiles?.map(file => ({
     id: file.id,
     name: file.name,
-    description: file.description || '',
     size: file.size,
     type: file.type,
     uploadTime: file.uploadTime,
-    uploader: file.uploader
+    uploader: file.uploader,
+    url: file.url // 保存文件URL用于下载
   })) || []
 
   editTaskFilesVisible.value = true
 }
 
-// 添加文件
-function handleAddFile() {
+// 处理文件选择
+function handleFileChange(file, fileList) {
+  // 验证文件大小（500MB）
+  const maxSize = 500 * 1024 * 1024
+  if (file.size > maxSize) {
+    ElMessage.warning(`文件 ${file.name} 超过 500MB 限制`)
+    return
+  }
+
+  // 添加到文件列表
   editTaskFilesForm.files.push({
-    id: `new-${Date.now()}`,
-    name: '',
-    description: '',
-    size: '',
-    type: 'PDF',
+    id: `new-${Date.now()}-${Math.random()}`,
+    name: file.name,
+    size: formatFileSize(file.size),
+    type: getFileType(file.name),
     uploadTime: new Date().toISOString().slice(0, 16).replace('T', ' '),
-    uploader: 'XX科技有限公司'
+    uploader: 'XX科技有限公司',
+    rawFile: file.raw // 保存原始文件对象用于上传
   })
+
+  ElMessage.success(`已添加文件：${file.name}`)
+}
+
+// 格式化文件大小
+function formatFileSize(bytes) {
+  if (bytes === 0) return '0 B'
+  const k = 1024
+  const sizes = ['B', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i]
+}
+
+// 获取文件类型
+function getFileType(fileName) {
+  const ext = fileName.split('.').pop().toLowerCase()
+  const typeMap = {
+    'pdf': 'PDF',
+    'doc': 'Word',
+    'docx': 'Word',
+    'xls': 'Excel',
+    'xlsx': 'Excel',
+    'ppt': 'PPT',
+    'pptx': 'PPT',
+    'zip': 'ZIP',
+    'rar': 'RAR',
+    'jpg': '图片',
+    'jpeg': '图片',
+    'png': '图片',
+    'gif': '图片'
+  }
+  return typeMap[ext] || ext.toUpperCase()
 }
 
 // 删除文件
@@ -574,11 +624,17 @@ function handleRemoveFile(index) {
 
 // 保存任务文件
 function handleSaveTaskFiles() {
-  // 验证文件名不能为空
-  const emptyFiles = editTaskFilesForm.files.filter(file => !file.name.trim())
-  if (emptyFiles.length > 0) {
-    ElMessage.warning('请填写所有文件的名称')
+  if (editTaskFilesForm.files.length === 0) {
+    ElMessage.warning('请至少上传一个任务文件')
     return
+  }
+
+  // 这里应该调用API上传新文件
+  // 实际项目中需要使用FormData上传rawFile
+  const newFiles = editTaskFilesForm.files.filter(f => f.rawFile)
+  if (newFiles.length > 0) {
+    console.log('需要上传的新文件：', newFiles)
+    // TODO: 调用上传API
   }
 
   ElMessage.success('任务文件已保存')
@@ -1006,36 +1062,43 @@ function handleSaveDeliverables() {
 
 /* 空状态样式优化 */
 .section :deep(.el-empty) {
-  padding: 12px 0;
-  min-height: 80px;
+  padding: 8px 0;
+  min-height: 60px;
 }
 
 .section :deep(.el-empty__description) {
-  margin-top: 6px;
+  margin-top: 4px;
   font-size: 13px;
+}
+
+.section :deep(.el-empty__image) {
+  margin-bottom: 4px;
 }
 
 /* 编辑任务文件对话框 */
 .edit-task-files-dialog {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
+  max-height: calc(90vh - 200px);
+  overflow: hidden;
 }
 
 .files-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  max-height: 400px;
+  max-height: calc(90vh - 380px);
   overflow-y: auto;
   padding-right: 8px;
 }
 
 .file-item {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
+  justify-content: space-between;
   gap: 12px;
-  padding: 16px;
+  padding: 12px 16px;
   background: #f5f7fb;
   border-radius: 8px;
   border: 1px solid #e4e7ed;
@@ -1050,32 +1113,38 @@ function handleSaveDeliverables() {
 .file-item-content {
   flex: 1;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 12px;
   min-width: 0;
 }
 
 .file-item .file-icon {
-  font-size: 32px;
+  font-size: 28px;
   color: #409eff;
   flex-shrink: 0;
-  margin-top: 4px;
 }
 
-.file-details {
+.file-info-text {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
   min-width: 0;
 }
 
-.file-name-input {
-  width: 100%;
+.file-info-text .file-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #303133;
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.file-desc-input {
-  width: 100%;
+.file-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  color: #909399;
 }
 
 .file-item-actions {
@@ -1084,12 +1153,17 @@ function handleSaveDeliverables() {
   align-items: center;
 }
 
-.add-file-btn {
+.upload-area {
+  flex-shrink: 0;
+}
+
+.upload-btn {
   width: 100%;
 }
 
 .upload-tips {
-  margin-top: 8px;
+  margin-top: 0;
+  flex-shrink: 0;
 }
 
 .upload-tips :deep(.el-alert__content) {
@@ -1098,18 +1172,25 @@ function handleSaveDeliverables() {
   gap: 4px;
 }
 
+.edit-task-files-dialog :deep(.el-empty) {
+  padding: 16px 0;
+  min-height: 100px;
+}
+
 /* 编辑交付物对话框 */
 .edit-deliverables-dialog {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
+  max-height: calc(90vh - 200px);
+  overflow: hidden;
 }
 
 .deliverables-edit-list {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  max-height: 500px;
+  max-height: calc(90vh - 280px);
   overflow-y: auto;
   padding-right: 8px;
 }
@@ -1142,17 +1223,46 @@ function handleSaveDeliverables() {
   gap: 12px;
 }
 
-.deliverable-edit-content :deep(.el-form-item) {
-  margin-bottom: 0;
+.form-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
 }
 
-.deliverable-edit-content :deep(.el-form-item__label) {
+.form-label {
+  flex-shrink: 0;
+  width: 90px;
+  line-height: 32px;
+  font-size: 14px;
   font-weight: 600;
   color: #303133;
+  text-align: right;
+  padding-right: 12px;
+}
+
+.form-label.required::before {
+  content: '*';
+  color: #f56c6c;
+  margin-right: 4px;
+}
+
+.form-row .form-label {
+  padding-top: 0;
+}
+
+.form-row:has(textarea) .form-label {
+  line-height: 32px;
+  padding-top: 0;
+}
+
+.form-input {
+  flex: 1;
+  min-width: 0;
 }
 
 .add-deliverable-btn {
   width: 100%;
+  flex-shrink: 0;
 }
 
 /* 响应式 */
