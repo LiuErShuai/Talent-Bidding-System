@@ -604,6 +604,7 @@ function handleEditDeliverables() {
   font-size: 15px;
   font-weight: 600;
   color: #303133;
+  line-height: 1;
 }
 
 .edit-deliverables-btn {
@@ -611,6 +612,7 @@ function handleEditDeliverables() {
   color: #606266;
   padding: 0;
   height: auto;
+  line-height: 1;
 }
 
 .edit-deliverables-btn:hover {
@@ -625,6 +627,7 @@ function handleEditDeliverables() {
   display: flex;
   align-items: center;
   gap: 4px;
+  line-height: 1;
 }
 
 .toggle-btn:hover {
