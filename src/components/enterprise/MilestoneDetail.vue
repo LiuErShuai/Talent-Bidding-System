@@ -544,7 +544,7 @@ function handleSaveTaskFiles() {
 }
 
 .task-description-section .section-title {
-  font-size: 18px;
+  font-size: 20px;
   margin-bottom: 8px;
 }
 
