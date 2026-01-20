@@ -600,6 +600,7 @@ function handleEditDeliverables() {
   align-items: center;
   gap: 12px;
   margin-bottom: 12px;
+  min-height: 24px;
 }
 
 .deliverables-title {
@@ -607,7 +608,7 @@ function handleEditDeliverables() {
   font-size: 15px;
   font-weight: 600;
   color: #303133;
-  line-height: 1;
+  line-height: 1.5;
 }
 
 .deliverables-actions {
@@ -623,7 +624,7 @@ function handleEditDeliverables() {
   display: flex;
   align-items: center;
   gap: 4px;
-  line-height: 1;
+  line-height: 1.5;
 }
 
 .edit-deliverables-btn:hover {
@@ -632,6 +633,7 @@ function handleEditDeliverables() {
 
 .edit-text {
   font-size: 13px;
+  line-height: 1.5;
 }
 
 .toggle-btn {
@@ -641,7 +643,7 @@ function handleEditDeliverables() {
   display: flex;
   align-items: center;
   gap: 4px;
-  line-height: 1;
+  line-height: 1.5;
 }
 
 .toggle-btn:hover {
@@ -650,6 +652,7 @@ function handleEditDeliverables() {
 
 .toggle-text {
   font-size: 13px;
+  line-height: 1.5;
 }
 
 .arrow-icon {
