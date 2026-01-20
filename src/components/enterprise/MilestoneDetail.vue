@@ -6,6 +6,14 @@
         <h4 class="section-title">
           任务文件
         </h4>
+        <el-button
+          type="primary"
+          plain
+          size="small"
+          @click="handleEditTaskFiles"
+        >
+          编辑
+        </el-button>
       </div>
 
       <ul v-if="milestone.taskFiles && milestone.taskFiles.length" class="task-files-list">
@@ -21,7 +29,7 @@
           </el-button>
         </li>
       </ul>
-      <el-empty v-else description="暂无任务文件" :image-size="60" />
+      <el-empty v-else description="暂无任务文件" :image-size="50" />
     </div>
 
     <!-- 承接方提交记录区 -->
@@ -48,7 +56,7 @@
         />
       </div>
 
-      <el-empty v-if="!latestSubmission" description="承接方暂未提交文件" :image-size="60" />
+      <el-empty v-if="!latestSubmission" description="承接方暂未提交文件" :image-size="50" />
     </div>
 
     <!-- 意见反馈区 -->
@@ -104,7 +112,7 @@
         </div>
       </div>
 
-      <el-empty v-else description="暂无反馈意见" :image-size="60" />
+      <el-empty v-else description="暂无反馈意见" :image-size="50" />
     </div>
 
     <!-- 操作按钮区 -->
@@ -171,6 +179,82 @@
         />
       </div>
     </el-dialog>
+
+    <!-- 编辑任务文件对话框 -->
+    <el-dialog
+      v-model="editTaskFilesVisible"
+      title="编辑任务文件"
+      width="800px"
+      :close-on-click-modal="false"
+    >
+      <div class="edit-task-files-dialog">
+        <!-- 文件列表 -->
+        <div class="files-list">
+          <div
+            v-for="(file, index) in editTaskFilesForm.files"
+            :key="index"
+            class="file-item"
+          >
+            <div class="file-item-content">
+              <el-icon class="file-icon"><Document /></el-icon>
+              <div class="file-details">
+                <el-input
+                  v-model="file.name"
+                  placeholder="文件名称"
+                  class="file-name-input"
+                />
+                <el-input
+                  v-model="file.description"
+                  placeholder="文件描述（选填）"
+                  class="file-desc-input"
+                />
+              </div>
+            </div>
+            <div class="file-item-actions">
+              <el-button
+                link
+                type="danger"
+                @click="handleRemoveFile(index)"
+              >
+                <el-icon><Delete /></el-icon>
+                删除
+              </el-button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 添加文件按钮 -->
+        <el-button
+          type="primary"
+          plain
+          @click="handleAddFile"
+          class="add-file-btn"
+        >
+          <el-icon><Plus /></el-icon>
+          添加文件
+        </el-button>
+
+        <!-- 上传提示 -->
+        <div class="upload-tips">
+          <el-alert
+            title="提示"
+            type="info"
+            :closable="false"
+            show-icon
+          >
+            <template #default>
+              <div>支持的文件格式：PDF、Word、Excel、PPT、图片、压缩包等</div>
+              <div>单个文件大小不超过 500MB</div>
+            </template>
+          </el-alert>
+        </div>
+      </div>
+
+      <template #footer>
+        <el-button @click="editTaskFilesVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleSaveTaskFiles">保存</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -183,7 +267,9 @@ import {
   ChatDotRound,
   Check,
   FolderOpened,
-  Download
+  Download,
+  Delete,
+  Plus
 } from '@element-plus/icons-vue'
 import SubmissionItem from './SubmissionItem.vue'
 
@@ -292,6 +378,71 @@ function handleDownloadTaskFile(file) {
   ElMessage.success(`开始下载：${file.name}`)
   console.log('下载任务文件：', file)
 }
+
+// 编辑任务文件
+const editTaskFilesVisible = ref(false)
+const editTaskFilesForm = reactive({
+  files: []
+})
+
+function handleEditTaskFiles() {
+  // 初始化表单数据，复制当前任务文件列表
+  editTaskFilesForm.files = props.milestone.taskFiles?.map(file => ({
+    id: file.id,
+    name: file.name,
+    description: file.description || '',
+    size: file.size,
+    type: file.type,
+    uploadTime: file.uploadTime,
+    uploader: file.uploader
+  })) || []
+
+  editTaskFilesVisible.value = true
+}
+
+// 添加文件
+function handleAddFile() {
+  editTaskFilesForm.files.push({
+    id: `new-${Date.now()}`,
+    name: '',
+    description: '',
+    size: '',
+    type: 'PDF',
+    uploadTime: new Date().toISOString().slice(0, 16).replace('T', ' '),
+    uploader: 'XX科技有限公司'
+  })
+}
+
+// 删除文件
+function handleRemoveFile(index) {
+  ElMessageBox.confirm(
+    '确认删除该文件吗？',
+    '确认删除',
+    {
+      confirmButtonText: '确认',
+      cancelButtonText: '取消',
+      type: 'warning'
+    }
+  ).then(() => {
+    editTaskFilesForm.files.splice(index, 1)
+    ElMessage.success('已删除')
+  }).catch(() => {})
+}
+
+// 保存任务文件
+function handleSaveTaskFiles() {
+  // 验证文件名不能为空
+  const emptyFiles = editTaskFilesForm.files.filter(file => !file.name.trim())
+  if (emptyFiles.length > 0) {
+    ElMessage.warning('请填写所有文件的名称')
+    return
+  }
+
+  ElMessage.success('任务文件已保存')
+  editTaskFilesVisible.value = false
+  emit('refresh')
+  console.log('保存任务文件：', editTaskFilesForm.files)
+}
 </script>
 
 <style scoped>
@@ -370,8 +521,8 @@ function handleDownloadTaskFile(file) {
 }
 
 .file-icon {
-  font-size: 24px;
-  color: #409eff;
+  font-size: 14px;
+  color: #606266;
   flex-shrink: 0;
 }
 
@@ -510,11 +661,96 @@ function handleDownloadTaskFile(file) {
 
 /* 空状态样式优化 */
 .section :deep(.el-empty) {
-  padding: 20px 0;
+  padding: 12px 0;
+  min-height: 80px;
 }
 
 .section :deep(.el-empty__description) {
+  margin-top: 6px;
+  font-size: 13px;
+}
+
+/* 编辑任务文件对话框 */
+.edit-task-files-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.files-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.file-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: #f5f7fb;
+  border-radius: 8px;
+  border: 1px solid #e4e7ed;
+  transition: all 0.3s ease;
+}
+
+.file-item:hover {
+  border-color: #409eff;
+  box-shadow: 0 2px 8px rgba(64, 158, 255, 0.1);
+}
+
+.file-item-content {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+}
+
+.file-item .file-icon {
+  font-size: 32px;
+  color: #409eff;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.file-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.file-name-input {
+  width: 100%;
+}
+
+.file-desc-input {
+  width: 100%;
+}
+
+.file-item-actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.add-file-btn {
+  width: 100%;
+}
+
+.upload-tips {
   margin-top: 8px;
+}
+
+.upload-tips :deep(.el-alert__content) {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 /* 响应式 */
@@ -525,6 +761,15 @@ function handleDownloadTaskFile(file) {
 
   .actions-section .el-button {
     width: 100%;
+  }
+
+  .file-item {
+    flex-direction: column;
+  }
+
+  .file-item-actions {
+    width: 100%;
+    justify-content: flex-end;
   }
 }
 </style>

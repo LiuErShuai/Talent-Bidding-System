@@ -282,10 +282,38 @@ export const mockProjectManageData = {
           name: '项目合作协议（签字版）',
           type: 'document',
           format: ['PDF'],
-          requirement: '双方签字盖章的正式协议扫描件'
+          requirement: '双方签字盖章的正式协议扫描件，需包含项目范围、交付标准、付款方式、知识产权归属等条款'
         }
       ],
-      taskFiles: [],
+      taskFiles: [
+        {
+          id: 'task-file-6',
+          name: '项目合作协议模板.pdf',
+          type: 'PDF',
+          size: '856 KB',
+          uploadTime: '2025-11-20 09:00',
+          uploader: 'XX科技有限公司',
+          description: '标准项目合作协议模板，包含必要条款和签署说明，请按模板填写相关信息后打印签字盖章'
+        },
+        {
+          id: 'task-file-7',
+          name: '协议签署指南.pdf',
+          type: 'PDF',
+          size: '623 KB',
+          uploadTime: '2025-11-20 09:05',
+          uploader: 'XX科技有限公司',
+          description: '协议签署流程说明，包含填写要求、签字盖章位置、扫描上传规范等'
+        },
+        {
+          id: 'task-file-8',
+          name: '知识产权归属说明.pdf',
+          type: 'PDF',
+          size: '445 KB',
+          uploadTime: '2025-11-20 09:10',
+          uploader: 'XX科技有限公司',
+          description: '项目成果知识产权归属的详细说明，明确双方权益和使用范围'
+        }
+      ],
       feedbacks: [],
       submissions: [],
       progressDetail: {
@@ -314,7 +342,7 @@ export const mockProjectManageData = {
           name: '中期进度报告',
           type: 'document',
           format: ['PDF', 'Word'],
-          requirement: '包含已完成功能、遇到的问题、解决方案和下阶段计划'
+          requirement: '包含已完成功能、遇到的问题、解决方案和下阶段计划，不少于8页'
         },
         {
           id: 6,
@@ -331,7 +359,44 @@ export const mockProjectManageData = {
           requirement: '10-15页，包含项目背景、技术方案、实现进展和效果展示'
         }
       ],
-      taskFiles: [],
+      taskFiles: [
+        {
+          id: 'task-file-9',
+          name: '中期答辩评审标准.pdf',
+          type: 'PDF',
+          size: '1.1 MB',
+          uploadTime: '2025-12-01 10:00',
+          uploader: 'XX科技有限公司',
+          description: '中期答辩的评审标准和评分细则，包含技术实现、进度管理、团队协作等维度'
+        },
+        {
+          id: 'task-file-10',
+          name: '中期报告模板.docx',
+          type: 'Word',
+          size: '234 KB',
+          uploadTime: '2025-12-01 10:05',
+          uploader: 'XX科技有限公司',
+          description: '中期进度报告的标准模板，包含必填章节和内容要求'
+        },
+        {
+          id: 'task-file-11',
+          name: '答辩PPT参考模板.pptx',
+          type: 'PPT',
+          size: '3.2 MB',
+          uploadTime: '2025-12-01 10:10',
+          uploader: 'XX科技有限公司',
+          description: '答辩PPT的参考模板，包含推荐的页面结构和设计风格'
+        },
+        {
+          id: 'task-file-12',
+          name: '答辩注意事项.pdf',
+          type: 'PDF',
+          size: '567 KB',
+          uploadTime: '2025-12-01 10:15',
+          uploader: 'XX科技有限公司',
+          description: '答辩流程说明、时间安排、常见问题和注意事项'
+        }
+      ],
       feedbacks: [],
       submissions: [],
       progressDetail: {
@@ -360,31 +425,77 @@ export const mockProjectManageData = {
           name: '完整源代码包',
           type: 'archive',
           format: ['ZIP', 'RAR'],
-          requirement: '包含前后端完整代码，需有详细的README和环境配置说明'
+          requirement: '包含前后端完整代码，需有详细的README和环境配置说明，代码需有适当注释'
         },
         {
           id: 9,
           name: '系统部署文档',
           type: 'document',
           format: ['PDF', 'Word', 'Markdown'],
-          requirement: '详细的部署步骤、环境要求和常见问题解决方案'
+          requirement: '详细的部署步骤、环境要求和常见问题解决方案，不少于5页'
         },
         {
           id: 10,
           name: '用户使用手册',
           type: 'document',
           format: ['PDF', 'Word'],
-          requirement: '图文并茂的使用说明，面向最终用户'
+          requirement: '图文并茂的使用说明，面向最终用户，不少于10页'
         },
         {
           id: 11,
           name: '项目演示视频',
           type: 'video',
           format: ['MP4', 'AVI'],
-          requirement: '5-10分钟，展示系统主要功能和操作流程'
+          requirement: '5-10分钟，展示系统主要功能和操作流程，需配字幕或语音讲解'
         }
       ],
-      taskFiles: [],
+      taskFiles: [
+        {
+          id: 'task-file-13',
+          name: '成果验收标准.pdf',
+          type: 'PDF',
+          size: '1.5 MB',
+          uploadTime: '2025-12-15 09:00',
+          uploader: 'XX科技有限公司',
+          description: '项目成果的验收标准和评分细则，包含功能完整性、代码质量、文档规范等维度'
+        },
+        {
+          id: 'task-file-14',
+          name: '代码规范要求.pdf',
+          type: 'PDF',
+          size: '892 KB',
+          uploadTime: '2025-12-15 09:05',
+          uploader: 'XX科技有限公司',
+          description: '代码编写规范、注释要求、目录结构规范等，确保代码可维护性'
+        },
+        {
+          id: 'task-file-15',
+          name: '部署文档模板.docx',
+          type: 'Word',
+          size: '156 KB',
+          uploadTime: '2025-12-15 09:10',
+          uploader: 'XX科技有限公司',
+          description: '系统部署文档的标准模板，包含必填章节和格式要求'
+        },
+        {
+          id: 'task-file-16',
+          name: '用户手册模板.docx',
+          type: 'Word',
+          size: '234 KB',
+          uploadTime: '2025-12-15 09:15',
+          uploader: 'XX科技有限公司',
+          description: '用户使用手册的标准模板，包含推荐的章节结构和示例'
+        },
+        {
+          id: 'task-file-17',
+          name: '演示视频制作指南.pdf',
+          type: 'PDF',
+          size: '678 KB',
+          uploadTime: '2025-12-15 09:20',
+          uploader: 'XX科技有限公司',
+          description: '演示视频的制作要求、推荐工具、录制技巧和注意事项'
+        }
+      ],
       feedbacks: [],
       submissions: [],
       progressDetail: {

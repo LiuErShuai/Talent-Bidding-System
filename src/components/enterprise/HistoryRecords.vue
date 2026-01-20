@@ -10,42 +10,50 @@
     </div>
 
     <!-- 历史记录列表 -->
-    <div v-else-if="records && records.length" class="records-list">
-      <div v-for="record in records" :key="record.id" class="record-item">
-        <div class="record-header">
-          <div class="record-info">
-            <el-icon class="file-icon"><Document /></el-icon>
-            <div class="file-info">
-              <div class="file-name">{{ record.fileName }}</div>
-              <div class="file-meta">
-                <span>{{ record.fileSize }}</span>
-                <span class="separator">|</span>
-                <span>{{ record.uploadTime }}</span>
-                <span class="separator">|</span>
-                <span>上传人：{{ record.uploader }}</span>
+    <div v-else-if="records && records.length" class="records-container">
+      <div class="records-list">
+        <div v-for="record in paginatedRecords" :key="record.id" class="record-item">
+          <div class="record-header">
+            <div class="record-info">
+              <el-icon class="file-icon"><Document /></el-icon>
+              <div class="file-info">
+                <div class="file-name-row">
+                  <span class="file-name">{{ record.fileName }}</span>
+                  <el-tag v-if="record.milestone" size="small" type="info">{{ record.milestone }}</el-tag>
+                </div>
+                <div class="file-meta">
+                  <span>{{ record.fileSize }}</span>
+                  <span class="separator">|</span>
+                  <span>{{ record.uploadTime }}</span>
+                  <span class="separator">|</span>
+                  <span>上传人：{{ record.uploader }}</span>
+                </div>
               </div>
             </div>
+            <div class="record-actions">
+              <el-button
+                link
+                type="primary"
+                @click="handleDownload(record)"
+              >
+                <el-icon><Download /></el-icon>
+                下载
+              </el-button>
+            </div>
           </div>
-          <div class="record-actions">
-            <el-button
-              link
-              type="primary"
-              @click="handleDownload(record)"
-            >
-              <el-icon><Download /></el-icon>
-              下载
-            </el-button>
-          </div>
         </div>
+      </div>
 
-        <div v-if="record.milestone" class="record-milestone">
-          <el-tag size="small" type="info">{{ record.milestone }}</el-tag>
-        </div>
-
-        <div v-if="record.versionNote" class="record-note">
-          <span class="note-label">版本说明：</span>
-          <span class="note-content">{{ record.versionNote }}</span>
-        </div>
+      <!-- 分页 -->
+      <div class="pagination-container">
+        <el-pagination
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
+          :page-sizes="[5, 10, 20, 50]"
+          :total="records.length"
+          layout="total, sizes, prev, pager, next, jumper"
+          background
+        />
       </div>
     </div>
 
@@ -55,7 +63,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Loading, Document, Download } from '@element-plus/icons-vue'
 
@@ -68,6 +76,17 @@ const props = defineProps({
 
 const loading = ref(true)
 const records = ref([])
+
+// 分页相关
+const currentPage = ref(1)
+const pageSize = ref(10)
+
+// 计算分页后的数据
+const paginatedRecords = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  const end = start + pageSize.value
+  return records.value.slice(start, end)
+})
 
 // 加载历史记录
 async function fetchHistoryRecords() {
@@ -157,11 +176,41 @@ onMounted(fetchHistoryRecords)
   font-size: 36px;
 }
 
+/* 记录容器 */
+.records-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
 /* 记录列表 */
 .records-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  min-height: 500px;
+  max-height: 600px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+/* 滚动条样式 */
+.records-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.records-list::-webkit-scrollbar-track {
+  background: #f5f7fb;
+  border-radius: 3px;
+}
+
+.records-list::-webkit-scrollbar-thumb {
+  background: #dcdfe6;
+  border-radius: 3px;
+}
+
+.records-list::-webkit-scrollbar-thumb:hover {
+  background: #c0c4cc;
 }
 
 /* 记录项 */
@@ -205,11 +254,17 @@ onMounted(fetchHistoryRecords)
   min-width: 0;
 }
 
+.file-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
 .file-name {
   font-size: 15px;
   font-weight: 600;
   color: #303133;
-  margin-bottom: 4px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -231,28 +286,12 @@ onMounted(fetchHistoryRecords)
   flex-shrink: 0;
 }
 
-/* 里程碑标签 */
-.record-milestone {
-  margin-bottom: 8px;
-}
-
-/* 版本说明 */
-.record-note {
-  font-size: 13px;
-  color: #606266;
-  line-height: 1.6;
-  padding: 8px 12px;
-  background: #f5f7fb;
-  border-radius: 4px;
-}
-
-.note-label {
-  font-weight: 600;
-  color: #303133;
-}
-
-.note-content {
-  color: #606266;
+/* 分页容器 */
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  padding-top: 16px;
+  border-top: 1px solid #e4e7ed;
 }
 
 /* 响应式 */
