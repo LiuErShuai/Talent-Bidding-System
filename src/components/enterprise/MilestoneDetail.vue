@@ -611,7 +611,6 @@ function handleEditDeliverables() {
   color: #606266;
   padding: 0;
   height: auto;
-  margin-left: auto;
 }
 
 .edit-deliverables-btn:hover {
