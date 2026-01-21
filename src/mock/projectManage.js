@@ -8,7 +8,7 @@ export const mockProjectManageData = {
   project: {
     id: 'proj-001',
     name: 'AI智能客服系统开发',
-    status: 'ongoing',
+    status: 'in-progress', // 统一使用 in-progress 表示进行中
     statusText: '进行中',
     progress: 43,
     reward: 15000,
@@ -17,6 +17,7 @@ export const mockProjectManageData = {
     category: '人工智能',
     publisher: '桂林电子科技大学科技有限公司',
     description: '为平台构建基于NLP的智能客服系统，提高客户服务效率和满意度。',
+    brief: '为平台构建基于NLP的智能客服系统，提高客户服务效率和满意度。',
     members: [
       {
         id: 1,
@@ -154,6 +155,8 @@ export const mockProjectManageData = {
       description: '提交详细的技术方案和项目实施计划，包括系统架构设计、技术选型、进度安排等',
       status: 'in-progress',
       statusText: '进行中',
+      startDate: '2025-11-10',
+      endDate: '2025-11-20',
       plannedDate: '2025-11-20',
       actualDate: null,
       delayDays: 0,
@@ -273,6 +276,8 @@ export const mockProjectManageData = {
       description: '双方签订项目合作协议，明确权利义务、知识产权归属和付款方式',
       status: 'pending',
       statusText: '待开始',
+      startDate: '2025-11-21',
+      endDate: '2025-11-25',
       plannedDate: '2025-11-25',
       actualDate: null,
       delayDays: 0,
@@ -333,6 +338,8 @@ export const mockProjectManageData = {
       description: '项目中期检查，展示项目进展和阶段性成果，专家评审组进行质询',
       status: 'pending',
       statusText: '待开始',
+      startDate: '2025-12-01',
+      endDate: '2025-12-10',
       plannedDate: '2025-12-10',
       actualDate: null,
       delayDays: 0,
@@ -416,6 +423,8 @@ export const mockProjectManageData = {
       description: '提交项目最终成果，包括完整的系统代码、部署文档和演示视频',
       status: 'pending',
       statusText: '待开始',
+      startDate: '2025-12-15',
+      endDate: '2025-12-25',
       plannedDate: '2025-12-25',
       actualDate: null,
       delayDays: 0,

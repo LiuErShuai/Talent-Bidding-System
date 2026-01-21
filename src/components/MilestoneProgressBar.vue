@@ -78,9 +78,17 @@ const getNodePosition = (index) => {
   const totalNodes = props.milestones.length
   if (totalNodes <= 1) return '50%'
 
-  // 均匀分布节点，首尾留出边距
+  // 均匀分布节点，考虑左右边距（40px）
+  // 计算可用宽度百分比（去除左右边距后的宽度）
+  const leftMargin = 40 // 左边距 40px
+  const rightMargin = 40 // 右边距 40px
+
+  // 节点在可用区域内均匀分布
   const percentage = (index / (totalNodes - 1)) * 100
-  return `${percentage}%`
+
+  // 转换为相对于整个容器的位置（考虑边距）
+  // left: 40px 对应起始位置，需要通过 calc 计算
+  return `calc(40px + ${percentage}% * (100% - 80px) / 100%)`
 }
 
 // 格式化日期
@@ -107,16 +115,16 @@ const handleNodeClick = (milestone) => {
 .milestone-progress-bar {
   position: relative;
   width: 100%;
-  height: 120px;
-  padding: 20px 0;
+  height: 80px;
+  padding: 10px 40px; /* 左右留出边距，避免节点超出 */
 }
 
 /* 进度条背景线 */
 .progress-line {
   position: absolute;
   top: 50%;
-  left: 0;
-  right: 0;
+  left: 40px;
+  right: 40px;
   height: 4px;
   background: #e5e7eb;
   border-radius: 2px;
@@ -150,13 +158,13 @@ const handleNodeClick = (milestone) => {
 
 /* 节点圆点 */
 .node-dot {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
   transition: all 0.3s ease;
   position: relative;
@@ -200,17 +208,17 @@ const handleNodeClick = (milestone) => {
 
 /* 节点图标 */
 .node-icon {
-  font-size: 20px;
+  font-size: 18px;
 }
 
 .node-number {
-  font-size: 16px;
+  font-size: 14px;
 }
 
 /* 节点标签 */
 .node-label {
   position: absolute;
-  top: 55px;
+  top: 48px;
   left: 50%;
   transform: translateX(-50%);
   text-align: center;
@@ -219,14 +227,14 @@ const handleNodeClick = (milestone) => {
 }
 
 .node-title {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   color: #374151;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .node-date {
-  font-size: 12px;
+  font-size: 11px;
   color: #9ca3af;
 }
 
@@ -245,8 +253,8 @@ const handleNodeClick = (milestone) => {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background: #1890ff;
   opacity: 0;
@@ -268,29 +276,35 @@ const handleNodeClick = (milestone) => {
 /* 响应式设计 */
 @media (max-width: 768px) {
   .milestone-progress-bar {
-    height: 140px;
+    height: 100px;
+    padding: 10px 20px;
+  }
+
+  .progress-line {
+    left: 20px;
+    right: 20px;
   }
 
   .node-dot {
-    width: 32px;
-    height: 32px;
-    font-size: 14px;
-  }
-
-  .node-icon {
-    font-size: 16px;
-  }
-
-  .node-label {
-    top: 45px;
-  }
-
-  .node-title {
+    width: 30px;
+    height: 30px;
     font-size: 12px;
   }
 
-  .node-date {
+  .node-icon {
+    font-size: 14px;
+  }
+
+  .node-label {
+    top: 42px;
+  }
+
+  .node-title {
     font-size: 11px;
+  }
+
+  .node-date {
+    font-size: 10px;
   }
 }
 </style>

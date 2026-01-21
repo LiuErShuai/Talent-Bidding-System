@@ -10,7 +10,6 @@
         <el-button
           v-if="showPrevButton"
           size="small"
-          :icon="ArrowLeft"
           @click="handlePrev"
         >
           上一个
@@ -28,91 +27,169 @@
 
     <!-- 面板内容 -->
     <div class="panel-content">
-      <!-- 基本信息 -->
-      <div class="info-section">
-        <div class="info-row">
-          <div class="info-item">
-            <span class="info-label">开始时间：</span>
-            <span class="info-value">{{ formatDate(milestone?.startDate) }}</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">截止时间：</span>
-            <span class="info-value" :class="{ 'text-danger': isOverdue }">
-              {{ formatDate(milestone?.endDate) }}
-            </span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">剩余时间：</span>
-            <span class="info-value" :class="remainingTimeClass">
-              {{ remainingTime }}
-            </span>
-          </div>
-        </div>
-      </div>
+      <!-- 任务描述板块 -->
+      <div class="section task-description-section">
+        <div class="description-content">
+          <h4 class="section-title">任务描述</h4>
+          <p class="task-description">{{ milestone?.description || '暂无描述' }}</p>
 
-      <!-- 里程碑描述 -->
-      <div v-if="milestone?.description" class="description-section">
-        <h4 class="section-title">📋 里程碑说明</h4>
-        <p class="description-text">{{ milestone.description }}</p>
-      </div>
+          <!-- 基本信息 -->
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">开始时间</span>
+              <span class="info-value">{{ formatDate(milestone?.startDate) }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">截止时间</span>
+              <span class="info-value" :class="{ 'text-danger': isOverdue }">
+                {{ formatDate(milestone?.endDate) }}
+              </span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">剩余时间</span>
+              <span class="info-value" :class="remainingTimeClass">
+                {{ remainingTime }}
+              </span>
+            </div>
+          </div>
 
-      <!-- 交付物要求 -->
-      <div v-if="milestone?.deliverables?.length" class="deliverables-section">
-        <h4 class="section-title">📦 交付物要求</h4>
-        <div class="deliverables-list">
-          <div
-            v-for="deliverable in milestone.deliverables"
-            :key="deliverable.id"
-            class="deliverable-item"
-          >
-            <div class="deliverable-header">
-              <el-icon class="deliverable-icon"><Document /></el-icon>
-              <span class="deliverable-name">{{ deliverable.name }}</span>
-              <el-tag
-                v-if="getDeliverableStatus(deliverable.id)"
-                :type="getDeliverableStatus(deliverable.id).type"
+          <!-- 交付物要求 -->
+          <div v-if="milestone?.deliverables?.length" class="deliverables-list">
+            <div class="deliverables-header">
+              <h5 class="deliverables-title">交付物要求</h5>
+              <el-button
+                link
                 size="small"
+                class="toggle-btn"
+                @click="deliverablesExpanded = !deliverablesExpanded"
               >
-                {{ getDeliverableStatus(deliverable.id).text }}
-              </el-tag>
+                <el-icon class="arrow-icon" :class="{ 'expanded': deliverablesExpanded }">
+                  <ArrowRight />
+                </el-icon>
+                <span class="toggle-text">{{ deliverablesExpanded ? '收起' : '展开' }}</span>
+              </el-button>
             </div>
-            <p class="deliverable-requirement">{{ deliverable.requirement }}</p>
+            <ul v-show="deliverablesExpanded" class="deliverables-items">
+              <li v-for="deliverable in milestone.deliverables" :key="deliverable.id" class="deliverable-item">
+                <div class="deliverable-info">
+                  <span class="deliverable-name">{{ deliverable.name }}</span>
+                  <el-tag size="small" type="info">
+                    {{ Array.isArray(deliverable.format) ? deliverable.format.join(' / ') : deliverable.format }}
+                  </el-tag>
+                </div>
+                <p class="deliverable-requirement">{{ deliverable.requirement }}</p>
+              </li>
+            </ul>
           </div>
         </div>
       </div>
 
-      <!-- 提交记录 -->
-      <div v-if="milestone?.submissions?.length" class="submissions-section">
-        <h4 class="section-title">📤 提交记录</h4>
-        <div class="submissions-list">
-          <div
-            v-for="submission in milestone.submissions"
-            :key="submission.id"
-            class="submission-item"
-            @click="handleViewSubmission(submission)"
-          >
-            <div class="submission-header">
-              <div class="submission-info">
-                <span class="submission-version">v{{ submission.version }}</span>
-                <span class="submission-filename">{{ submission.fileName }}</span>
+      <!-- 任务文件栏 -->
+      <div class="section task-files-section">
+        <div class="section-header">
+          <h4 class="section-title">任务文件</h4>
+        </div>
+
+        <ul v-if="milestone?.taskFiles?.length" class="task-files-list">
+          <li v-for="file in milestone.taskFiles" :key="file.id" class="task-file-item">
+            <div class="file-info">
+              <el-icon class="file-icon"><Document /></el-icon>
+              <div class="file-details">
+                <span class="file-name">{{ file.name }}</span>
+                <span class="file-meta">{{ file.size }} · {{ file.uploadTime }}</span>
               </div>
-              <el-tag :type="getSubmissionTagType(submission.status)" size="small">
-                {{ getSubmissionStatusText(submission.status) }}
-              </el-tag>
             </div>
-            <div class="submission-meta">
-              <span>{{ submission.uploader }}</span>
-              <span class="meta-sep">•</span>
-              <span>{{ submission.uploadTime }}</span>
-              <span class="meta-sep">•</span>
-              <span>{{ submission.fileSize }}</span>
+            <el-button link type="primary" @click="handleDownloadTaskFile(file)">
+              <el-icon><Download /></el-icon>
+              下载
+            </el-button>
+          </li>
+        </ul>
+        <el-empty v-else description="暂无任务文件" :image-size="40" />
+      </div>
+
+      <!-- 我的提交记录区 -->
+      <div class="section submissions-section">
+        <div class="section-header">
+          <h4 class="section-title">我的提交记录</h4>
+          <el-button
+            v-if="historySubmissions.length > 0"
+            type="primary"
+            plain
+            size="small"
+            @click="handleViewHistory"
+          >
+            查看历史提交
+          </el-button>
+        </div>
+
+        <div v-if="latestSubmission" class="latest-submission">
+          <submission-item
+            :submission="latestSubmission"
+            @download="handleDownload"
+            @view="handleViewSubmission"
+          />
+        </div>
+
+        <el-empty v-if="!latestSubmission" description="暂未提交文件" :image-size="40" />
+      </div>
+
+      <!-- 意见反馈区 -->
+      <div class="section feedback-section">
+        <div class="section-header">
+          <h4 class="section-title">意见反馈</h4>
+        </div>
+
+        <!-- 历史反馈列表 -->
+        <div v-if="milestone?.feedbacks?.length" class="feedbacks-list">
+          <div
+            v-for="feedback in sortedFeedbacks"
+            :key="feedback.id"
+            class="feedback-item"
+          >
+            <!-- 缩略状态 -->
+            <div v-if="!expandedFeedbacks[feedback.id]" class="feedback-collapsed">
+              <span class="feedback-label">反馈内容：</span>
+              <span class="feedback-text-collapsed">{{ feedback.content }}</span>
+              <span class="feedback-time">{{ feedback.time }}</span>
+              <el-button
+                link
+                type="primary"
+                size="small"
+                @click="toggleFeedback(feedback.id)"
+                class="expand-btn"
+              >
+                展开
+              </el-button>
+            </div>
+
+            <!-- 展开状态 -->
+            <div v-else class="feedback-expanded">
+              <!-- 第一行：标签 + 时间 + 收起按钮 -->
+              <div class="feedback-expanded-header">
+                <span class="feedback-label">反馈内容：</span>
+                <span class="feedback-time">{{ feedback.time }}</span>
+                <el-button
+                  link
+                  type="primary"
+                  size="small"
+                  @click="toggleFeedback(feedback.id)"
+                  class="collapse-btn"
+                >
+                  收起
+                </el-button>
+              </div>
+              <!-- 反馈内容文本 -->
+              <div class="feedback-text-full">{{ feedback.content }}</div>
             </div>
           </div>
         </div>
+
+        <el-empty v-else description="暂无反馈意见" :image-size="40" />
       </div>
 
-      <!-- 操作按钮 -->
-      <div class="action-section">
+      <!-- 操作按钮区 -->
+      <div class="actions-section">
         <el-button
           v-if="milestone?.status === 'in-progress'"
           type="primary"
@@ -141,19 +218,38 @@
         </el-button>
       </div>
     </div>
+
+    <!-- 历史提交记录对话框 -->
+    <el-dialog
+      v-model="historyDialogVisible"
+      title="历史提交记录"
+      width="700px"
+    >
+      <div class="history-submissions-dialog">
+        <submission-item
+          v-for="sub in historySubmissions"
+          :key="sub.id"
+          :submission="sub"
+          @download="handleDownload"
+          @view="handleViewSubmission"
+        />
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
+import { ElMessage } from 'element-plus'
 import {
-  ArrowLeft,
   ArrowRight,
   Document,
   Upload,
   Check,
-  Clock
+  Clock,
+  Download
 } from '@element-plus/icons-vue'
+import SubmissionItem from './SubmissionItem.vue'
 
 const props = defineProps({
   milestone: {
@@ -171,6 +267,9 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['prev', 'next', 'upload', 'viewSubmission'])
+
+// 交付物要求展开/收起状态
+const deliverablesExpanded = ref(false)
 
 // 状态文本映射
 const statusText = computed(() => {
@@ -265,47 +364,42 @@ const remainingTimeClass = computed(() => {
   }
 })
 
-// 获取交付物状态
-const getDeliverableStatus = (deliverableId) => {
-  if (!props.milestone?.submissions) return null
-
-  const submission = props.milestone.submissions.find(
-    s => s.deliverableId === deliverableId && s.status === 'approved'
-  )
-
-  if (submission) {
-    return { type: 'success', text: '已提交' }
+// 最新提交
+const latestSubmission = computed(() => {
+  if (!props.milestone?.submissions || props.milestone.submissions.length === 0) {
+    return null
   }
+  return props.milestone.submissions[0]
+})
 
-  const pendingSubmission = props.milestone.submissions.find(
-    s => s.deliverableId === deliverableId && s.status === 'pending'
-  )
-
-  if (pendingSubmission) {
-    return { type: 'warning', text: '审核中' }
+// 历史提交
+const historySubmissions = computed(() => {
+  if (!props.milestone?.submissions || props.milestone.submissions.length <= 1) {
+    return []
   }
+  return props.milestone.submissions.slice(1)
+})
 
-  return { type: 'info', text: '未提交' }
+// 排序后的反馈（新到旧）
+const sortedFeedbacks = computed(() => {
+  if (!props.milestone?.feedbacks) return []
+  return [...props.milestone.feedbacks].sort((a, b) => {
+    return new Date(b.time) - new Date(a.time)
+  })
+})
+
+// 反馈展开/收起状态
+const expandedFeedbacks = ref({})
+
+function toggleFeedback(feedbackId) {
+  expandedFeedbacks.value[feedbackId] = !expandedFeedbacks.value[feedbackId]
 }
 
-// 获取提交状态标签类型
-const getSubmissionTagType = (status) => {
-  const typeMap = {
-    'pending': 'warning',
-    'approved': 'success',
-    'rejected': 'danger'
-  }
-  return typeMap[status] || 'info'
-}
+// 历史提交记录对话框
+const historyDialogVisible = ref(false)
 
-// 获取提交状态文本
-const getSubmissionStatusText = (status) => {
-  const textMap = {
-    'pending': '审核中',
-    'approved': '已通过',
-    'rejected': '已驳回'
-  }
-  return textMap[status] || '未知'
+function handleViewHistory() {
+  historyDialogVisible.value = true
 }
 
 // 事件处理
@@ -313,6 +407,18 @@ const handlePrev = () => emit('prev')
 const handleNext = () => emit('next')
 const handleUpload = () => emit('upload', props.milestone)
 const handleViewSubmission = (submission) => emit('viewSubmission', submission)
+
+// 下载文件
+function handleDownload(submission) {
+  ElMessage.success(`开始下载：${submission.fileName}`)
+  console.log('下载文件：', submission)
+}
+
+// 下载任务文件
+function handleDownloadTaskFile(file) {
+  ElMessage.success(`开始下载：${file.name}`)
+  console.log('下载任务文件：', file)
+}
 </script>
 
 <style scoped>
@@ -356,25 +462,70 @@ const handleViewSubmission = (submission) => emit('viewSubmission', submission)
   padding: 24px;
 }
 
-/* 信息区域 */
-.info-section {
+/* 区块样式 */
+.section {
   margin-bottom: 24px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #f0f0f0;
 }
 
-.info-row {
+.section:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.section-header {
   display: flex;
-  gap: 32px;
-  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.section-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+/* 任务描述板块 */
+.task-description-section {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.description-content {
+  flex: 1;
+}
+
+.task-description {
+  margin: 8px 0 16px 0;
+  font-size: 14px;
+  color: #4b5563;
+  line-height: 1.6;
+}
+
+/* 基本信息网格 */
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 16px;
+  padding: 16px;
+  background: #f9fafb;
+  border-radius: 8px;
 }
 
 .info-item {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .info-label {
-  font-size: 14px;
+  font-size: 12px;
   color: #6b7280;
 }
 
@@ -396,69 +547,68 @@ const handleViewSubmission = (submission) => emit('viewSubmission', submission)
   color: #10b981;
 }
 
-/* 区块标题 */
-.section-title {
-  margin: 0 0 16px 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: #1f2937;
+/* 交付物要求 */
+.deliverables-list {
+  margin-top: 16px;
 }
 
-/* 描述区域 */
-.description-section {
-  margin-bottom: 24px;
-  padding: 16px;
-  background: #f8fafc;
-  border-radius: 8px;
-  border-left: 3px solid #3b82f6;
+.deliverables-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #e5e7eb;
 }
 
-.description-text {
+.deliverables-title {
   margin: 0;
   font-size: 14px;
-  color: #4b5563;
-  line-height: 1.6;
+  font-weight: 600;
+  color: #374151;
 }
 
-/* 交付物列表 */
-.deliverables-section {
-  margin-bottom: 24px;
-}
-
-.deliverables-list {
+.toggle-btn {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+}
+
+.arrow-icon {
+  transition: transform 0.3s ease;
+}
+
+.arrow-icon.expanded {
+  transform: rotate(90deg);
+}
+
+.deliverables-items {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0 0;
 }
 
 .deliverable-item {
-  padding: 16px;
+  padding: 12px;
+  margin-bottom: 8px;
   background: #f9fafb;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-  transition: all 0.3s ease;
+  border-radius: 6px;
+  border-left: 3px solid #3b82f6;
 }
 
-.deliverable-item:hover {
-  border-color: #3b82f6;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+.deliverable-item:last-child {
+  margin-bottom: 0;
 }
 
-.deliverable-header {
+.deliverable-info {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 8px;
-}
-
-.deliverable-icon {
-  color: #3b82f6;
-  font-size: 18px;
+  margin-bottom: 6px;
 }
 
 .deliverable-name {
-  flex: 1;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   color: #1f2937;
 }
@@ -468,82 +618,139 @@ const handleViewSubmission = (submission) => emit('viewSubmission', submission)
   font-size: 13px;
   color: #6b7280;
   line-height: 1.5;
-  padding-left: 26px;
 }
 
-/* 提交记录列表 */
-.submissions-section {
-  margin-bottom: 24px;
+/* 任务文件列表 */
+.task-files-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
-.submissions-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.submission-item {
-  padding: 16px;
-  background: #fff;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.submission-item:hover {
-  border-color: #3b82f6;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
-  transform: translateY(-2px);
-}
-
-.submission-header {
+.task-file-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 12px;
   margin-bottom: 8px;
+  background: #f9fafb;
+  border-radius: 6px;
+  transition: all 0.3s ease;
 }
 
-.submission-info {
+.task-file-item:hover {
+  background: #f3f4f6;
+}
+
+.task-file-item:last-child {
+  margin-bottom: 0;
+}
+
+.file-info {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex: 1;
 }
 
-.submission-version {
-  display: inline-block;
-  padding: 2px 8px;
-  background: #eff6ff;
+.file-icon {
+  font-size: 24px;
   color: #3b82f6;
-  font-size: 12px;
-  font-weight: 600;
-  border-radius: 4px;
 }
 
-.submission-filename {
+.file-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.file-name {
   font-size: 14px;
   font-weight: 500;
   color: #1f2937;
 }
 
-.submission-meta {
-  font-size: 13px;
+.file-meta {
+  font-size: 12px;
   color: #9ca3af;
+}
+
+/* 提交记录 */
+.latest-submission {
+  margin-bottom: 0;
+}
+
+/* 反馈列表 */
+.feedbacks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.feedback-item {
+  padding: 12px;
+  background: #f9fafb;
+  border-radius: 6px;
+  border-left: 3px solid #f59e0b;
+}
+
+.feedback-collapsed {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
-.meta-sep {
-  color: #d1d5db;
+.feedback-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
 }
 
-/* 操作区域 */
-.action-section {
+.feedback-text-collapsed {
+  flex: 1;
+  font-size: 13px;
+  color: #6b7280;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.feedback-time {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.feedback-expanded-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.feedback-text-full {
+  font-size: 13px;
+  color: #4b5563;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+/* 操作按钮区 */
+.actions-section {
   display: flex;
   justify-content: center;
+  gap: 12px;
   padding-top: 16px;
   border-top: 1px solid #e5e7eb;
+}
+
+/* 历史提交对话框 */
+.history-submissions-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: 60vh;
+  overflow-y: auto;
 }
 
 /* 响应式设计 */
@@ -559,13 +766,18 @@ const handleViewSubmission = (submission) => emit('viewSubmission', submission)
     justify-content: flex-end;
   }
 
-  .info-row {
-    flex-direction: column;
+  .info-grid {
+    grid-template-columns: 1fr;
     gap: 12px;
   }
 
-  .deliverable-requirement {
-    padding-left: 0;
+  .task-description-section {
+    flex-direction: column;
+  }
+
+  .feedback-collapsed {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 </style>
