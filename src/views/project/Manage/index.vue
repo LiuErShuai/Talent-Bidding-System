@@ -422,9 +422,9 @@ function handleNodeClick(milestone) {
   selectedMilestone.value = milestone
   selectedMilestoneIndex.value = index
 
-  // 滚动到详情面板
+  // 滚动到详情面板头部
   setTimeout(() => {
-    const element = document.querySelector('.milestone-detail-panel')
+    const element = document.querySelector('.milestone-detail-panel .panel-header')
     element?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }, 100)
 }
