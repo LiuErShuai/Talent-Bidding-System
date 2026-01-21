@@ -79,11 +79,12 @@ const getNodePosition = (index) => {
   if (totalNodes <= 1) return '50%'
 
   // 均匀分布节点，首尾留出边距
-  // 节点在可用区域内均匀分布（0% 到 100%）
-  const percentage = (index / (totalNodes - 1)) * 100
+  // 计算节点在可用区域内的百分比位置（0 到 1）
+  const ratio = index / (totalNodes - 1)
 
-  // 使用 calc 计算实际位置：40px起始 + 百分比 * 可用宽度
-  return `calc(40px + (100% - 80px) * ${percentage / 100})`
+  // 使用 calc 计算实际位置：40px起始 + 比例 * 可用宽度
+  // 注意：calc 中的乘法运算符两边需要空格
+  return `calc(40px + ${ratio} * (100% - 80px))`
 }
 
 // 格式化日期
