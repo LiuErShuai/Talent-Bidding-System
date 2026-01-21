@@ -90,15 +90,26 @@
       <div class="section submissions-section">
         <div class="section-header">
           <h4 class="section-title">我的提交记录</h4>
-          <el-button
-            v-if="historySubmissions.length > 0"
-            type="primary"
-            plain
-            size="small"
-            @click="handleViewHistory"
-          >
-            查看历史提交
-          </el-button>
+          <div class="header-actions">
+            <el-button
+              v-if="milestone?.status === 'in-progress'"
+              type="primary"
+              size="small"
+              @click="handleUpload"
+            >
+              <el-icon><Upload /></el-icon>
+              上传交付物
+            </el-button>
+            <el-button
+              v-if="historySubmissions.length > 0"
+              type="primary"
+              plain
+              size="small"
+              @click="handleViewHistory"
+            >
+              查看历史提交
+            </el-button>
+          </div>
         </div>
 
         <div v-if="latestSubmission" class="latest-submission">
@@ -164,36 +175,6 @@
         </div>
 
         <el-empty v-else description="暂无反馈意见" :image-size="40" />
-      </div>
-
-      <!-- 操作按钮区 -->
-      <div class="actions-section">
-        <el-button
-          v-if="milestone?.status === 'in-progress'"
-          type="primary"
-          size="large"
-          @click="handleUpload"
-        >
-          <el-icon><Upload /></el-icon>
-          上传交付物
-        </el-button>
-        <el-button
-          v-if="milestone?.status === 'completed'"
-          type="success"
-          size="large"
-          disabled
-        >
-          <el-icon><Check /></el-icon>
-          已完成
-        </el-button>
-        <el-button
-          v-if="milestone?.status === 'pending'"
-          size="large"
-          disabled
-        >
-          <el-icon><Clock /></el-icon>
-          待开始
-        </el-button>
       </div>
     </div>
 
@@ -452,7 +433,8 @@ function handleDownloadTaskFile(file) {
 /* 区块样式 */
 .section {
   margin-bottom: 12px;
-  padding-bottom: 12px;
+  padding-top: 8px;
+  padding-bottom: 0px;
   border-bottom: 1px solid #f0f0f0;
 }
 
@@ -474,6 +456,13 @@ function handleDownloadTaskFile(file) {
   font-size: 20px;
   font-weight: 600;
   color: #1f2937;
+}
+
+/* 头部操作按钮组 */
+.header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
 }
 
 /* 任务描述板块 */
