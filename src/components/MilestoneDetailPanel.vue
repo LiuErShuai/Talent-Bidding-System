@@ -79,7 +79,6 @@
             </div>
             <el-button link type="primary" @click="handleDownloadTaskFile(file)">
               <el-icon><Download /></el-icon>
-              下载
             </el-button>
           </li>
         </ul>
