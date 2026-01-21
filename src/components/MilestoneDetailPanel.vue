@@ -36,7 +36,7 @@
           <!-- 交付物要求 - 默认展开 -->
           <div v-if="milestone?.deliverables?.length" class="deliverables-list">
             <div class="deliverables-header">
-              <h5 class="deliverables-title">交付物要求</h5>
+              <h4 class="deliverables-title">交付物要求</h4>
             </div>
             <ul class="deliverables-items">
               <li v-for="deliverable in milestone.deliverables" :key="deliverable.id" class="deliverable-item">
@@ -446,13 +446,13 @@ function handleDownloadTaskFile(file) {
 
 /* 面板内容 */
 .panel-content {
-  padding: 24px;
+  padding: 0 24px 24px 24px;
 }
 
 /* 区块样式 */
 .section {
-  margin-bottom: 24px;
-  padding-bottom: 24px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
   border-bottom: 1px solid #f0f0f0;
 }
 
@@ -471,7 +471,7 @@ function handleDownloadTaskFile(file) {
 
 .section-title {
   margin: 0;
-  font-size: 16px;
+  font-size: 20px;
   font-weight: 600;
   color: #1f2937;
 }
@@ -488,7 +488,7 @@ function handleDownloadTaskFile(file) {
 }
 
 .task-description {
-  margin: 0 0 12px 0;
+  margin: 0;
   font-size: 14px;
   color: #4b5563;
   line-height: 1.6;
@@ -555,7 +555,7 @@ function handleDownloadTaskFile(file) {
 
 .deliverables-title {
   margin: 0;
-  font-size: 14px;
+  font-size: 20px;
   font-weight: 600;
   color: #374151;
 }
@@ -669,6 +669,12 @@ function handleDownloadTaskFile(file) {
 /* 提交记录 */
 .latest-submission {
   margin-bottom: 0;
+}
+
+/* 提交记录区和反馈区的空状态 */
+.submissions-section .el-empty,
+.feedback-section .el-empty {
+  padding: 0;
 }
 
 /* 反馈列表 */

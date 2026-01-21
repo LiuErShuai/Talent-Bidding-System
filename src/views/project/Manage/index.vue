@@ -489,7 +489,7 @@ function handleNextMilestone() {
 /* 里程碑进度条区域 */
 .milestone-progress-section {
   margin-bottom: 24px;
-  padding: 16px 24px;
+  padding: 0 24px 16px 24px;
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);

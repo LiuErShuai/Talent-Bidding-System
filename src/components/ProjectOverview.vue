@@ -87,7 +87,7 @@ const formatEndDate = (endDate) => {
 
 <style scoped>
 .project-overview-card {
-  padding: 12px;
+  padding: 6px;
   background: #fff;
   border-radius: 0px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
