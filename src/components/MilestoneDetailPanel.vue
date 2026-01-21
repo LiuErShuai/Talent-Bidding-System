@@ -30,7 +30,6 @@
       <!-- 任务描述板块 -->
       <div class="section task-description-section">
         <div class="description-content">
-          <h4 class="section-title">任务描述</h4>
           <p class="task-description">{{ milestone?.description || '暂无描述' }}</p>
 
           <!-- 基本信息 -->
@@ -53,23 +52,12 @@
             </div>
           </div>
 
-          <!-- 交付物要求 -->
+          <!-- 交付物要求 - 默认展开 -->
           <div v-if="milestone?.deliverables?.length" class="deliverables-list">
             <div class="deliverables-header">
               <h5 class="deliverables-title">交付物要求</h5>
-              <el-button
-                link
-                size="small"
-                class="toggle-btn"
-                @click="deliverablesExpanded = !deliverablesExpanded"
-              >
-                <el-icon class="arrow-icon" :class="{ 'expanded': deliverablesExpanded }">
-                  <ArrowRight />
-                </el-icon>
-                <span class="toggle-text">{{ deliverablesExpanded ? '收起' : '展开' }}</span>
-              </el-button>
             </div>
-            <ul v-show="deliverablesExpanded" class="deliverables-items">
+            <ul class="deliverables-items">
               <li v-for="deliverable in milestone.deliverables" :key="deliverable.id" class="deliverable-item">
                 <div class="deliverable-info">
                   <span class="deliverable-name">{{ deliverable.name }}</span>
@@ -84,13 +72,24 @@
         </div>
       </div>
 
-      <!-- 任务文件栏 -->
+      <!-- 任务文件栏 - 默认折叠 -->
       <div class="section task-files-section">
         <div class="section-header">
           <h4 class="section-title">任务文件</h4>
+          <el-button
+            link
+            size="small"
+            class="toggle-btn"
+            @click="taskFilesExpanded = !taskFilesExpanded"
+          >
+            <el-icon class="arrow-icon" :class="{ 'expanded': taskFilesExpanded }">
+              <ArrowRight />
+            </el-icon>
+            <span class="toggle-text">{{ taskFilesExpanded ? '收起' : '展开' }}</span>
+          </el-button>
         </div>
 
-        <ul v-if="milestone?.taskFiles?.length" class="task-files-list">
+        <ul v-show="taskFilesExpanded" v-if="milestone?.taskFiles?.length" class="task-files-list">
           <li v-for="file in milestone.taskFiles" :key="file.id" class="task-file-item">
             <div class="file-info">
               <el-icon class="file-icon"><Document /></el-icon>
@@ -105,7 +104,7 @@
             </el-button>
           </li>
         </ul>
-        <el-empty v-else description="暂无任务文件" :image-size="40" />
+        <el-empty v-show="taskFilesExpanded" v-if="!milestone?.taskFiles?.length" description="暂无任务文件" :image-size="40" />
       </div>
 
       <!-- 我的提交记录区 -->
@@ -268,8 +267,8 @@ const props = defineProps({
 
 const emit = defineEmits(['prev', 'next', 'upload', 'viewSubmission'])
 
-// 交付物要求展开/收起状态
-const deliverablesExpanded = ref(false)
+// 任务文件展开/收起状态 - 默认折叠
+const taskFilesExpanded = ref(false)
 
 // 状态文本映射
 const statusText = computed(() => {
@@ -501,7 +500,7 @@ function handleDownloadTaskFile(file) {
 }
 
 .task-description {
-  margin: 8px 0 16px 0;
+  margin: 0 0 12px 0;
   font-size: 14px;
   color: #4b5563;
   line-height: 1.6;
@@ -520,13 +519,19 @@ function handleDownloadTaskFile(file) {
 
 .info-item {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
 }
 
 .info-label {
-  font-size: 12px;
+  font-size: 13px;
   color: #6b7280;
+  white-space: nowrap;
+}
+
+.info-label::after {
+  content: '：';
 }
 
 .info-value {

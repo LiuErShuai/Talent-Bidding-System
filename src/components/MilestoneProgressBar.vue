@@ -82,9 +82,11 @@ const getNodePosition = (index) => {
   // 计算节点在可用区域内的百分比位置（0 到 1）
   const ratio = index / (totalNodes - 1)
 
-  // 使用 calc 计算实际位置：40px起始 + 比例 * 可用宽度
-  // 注意：calc 中的乘法运算符两边需要空格
-  return `calc(40px + ${ratio} * (100% - 80px))`
+  // 使用百分比计算，确保节点在进度线范围内
+  // 进度线占据容器的中间部分（左右各留 40px）
+  // 节点位置 = 左边距 + 比例 * 进度线宽度
+  const percentage = ratio * 100
+  return `calc(40px + ${percentage}% * (100% - 80px) / 100%)`
 }
 
 // 格式化日期
@@ -112,7 +114,7 @@ const handleNodeClick = (milestone) => {
   position: relative;
   width: 100%;
   height: 80px;
-  padding: 10px 40px; /* 左右留出边距，避免节点超出 */
+  padding: 10px 0; /* 移除左右 padding，改用内部元素控制边距 */
 }
 
 /* 进度条背景线 */
@@ -146,6 +148,8 @@ const handleNodeClick = (milestone) => {
   cursor: pointer;
   z-index: 2;
   transition: all 0.3s ease;
+  /* 确保节点标签不会超出容器 */
+  max-width: calc(100% / var(--node-count, 4) - 10px);
 }
 
 .milestone-node:hover {
