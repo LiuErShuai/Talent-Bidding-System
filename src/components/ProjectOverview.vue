@@ -4,9 +4,13 @@
     <div class="overview-main">
       <!-- 左侧信息区 -->
       <div class="overview-left">
-        <!-- 标题行：仅标题 -->
+        <!-- 标题行：标题 + 状态标签 -->
         <div class="title-row">
           <h2 class="project-title">{{ project?.name || '项目名称' }}</h2>
+          <div v-if="project?.status" class="status-indicator" :class="`status-${project.status}`">
+            <span class="status-dot"></span>
+            <span class="status-text">{{ statusText }}</span>
+          </div>
         </div>
 
         <!-- 元信息行 -->
@@ -42,6 +46,16 @@ import { defineProps, computed } from 'vue'
 const props = defineProps({
   project: { type: Object, default: () => ({}) },
   canEdit: { type: Boolean, default: false }
+})
+
+// 计算项目状态文本
+const statusText = computed(() => {
+  const statusMap = {
+    'pending': '待开始',
+    'in-progress': '进行中',
+    'completed': '已完成'
+  }
+  return statusMap[props.project?.status] || '未知'
 })
 
 // 格式化截止日期
@@ -116,6 +130,68 @@ const formatEndDate = (endDate) => {
   color: #1f2937;
   flex: 1;
   min-width: 0;
+}
+
+/* 状态指示器 */
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* 待开始状态 */
+.status-pending {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.status-pending .status-dot {
+  background: #9ca3af;
+  box-shadow: 0 0 0 3px rgba(156, 163, 175, 0.2);
+}
+
+/* 进行中状态 */
+.status-in-progress {
+  background: #eff6ff;
+  color: #1890ff;
+}
+
+.status-in-progress .status-dot {
+  background: #1890ff;
+  box-shadow: 0 0 0 3px rgba(24, 144, 255, 0.2);
+}
+
+/* 已完成状态 */
+.status-completed {
+  background: #f0fdf4;
+  color: #52c41a;
+}
+
+.status-completed .status-dot {
+  background: #52c41a;
+  box-shadow: 0 0 0 3px rgba(82, 196, 26, 0.2);
+}
+
+/* 脉动动画 */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
 }
 
 /* 元信息行 */

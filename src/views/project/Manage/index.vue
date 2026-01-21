@@ -12,28 +12,40 @@
       <span>加载中...</span>
     </div>
 
-    <!-- ========== 双栏布局：快捷面板 + (概览+时间线) ========== -->
+    <!-- ========== 单栏布局：项目概览 + 里程碑进度 ========== -->
     <div v-else-if="project" class="main-layout">
-      <!-- 左侧：快捷操作面板 -->
-      <quick-action-panel
-        :milestones="milestones"
-        @upload="handleQuickUpload"
-        @viewRequirements="handleViewRequirements"
-        @jump="handleQuickJump"
-        @alertClick="handleAlertClick"
-      />
-
-      <!-- 右侧：项目概览 + 里程碑时间线 -->
-      <div class="right-content">
+      <!-- 主内容区 -->
+      <div class="main-content">
         <!-- 项目概览卡片 -->
         <project-overview
           :project="project"
           :canEdit="false"
-          class="overview-in-right"
+          class="overview-card"
         />
 
-        <!-- 里程碑时间线 -->
+        <!-- 里程碑进度条 -->
+        <div class="milestone-progress-section">
+          <milestone-progress-bar
+            :milestones="milestones"
+            @nodeClick="handleNodeClick"
+          />
+        </div>
+
+        <!-- 里程碑详情面板 -->
+        <milestone-detail-panel
+          v-if="selectedMilestone"
+          :milestone="selectedMilestone"
+          :currentIndex="selectedMilestoneIndex"
+          :totalCount="milestones.length"
+          @prev="handlePrevMilestone"
+          @next="handleNextMilestone"
+          @upload="handleUpload"
+          @viewSubmission="handleViewSubmission"
+        />
+
+        <!-- 里程碑时间线（保留原有组件作为备用） -->
         <milestone-timeline
+          v-if="false"
           :milestones="milestones"
           @upload="handleUpload"
           @viewSubmission="handleViewSubmission"
@@ -215,8 +227,8 @@ import { Loading, UploadFilled, Download } from '@element-plus/icons-vue'
 // 组件导入
 import ProjectManageHeader from '@/components/layout/ProjectManageHeader.vue'
 import ProjectOverview from '@/components/ProjectOverview.vue'
-import QuickActionPanel from '@/components/QuickActionPanel.vue'
-import MilestoneTimeline from '@/components/MilestoneTimeline.vue'
+import MilestoneProgressBar from '@/components/MilestoneProgressBar.vue'
+import MilestoneDetailPanel from '@/components/MilestoneDetailPanel.vue'
 import TeamPanel from '@/components/TeamPanel.vue'
 import TimelinePanel from '@/components/TimelinePanel.vue'
 
@@ -257,6 +269,10 @@ const fileList = ref([])
 const viewDialogVisible = ref(false)
 const currentSubmission = ref(null)
 
+// 选中的里程碑
+const selectedMilestone = ref(null)
+const selectedMilestoneIndex = ref(0)
+
 // ========== 计算属性 ==========
 const currentMilestone = computed(() => {
   if (!currentMilestoneId.value) return null
@@ -277,10 +293,21 @@ async function fetchManageData() {
     timelineEvents.value = data.timelineEvents
     reviewHistory.value = data.reviewHistory
 
+    // 自动选中当前进行中的里程碑，如果没有则选中第一个
+    const currentMilestone = milestones.value.find(m => m.status === 'in-progress')
+    if (currentMilestone) {
+      const index = milestones.value.findIndex(m => m.id === currentMilestone.id)
+      selectedMilestone.value = currentMilestone
+      selectedMilestoneIndex.value = index
+    } else if (milestones.value.length > 0) {
+      selectedMilestone.value = milestones.value[0]
+      selectedMilestoneIndex.value = 0
+    }
+
     console.log('项目数据加载成功：', {
       项目名称: project.value.name,
       里程碑数量: milestones.value.length,
-      当前里程碑: milestones.value.find(m => m.status === 'in-progress')?.title
+      当前里程碑: currentMilestone?.title || '无'
     })
   } catch (error) {
     ElMessage.error('加载项目数据失败')
@@ -291,63 +318,6 @@ async function fetchManageData() {
 }
 
 onMounted(fetchManageData)
-
-// ========== 快捷面板事件处理 ==========
-function handleQuickUpload() {
-  // 找到当前进行中的里程碑
-  const current = milestones.value.find(m => m.status === 'in-progress')
-  if (current) {
-    handleUpload(current.id)
-    // 滚动到当前里程碑
-    setTimeout(() => {
-      const element = document.querySelector('.timeline-item-current')
-      element?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    }, 100)
-  } else {
-    ElMessage.warning('当前没有进行中的里程碑')
-  }
-}
-
-function handleViewRequirements() {
-  // 滚动到当前里程碑并展开
-  const current = milestones.value.find(m => m.status === 'in-progress')
-  if (current) {
-    setTimeout(() => {
-      const element = document.querySelector('.timeline-item-current')
-      element?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    }, 100)
-  }
-}
-
-function handleQuickJump(target) {
-  if (target === 'history') {
-    // 跳转到第一个已完成的里程碑
-    const firstCompleted = document.querySelector('.timeline-item-completed')
-    firstCompleted?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  } else if (target === 'future') {
-    // 跳转到第一个待开始的里程碑
-    const firstPending = document.querySelector('.timeline-item-pending')
-    firstPending?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  } else if (target === 'reviews') {
-    // 展开审核历史区域
-    if (!activeCollapse.value.includes('timeline')) {
-      activeCollapse.value.push('timeline')
-    }
-    setTimeout(() => {
-      const element = document.querySelector('.bottom-sections')
-      element?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }, 300)
-  }
-}
-
-function handleAlertClick(alert) {
-  // 跳转到对应的里程碑
-  const index = milestones.value.findIndex(m => m.id === alert.milestoneId)
-  if (index >= 0) {
-    const element = document.querySelector(`.timeline-item:nth-child(${index + 1})`)
-    element?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-  }
-}
 
 // ========== 上传交付物 ==========
 function handleUpload(milestoneId) {
@@ -446,23 +416,30 @@ function handleDownload(submission) {
   // 实际项目中应该调用后端API获取下载链接
 }
 
-// ========== 下一步引导操作 ==========
-function handleGuideAction({ milestone, action }) {
-  if (action === 'upload') {
-    handleUpload(milestone.id)
-  } else if (action === 'view-feedback') {
-    // 查看被驳回的提交反馈
-    const rejected = milestone.submissions?.find(s => s.status === 'rejected')
-    if (rejected) {
-      handleViewSubmission(rejected)
-    }
-  } else if (action === 'next') {
-    // 跳转到下一个里程碑
-    const currentIndex = milestones.value.findIndex(m => m.id === milestone.id)
-    if (currentIndex < milestones.value.length - 1) {
-      const nextElement = document.querySelector(`.timeline-item:nth-child(${currentIndex + 2})`)
-      nextElement?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    }
+// ========== 里程碑进度条交互 ==========
+function handleNodeClick(milestone) {
+  const index = milestones.value.findIndex(m => m.id === milestone.id)
+  selectedMilestone.value = milestone
+  selectedMilestoneIndex.value = index
+
+  // 滚动到详情面板
+  setTimeout(() => {
+    const element = document.querySelector('.milestone-detail-panel')
+    element?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, 100)
+}
+
+function handlePrevMilestone() {
+  if (selectedMilestoneIndex.value > 0) {
+    selectedMilestoneIndex.value--
+    selectedMilestone.value = milestones.value[selectedMilestoneIndex.value]
+  }
+}
+
+function handleNextMilestone() {
+  if (selectedMilestoneIndex.value < milestones.value.length - 1) {
+    selectedMilestoneIndex.value++
+    selectedMilestone.value = milestones.value[selectedMilestoneIndex.value]
   }
 }
 </script>
@@ -472,7 +449,7 @@ function handleGuideAction({ milestone, action }) {
   min-height: 100vh;
   background: #f5f7fb;
   padding: 84px 24px 24px; /* 顶部留出固定 Header 的空间（60px + 24px） */
-  max-width: 1400px;
+  max-width: 100%;
   margin: 0 auto;
 }
 
@@ -491,25 +468,31 @@ function handleGuideAction({ milestone, action }) {
   margin-bottom: 12px;
 }
 
-/* 双栏布局 */
+/* 单栏布局 */
 .main-layout {
-  display: flex;
-  gap: 24px;
   margin-top: 20px;
-  align-items: flex-start;
 }
 
-/* 右侧内容容器 */
-.right-content {
-  flex: 1;
-  min-width: 0;
+/* 主内容容器 */
+.main-content {
+  max-width: 1200px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
 }
 
-/* 右侧的项目概览卡片 */
-.overview-in-right {
+/* 项目概览卡片 */
+.overview-card {
   margin-bottom: 16px;
+}
+
+/* 里程碑进度条区域 */
+.milestone-progress-section {
+  margin-bottom: 24px;
+  padding: 24px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 /* 折叠面板整体容器 */
@@ -653,13 +636,13 @@ function handleGuideAction({ milestone, action }) {
   .project-manage-root {
     max-width: 100%;
   }
+
+  .main-content {
+    max-width: 100%;
+  }
 }
 
 @media (max-width: 768px) {
-  .main-layout {
-    flex-direction: column;
-  }
-
   .detail-grid {
     grid-template-columns: 1fr;
   }
