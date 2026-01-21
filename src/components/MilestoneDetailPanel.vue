@@ -4,6 +4,7 @@
     <div class="panel-header">
       <div class="header-left">
         <h3 class="milestone-title">{{ milestone?.title || '里程碑详情' }}</h3>
+        <span class="deadline-info">截止：{{ formatDate(milestone?.endDate) }}</span>
         <el-tag :type="statusTagType" size="small">{{ statusText }}</el-tag>
       </div>
       <div class="header-right">
@@ -31,26 +32,6 @@
       <div class="section task-description-section">
         <div class="description-content">
           <p class="task-description">{{ milestone?.description || '暂无描述' }}</p>
-
-          <!-- 基本信息 -->
-          <div class="info-grid">
-            <div class="info-item">
-              <span class="info-label">开始时间</span>
-              <span class="info-value">{{ formatDate(milestone?.startDate) }}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">截止时间</span>
-              <span class="info-value" :class="{ 'text-danger': isOverdue }">
-                {{ formatDate(milestone?.endDate) }}
-              </span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">剩余时间</span>
-              <span class="info-value" :class="remainingTimeClass">
-                {{ remainingTime }}
-              </span>
-            </div>
-          </div>
 
           <!-- 交付物要求 - 默认展开 -->
           <div v-if="milestone?.deliverables?.length" class="deliverables-list">
@@ -93,10 +74,8 @@
           <li v-for="file in milestone.taskFiles" :key="file.id" class="task-file-item">
             <div class="file-info">
               <el-icon class="file-icon"><Document /></el-icon>
-              <div class="file-details">
-                <span class="file-name">{{ file.name }}</span>
-                <span class="file-meta">{{ file.size }} · {{ file.uploadTime }}</span>
-              </div>
+              <span class="file-name">{{ file.name }}</span>
+              <span class="file-size">{{ file.size }}</span>
             </div>
             <el-button link type="primary" @click="handleDownloadTaskFile(file)">
               <el-icon><Download /></el-icon>
@@ -451,6 +430,15 @@ function handleDownloadTaskFile(file) {
   color: #1f2937;
 }
 
+.deadline-info {
+  font-size: 14px;
+  color: #6b7280;
+  padding: 4px 12px;
+  background: #f9fafb;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+}
+
 .header-right {
   display: flex;
   gap: 8px;
@@ -661,23 +649,21 @@ function handleDownloadTaskFile(file) {
 .file-icon {
   font-size: 24px;
   color: #3b82f6;
-}
-
-.file-details {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  flex-shrink: 0;
 }
 
 .file-name {
   font-size: 14px;
   font-weight: 500;
   color: #1f2937;
+  flex: 1;
 }
 
-.file-meta {
+.file-size {
   font-size: 12px;
   color: #9ca3af;
+  margin-left: auto;
+  padding-right: 12px;
 }
 
 /* 提交记录 */

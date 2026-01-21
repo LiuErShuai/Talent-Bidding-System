@@ -18,6 +18,11 @@
       :style="{ left: getNodePosition(index) }"
       @click="handleNodeClick(milestone)"
     >
+      <!-- 状态标签（在圆点上方） -->
+      <div class="node-status-tag" :class="`status-${milestone.status}`">
+        {{ getStatusText(milestone.status) }}
+      </div>
+
       <!-- 节点圆点 -->
       <div class="node-dot">
         <el-icon v-if="milestone.status === 'completed'" class="node-icon">
@@ -29,10 +34,12 @@
         <span v-else class="node-number">{{ index + 1 }}</span>
       </div>
 
-      <!-- 节点标签 -->
+      <!-- 节点标签（标题和剩余时间） -->
       <div class="node-label">
         <div class="node-title">{{ milestone.title }}</div>
-        <div class="node-date">{{ formatDate(milestone.endDate) }}</div>
+        <div class="node-time" :class="getRemainingTimeClass(milestone)">
+          {{ getRemainingTime(milestone) }}
+        </div>
       </div>
 
       <!-- 当前进行中的脉动效果 -->
@@ -103,6 +110,60 @@ const formatDate = (dateStr) => {
   }
 }
 
+// 获取状态文本
+const getStatusText = (status) => {
+  const statusMap = {
+    'completed': '已完成',
+    'in-progress': '进行中',
+    'pending': '待开始'
+  }
+  return statusMap[status] || ''
+}
+
+// 计算剩余时间
+const getRemainingTime = (milestone) => {
+  if (!milestone.endDate) return '--'
+  if (milestone.status === 'completed') return '已完成'
+
+  try {
+    const endDate = new Date(milestone.endDate)
+    const now = new Date()
+    const diffTime = endDate - now
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+    if (diffDays < 0) {
+      return `逾期${Math.abs(diffDays)}天`
+    } else if (diffDays === 0) {
+      return '今日截止'
+    } else if (diffDays === 1) {
+      return '明日截止'
+    } else {
+      return `剩${diffDays}天`
+    }
+  } catch {
+    return '--'
+  }
+}
+
+// 获取剩余时间样式类
+const getRemainingTimeClass = (milestone) => {
+  if (!milestone.endDate) return ''
+  if (milestone.status === 'completed') return 'time-success'
+
+  try {
+    const endDate = new Date(milestone.endDate)
+    const now = new Date()
+    const diffTime = endDate - now
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+    if (diffDays < 0) return 'time-danger'
+    if (diffDays <= 3) return 'time-warning'
+    return ''
+  } catch {
+    return ''
+  }
+}
+
 // 节点点击事件
 const handleNodeClick = (milestone) => {
   emit('nodeClick', milestone)
@@ -113,8 +174,8 @@ const handleNodeClick = (milestone) => {
 .milestone-progress-bar {
   position: relative;
   width: 100%;
-  height: 80px;
-  padding: 10px 0; /* 移除左右 padding，改用内部元素控制边距 */
+  height: 100px;
+  padding: 10px 0;
 }
 
 /* 进度条背景线 */
@@ -148,12 +209,43 @@ const handleNodeClick = (milestone) => {
   cursor: pointer;
   z-index: 2;
   transition: all 0.3s ease;
-  /* 确保节点标签不会超出容器 */
   max-width: calc(100% / var(--node-count, 4) - 10px);
 }
 
 .milestone-node:hover {
-  transform: translate(-50%, -50%) scale(1.1);
+  transform: translate(-50%, -50%) scale(1.05);
+}
+
+/* 状态标签（在圆点上方） */
+.node-status-tag {
+  position: absolute;
+  bottom: 48px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.status-completed {
+  background: #f6ffed;
+  color: #52c41a;
+  border: 1px solid #b7eb8f;
+}
+
+.status-in-progress {
+  background: #e6f4ff;
+  color: #1890ff;
+  border: 1px solid #91caff;
+}
+
+.status-pending {
+  background: #f5f5f5;
+  color: #8c8c8c;
+  border: 1px solid #d9d9d9;
 }
 
 /* 节点圆点 */
@@ -215,7 +307,7 @@ const handleNodeClick = (milestone) => {
   font-size: 14px;
 }
 
-/* 节点标签 */
+/* 节点标签（在圆点下方） */
 .node-label {
   position: absolute;
   top: 48px;
@@ -233,9 +325,23 @@ const handleNodeClick = (milestone) => {
   margin-bottom: 2px;
 }
 
-.node-date {
+.node-time {
   font-size: 11px;
   color: #9ca3af;
+}
+
+.time-danger {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.time-warning {
+  color: #f59e0b;
+  font-weight: 600;
+}
+
+.time-success {
+  color: #10b981;
 }
 
 /* 当前节点高亮 */
@@ -243,7 +349,7 @@ const handleNodeClick = (milestone) => {
   color: #1890ff;
 }
 
-.node-current .node-date {
+.node-current .node-time {
   color: #1890ff;
 }
 
@@ -276,7 +382,7 @@ const handleNodeClick = (milestone) => {
 /* 响应式设计 */
 @media (max-width: 768px) {
   .milestone-progress-bar {
-    height: 100px;
+    height: 110px;
     padding: 10px 20px;
   }
 
@@ -295,6 +401,12 @@ const handleNodeClick = (milestone) => {
     font-size: 14px;
   }
 
+  .node-status-tag {
+    bottom: 42px;
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+
   .node-label {
     top: 42px;
   }
@@ -303,7 +415,7 @@ const handleNodeClick = (milestone) => {
     font-size: 11px;
   }
 
-  .node-date {
+  .node-time {
     font-size: 10px;
   }
 }
