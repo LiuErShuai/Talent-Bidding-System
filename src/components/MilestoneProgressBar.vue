@@ -78,17 +78,12 @@ const getNodePosition = (index) => {
   const totalNodes = props.milestones.length
   if (totalNodes <= 1) return '50%'
 
-  // 均匀分布节点，考虑左右边距（40px）
-  // 计算可用宽度百分比（去除左右边距后的宽度）
-  const leftMargin = 40 // 左边距 40px
-  const rightMargin = 40 // 右边距 40px
-
-  // 节点在可用区域内均匀分布
+  // 均匀分布节点，首尾留出边距
+  // 节点在可用区域内均匀分布（0% 到 100%）
   const percentage = (index / (totalNodes - 1)) * 100
 
-  // 转换为相对于整个容器的位置（考虑边距）
-  // left: 40px 对应起始位置，需要通过 calc 计算
-  return `calc(40px + ${percentage}% * (100% - 80px) / 100%)`
+  // 使用 calc 计算实际位置：40px起始 + 百分比 * 可用宽度
+  return `calc(40px + (100% - 80px) * ${percentage / 100})`
 }
 
 // 格式化日期
