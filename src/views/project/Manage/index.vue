@@ -61,15 +61,6 @@
             </el-collapse-item>
           </el-collapse>
         </div>
-
-        <!-- 审核历史与项目动态（可折叠） -->
-        <div class="collapse-section">
-          <el-collapse v-model="activeCollapse" class="bottom-sections">
-            <el-collapse-item title="审核历史与项目动态" name="timeline">
-              <timeline-panel :events="timelineEvents" :reviewHistory="reviewHistory" />
-            </el-collapse-item>
-          </el-collapse>
-        </div>
       </div>
     </div>
 
