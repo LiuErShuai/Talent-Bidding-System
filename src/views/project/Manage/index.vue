@@ -422,10 +422,19 @@ function handleNodeClick(milestone) {
   selectedMilestone.value = milestone
   selectedMilestoneIndex.value = index
 
-  // 滚动到详情面板头部
+  // 滚动到详情面板头部，考虑固定导航栏的高度
   setTimeout(() => {
-    const element = document.querySelector('.milestone-detail-panel .panel-header')
-    element?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    const element = document.querySelector('.milestone-detail-panel')
+    if (element) {
+      const headerOffset = 100 // 固定导航栏高度 + 额外间距
+      const elementPosition = element.getBoundingClientRect().top
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      })
+    }
   }, 100)
 }
 
