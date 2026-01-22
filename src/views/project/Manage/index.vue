@@ -53,14 +53,6 @@
           @guideAction="handleGuideAction"
         />
 
-        <!-- 团队信息（可折叠） -->
-        <div class="collapse-section">
-          <el-collapse v-model="activeCollapse" class="bottom-sections">
-            <el-collapse-item title="团队信息" name="team">
-              <team-panel :members="project.members || []" :canEdit="false" />
-            </el-collapse-item>
-          </el-collapse>
-        </div>
       </div>
     </div>
 
@@ -220,8 +212,6 @@ import ProjectManageHeader from '@/components/layout/ProjectManageHeader.vue'
 import ProjectOverview from '@/components/ProjectOverview.vue'
 import MilestoneProgressBar from '@/components/MilestoneProgressBar.vue'
 import MilestoneDetailPanel from '@/components/MilestoneDetailPanel.vue'
-import TeamPanel from '@/components/TeamPanel.vue'
-import TimelinePanel from '@/components/TimelinePanel.vue'
 
 // Mock 数据导入
 import { mockProjectManageData, formatFileSize } from '@/mock/projectManage'
@@ -243,8 +233,6 @@ const breadcrumbItems = computed(() => [
   { title: '项目管理', path: null }
 ])
 
-// 折叠面板状态 - 默认收起
-const activeCollapse = ref([])
 
 // 上传对话框
 const uploadDialogVisible = ref(false)
@@ -494,43 +482,6 @@ function handleNextMilestone() {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-/* 折叠面板整体容器 */
-.collapse-section {
-  margin-top: 16px;
-  margin-bottom: 0px;
-}
-
-/* 底部折叠区域 */
-.bottom-sections {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  margin-top: 0px;
-  margin-bottom: 0px;
-}
-
-.bottom-sections :deep(.el-collapse-item__header) {
-  font-size: 23px;
-  font-weight: 600;
-  padding: 0 20px;
-  height: 50px;
-  margin: 0;  /* 移除默认边距，确保边界对齐 */
-  box-sizing: border-box;  /* 统一盒模型，确保宽度计算一致 */
-}
-
-.bottom-sections :deep(.el-collapse-item__content) {
-  padding: 10px;
-  margin: 0;  /* 移除默认边距，确保边界对齐 */
-  box-sizing: border-box;  /* 统一盒模型，确保宽度计算一致 */
-}
-
-/* 移除内部 el-card 的额外边距和装饰，确保内容与标题对齐 */
-.bottom-sections :deep(.el-collapse-item__content) .team-panel,
-.bottom-sections :deep(.el-collapse-item__content) .el-card {
-  margin: -10px;           /* 抵消 content 的 padding */
-  border-radius: 0;        /* 移除 card 的圆角，使用外层圆角 */
-  box-shadow: none;        /* 移除 card 的阴影，使用外层阴影 */
-}
 
 /* 上传对话框 */
 .upload-demo {

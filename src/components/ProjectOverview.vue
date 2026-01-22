@@ -15,13 +15,18 @@
 
         <!-- 元信息行 -->
         <div class="meta-row">
-          <span class="meta-item">发布方：{{ project?.publisher || '--' }}</span>
+          <span class="meta-item">
+            发布方：
+            <span class="publisher-link" @click="handlePublisherClick">
+              {{ project?.publisher || '--' }}
+            </span>
+          </span>
           <span class="meta-sep">|</span>
           <span class="meta-item">领域：{{ project?.category || '--' }}</span>
           <span class="meta-sep">|</span>
           <span class="meta-item">截止：{{ formatEndDate(project?.endDate) }}</span>
           <span class="meta-sep">|</span>
-          <span class="meta-item reward-small">奖金：￥{{ project?.reward?.toLocaleString() || '--' }}</span>
+          <span class="meta-item">项目团队：{{ formatTeamName(project?.teamName) }}</span>
         </div>
 
         <!-- 项目描述 -->
@@ -42,11 +47,14 @@
 
 <script setup>
 import { defineProps, computed } from 'vue'
+import { useRouter } from 'vue-router'
 
 const props = defineProps({
   project: { type: Object, default: () => ({}) },
   canEdit: { type: Boolean, default: false }
 })
+
+const router = useRouter()
 
 // 计算项目状态文本
 const statusText = computed(() => {
@@ -82,6 +90,24 @@ const formatEndDate = (endDate) => {
   } catch {
     return endDate
   }
+}
+
+// 格式化团队名称
+const formatTeamName = (teamName) => {
+  return teamName || '--'
+}
+
+// 处理发布方点击事件
+const handlePublisherClick = () => {
+  if (!props.project?.publisherId) {
+    console.warn('发布方ID不存在')
+    return
+  }
+
+  // 跳转到企业主页
+  router.push({
+    path: `/enterprise/profile/${props.project.publisherId}`
+  })
 }
 </script>
 
@@ -213,10 +239,21 @@ const formatEndDate = (endDate) => {
   margin: 0 4px;
 }
 
-.reward-small {
-  font-weight: 400;
-  color: #7b859f;
+/* 发布方链接样式 */
+.publisher-link {
+  color: #1e40af;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
 }
+
+.publisher-link:hover {
+  color: #1e3a8a;
+  border-bottom-color: #1e3a8a;
+}
+
 
 /* 项目描述区域 */
 .project-description {
