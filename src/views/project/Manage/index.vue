@@ -209,9 +209,9 @@ import { Loading, UploadFilled, Download } from '@element-plus/icons-vue'
 
 // 组件导入
 import ProjectManageHeader from '@/components/layout/ProjectManageHeader.vue'
-import ProjectOverview from '@/components/ProjectOverview.vue'
-import MilestoneProgressBar from '@/components/MilestoneProgressBar.vue'
-import MilestoneDetailPanel from '@/components/MilestoneDetailPanel.vue'
+import ProjectOverview from '@/components/common/ProjectOverview.vue'
+import MilestoneProgressBar from '@/components/common/MilestoneProgressBar.vue'
+import MilestoneDetailPanel from '@/components/common/MilestoneDetailPanel.vue'
 
 // Mock 数据导入
 import { mockProjectManageData, formatFileSize } from '@/mock/projectManage'

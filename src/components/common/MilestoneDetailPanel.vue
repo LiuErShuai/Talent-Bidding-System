@@ -207,7 +207,7 @@ import {
   Clock,
   Download
 } from '@element-plus/icons-vue'
-import SubmissionItem from './SubmissionItem.vue'
+import SubmissionItem from '@/components/student/SubmissionItem.vue'
 
 const props = defineProps({
   milestone: {
