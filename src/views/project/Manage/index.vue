@@ -240,7 +240,6 @@ const reviewHistory = ref([])
 const breadcrumbItems = computed(() => [
   { title: '首页', path: '/home' },
   { title: '我的项目', path: '/my-projects' },
-  { title: '我承接的', path: null },
   { title: '项目管理', path: null }
 ])
 
