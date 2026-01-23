@@ -21,7 +21,19 @@ export default [
           title: '首页',
           transition: 'fade',
           requiresAuth: false,
-          hideFooter: true  // 隐藏 DefaultLayout 的 AppFooter
+          hideFooter: true,  // 隐藏 DefaultLayout 的 AppFooter
+          isPublicHome: true  // 标记为外网首页，用于导航栏切换
+        }
+      },
+      // 校内首页（内网）
+      {
+        path: 'campus-home',
+        name: 'CampusHome',
+        component: () => import('@/views/home/CampusHome.vue'),
+        meta: {
+          title: '校内首页',
+          transition: 'fade',
+          requiresAuth: true  // 必须登录
         }
       },
       // 项目公共模块
@@ -98,7 +110,8 @@ export default [
         meta: {
           title: '关于我们',
           transition: 'fade',
-          requiresAuth: false
+          requiresAuth: false,
+          isPublicPage: true  // 标记为外网页面
         }
       },
       {
@@ -108,7 +121,8 @@ export default [
         meta: {
           title: '联系我们',
           transition: 'fade',
-          requiresAuth: false
+          requiresAuth: false,
+          isPublicPage: true  // 标记为外网页面
         }
       },
       {
@@ -118,7 +132,8 @@ export default [
         meta: {
           title: '帮助中心',
           transition: 'fade',
-          requiresAuth: false
+          requiresAuth: false,
+          isPublicPage: true  // 标记为外网页面
         }
       },
       {
@@ -128,7 +143,20 @@ export default [
         meta: {
           title: '隐私政策',
           transition: 'fade',
-          requiresAuth: false
+          requiresAuth: false,
+          isPublicPage: true  // 标记为外网页面
+        }
+      },
+      // 合作企业页面
+      {
+        path: 'partners',
+        name: 'Partners',
+        component: () => import('@/views/info/Partners/index.vue'),
+        meta: {
+          title: '合作企业',
+          transition: 'fade',
+          requiresAuth: false,
+          isPublicPage: true  // 标记为外网页面
         }
       }
     ]

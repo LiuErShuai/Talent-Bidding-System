@@ -3,14 +3,14 @@
     <div class="submission-info">
       <el-icon class="file-icon"><Document /></el-icon>
       <span class="submission-name">{{ submission.fileName }}</span>
+      <span class="submission-meta-inline">
+        <span>{{ submission.uploadTime }}</span>
+        <span>{{ submission.fileSize }}</span>
+      </span>
       <el-icon class="download-icon" @click="$emit('download', submission)"><Download /></el-icon>
     </div>
     <div v-if="submission.description" class="submission-description">
       {{ submission.description }}
-    </div>
-    <div class="submission-meta">
-      <span>上传: {{ submission.uploadTime }}</span>
-      <span>{{ submission.fileSize }}</span>
     </div>
   </div>
 </template>
@@ -42,7 +42,6 @@ defineEmits(['view', 'download'])
 .submission-info {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
   margin-bottom: 6px;
 }
@@ -57,7 +56,7 @@ defineEmits(['view', 'download'])
 
 .file-icon {
   font-size: 16px;
-  color: #1890ff;
+  color: #6b7280;
   flex-shrink: 0;
 }
 
@@ -84,6 +83,21 @@ defineEmits(['view', 'download'])
   color: #40a9ff;
 }
 
+.submission-meta-inline {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: #6b7280;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.submission-meta-inline span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .submission-meta {
   display: flex;
   gap: 12px;
@@ -103,6 +117,13 @@ defineEmits(['view', 'download'])
     flex-direction: column;
     align-items: flex-start;
     gap: 4px;
+  }
+
+  .submission-meta-inline {
+    margin-left: 0;
+    margin-top: 4px;
+    width: 100%;
+    justify-content: flex-start;
   }
 
   .submission-meta {

@@ -38,17 +38,18 @@
             <div class="deliverables-header">
               <h4 class="deliverables-title">交付物要求</h4>
             </div>
-            <ul class="deliverables-items">
-              <li v-for="deliverable in milestone.deliverables" :key="deliverable.id" class="deliverable-item">
+            <div class="deliverables-items">
+              <div v-for="deliverable in milestone.deliverables" :key="deliverable.id" class="deliverable-item">
                 <div class="deliverable-info">
+                  <el-icon class="file-icon"><Document /></el-icon>
                   <span class="deliverable-name">{{ deliverable.name }}</span>
                   <el-tag size="small" type="info">
                     {{ Array.isArray(deliverable.format) ? deliverable.format.join(' / ') : deliverable.format }}
                   </el-tag>
                 </div>
                 <p class="deliverable-requirement">{{ deliverable.requirement }}</p>
-              </li>
-            </ul>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -88,7 +89,7 @@
       <!-- 我的提交记录区 -->
       <div class="section submissions-section">
         <div class="section-header">
-          <h4 class="section-title">我的提交记录</h4>
+          <h4 class="section-title">我的提交</h4>
           <div class="header-actions">
             <el-button
               v-if="milestone?.status === 'in-progress'"
@@ -434,7 +435,7 @@ function handleDownloadTaskFile(file) {
   margin-bottom: 12px;
   padding-top: 8px;
   padding-bottom: 0px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 2px solid #d1d5db;
 }
 
 .section:last-child {
@@ -447,7 +448,7 @@ function handleDownloadTaskFile(file) {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .section-title {
@@ -538,7 +539,6 @@ function handleDownloadTaskFile(file) {
   justify-content: space-between;
   align-items: center;
   padding: 8px 0;
-  border-bottom: 1px solid #e5e7eb;
 }
 
 .deliverables-title {
@@ -564,21 +564,17 @@ function handleDownloadTaskFile(file) {
 }
 
 .deliverables-items {
-  list-style: none;
-  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   margin: 12px 0 0 0;
 }
 
 .deliverable-item {
-  padding: 12px;
-  margin-bottom: 8px;
-  background: #f9fafb;
-  border-radius: 6px;
-  border-left: 3px solid #3b82f6;
-}
-
-.deliverable-item:last-child {
-  margin-bottom: 0;
+  padding: 12px 16px;
+  background: #ffffff;
+  border: 1px solid #edf1fb;
+  border-radius: 8px;
 }
 
 .deliverable-info {
@@ -588,10 +584,17 @@ function handleDownloadTaskFile(file) {
   margin-bottom: 6px;
 }
 
+.deliverable-info .file-icon {
+  font-size: 16px;
+  color: #6b7280;
+  flex-shrink: 0;
+}
+
 .deliverable-name {
   font-size: 14px;
   font-weight: 600;
-  color: #1f2937;
+  color: #303133;
+  flex: 1;
 }
 
 .deliverable-requirement {
@@ -599,6 +602,7 @@ function handleDownloadTaskFile(file) {
   font-size: 13px;
   color: #6b7280;
   line-height: 1.5;
+  padding-left: 24px;
 }
 
 /* 任务文件列表 */
