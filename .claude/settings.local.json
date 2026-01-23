@@ -7,7 +7,13 @@
       "Bash(echo:*)",
       "Bash(timeout /t 5 /nobreak)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(ls -la \"E:\\\\Code\\\\产教融合项目\\\\揭榜挂帅前端\\\\Talent-Bidding-System-master\\\\src\\\\components\"\" | grep -i \"milestone|submission|deliverable \")",
+      "mcp__ide__getDiagnostics",
+      "Bash(if exist nul del /f nul)",
+      "Bash(tree:*)",
+      "Bash(git mv:*)",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": []

@@ -694,8 +694,8 @@ const allProjects = ref([
     title: 'AI智能助手开发',
     company: 'XX科技有限公司',
     field: '人工智能',
-    status: 'bidding',
-    statusText: '揭榜中',
+    status: 'ongoing',
+    statusText: '进行中',
     description: '基于深度学习的智能客服系统',
     brief: '需要开发一套基于深度学习的智能客服系统，用于提升客户服务效率和用户体验...',
     reward: 5000,
@@ -712,8 +712,8 @@ const allProjects = ref([
     title: '智能图像识别系统',
     company: '视觉科技公司',
     field: '人工智能',
-    status: 'bidding',
-    statusText: '揭榜中',
+    status: 'ongoing',
+    statusText: '进行中',
     description: '基于深度学习的图像识别与分类系统',
     brief: '开发一套智能图像识别系统，支持物体检测、人脸识别、场景分析等功能，应用于安防监控...',
     reward: 12000,
@@ -731,8 +731,8 @@ const allProjects = ref([
     title: 'Web前端开发',
     company: 'YY网络公司',
     field: '前端开发',
-    status: 'bidding',
-    statusText: '揭榜中',
+    status: 'ongoing',
+    statusText: '进行中',
     description: '响应式企业官网开发',
     brief: '开发一个现代化的企业官网前端页面，支持响应式布局和多终端适配，提升品牌形象...',
     reward: 8000,
@@ -749,8 +749,8 @@ const allProjects = ref([
     title: 'Vue3管理系统前端',
     company: '云智科技',
     field: '前端开发',
-    status: 'bidding',
-    statusText: '揭榜中',
+    status: 'ongoing',
+    statusText: '进行中',
     description: '基于Vue3的企业管理系统前端开发',
     brief: '使用Vue3 + Element Plus开发企业级管理系统前端，包含用户管理、数据统计、权限控制等模块...',
     reward: 15000,
@@ -768,8 +768,8 @@ const allProjects = ref([
     title: 'Spring Boot微服务后端',
     company: '架构科技',
     field: '后端开发',
-    status: 'bidding',
-    statusText: '揭榜中',
+    status: 'ongoing',
+    statusText: '进行中',
     description: '基于Spring Boot的微服务架构后端开发',
     brief: '设计并实现基于Spring Boot的微服务架构，包含用户服务、订单服务、支付服务等，支持高并发...',
     reward: 20000,
@@ -786,8 +786,8 @@ const allProjects = ref([
     title: 'Node.js API服务开发',
     company: '全栈科技',
     field: '后端开发',
-    status: 'bidding',
-    statusText: '揭榜中',
+    status: 'ongoing',
+    statusText: '进行中',
     description: '基于Node.js的RESTful API服务开发',
     brief: '使用Node.js + Express开发RESTful API服务，支持JWT认证、数据缓存、接口限流等功能...',
     reward: 10000,
@@ -823,8 +823,8 @@ const allProjects = ref([
     title: '视频编辑处理平台',
     company: '媒体科技',
     field: '音视频',
-    status: 'reviewing',
-    statusText: '评审中',
+    status: 'completed',
+    statusText: '已完成',
     description: '在线视频编辑与处理平台开发',
     brief: '开发在线视频编辑平台，支持视频剪辑、特效添加、字幕生成、格式转换等功能，提供云端处理能力...',
     reward: 18000,
@@ -842,8 +842,8 @@ const allProjects = ref([
     title: '数据分析平台',
     company: 'ZZ数据公司',
     field: '大数据',
-    status: 'reviewing',
-    statusText: '评审中',
+    status: 'completed',
+    statusText: '已完成',
     description: '大数据可视化分析系统',
     brief: '需要对销售数据进行深度分析并制作可视化报表，支持多维度钻取分析和实时监控...',
     reward: 6000,
@@ -860,8 +860,8 @@ const allProjects = ref([
     title: '移动应用开发',
     company: '智慧教育科技有限公司',
     field: '移动开发',
-    status: 'bidding',
-    statusText: '揭榜中',
+    status: 'ongoing',
+    statusText: '进行中',
     description: '跨平台移动应用开发',
     brief: '开发一款跨平台移动应用，支持iOS和Android双平台，提供流畅的用户体验和丰富的功能...',
     reward: 10000,
@@ -879,8 +879,8 @@ const allProjects = ref([
     title: '企业级ERP系统开发',
     company: '企业信息化公司',
     field: '后端开发',
-    status: 'proposal',
-    statusText: '方案提交中',
+    status: 'ongoing',
+    statusText: '进行中',
     description: '企业级ERP系统后端架构设计',
     brief: '设计并开发企业级ERP系统，包含采购、销售、库存、财务等核心模块，支持多公司多账套...',
     reward: 30000,
@@ -897,8 +897,8 @@ const allProjects = ref([
     title: 'React移动端H5开发',
     company: '移动互联网公司',
     field: '前端开发',
-    status: 'executing',
-    statusText: '项目进行中',
+    status: 'ongoing',
+    statusText: '进行中',
     description: '基于React的移动端H5应用开发',
     brief: '使用React + TypeScript开发移动端H5应用，支持PWA、离线缓存、推送通知等功能...',
     reward: 12000,
@@ -915,8 +915,8 @@ const allProjects = ref([
     title: 'AI语音识别引擎',
     company: '语音技术公司',
     field: '人工智能',
-    status: 'midterm',
-    statusText: '中期答辩中',
+    status: 'ongoing',
+    statusText: '进行中',
     description: '基于深度学习的语音识别引擎',
     brief: '开发高精度语音识别引擎，支持多语言、方言识别，实时转写，准确率达到95%以上...',
     reward: 35000,
@@ -933,8 +933,8 @@ const allProjects = ref([
     title: '直播推流系统开发',
     company: '直播平台公司',
     field: '音视频',
-    status: 'publicizing',
-    statusText: '项目公示中',
+    status: 'completed',
+    statusText: '已完成',
     description: '实时直播推流与分发系统',
     brief: '开发直播推流系统，支持RTMP、HLS协议，多路推流、CDN分发、弹幕互动等功能...',
     reward: 28000,
@@ -1024,15 +1024,9 @@ const hotProjects = computed(() => {
 
 // 状态文本映射
 const statusTextMap = {
-  bidding: '揭榜中',
-  proposal: '方案提交中',
-  executing: '项目进行中',
-  midterm: '中期答辩中',
-  reviewing: '评审中',
-  publicizing: '项目公示中',
-  publishing: '公示中',
-  completed: '已完成',
-  closed: '已关闭'
+  pending: '揭榜中',
+  ongoing: '进行中',
+  completed: '已完成'
 }
 
 // 计算截止时间文本
@@ -1863,29 +1857,29 @@ const goToProjectDetail = (projectId) => {
 
 .task-status-tag {
   padding: 4px 12px;
-  border-radius: 999px;
+  border-radius: 4px;
   font-size: 12px;
-  color: #fff;
+  background: #ffffff;
+  border: 1px solid;
   font-weight: 500;
   text-align: center;
   flex-shrink: 0;
   white-space: nowrap;
 }
 
-.task-status-tag.bidding {
-  background: linear-gradient(120deg, #0c5fe7, #2fb7ff);
+.task-status-tag.pending {
+  color: #d97706;
+  border-color: #d97706;
 }
 
-.task-status-tag.reviewing {
-  background: linear-gradient(120deg, #ff9f0a, #ffb347);
-}
-
-.task-status-tag.publishing {
-  background: linear-gradient(120deg, #9254de, #b37feb);
+.task-status-tag.ongoing {
+  color: #2563eb;
+  border-color: #2563eb;
 }
 
 .task-status-tag.completed {
-  background: linear-gradient(120deg, #52c41a, #73d13d);
+  color: #16a34a;
+  border-color: #16a34a;
 }
 
 .detail-btn {

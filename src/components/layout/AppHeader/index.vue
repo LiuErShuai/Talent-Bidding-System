@@ -2,21 +2,33 @@
   <header class="main-header" :class="{ fixed: shouldFixHeader }">
     <div class="header-inner">
       <div class="brand">
-        <router-link to="/home" class="brand-link">
+        <router-link :to="isPublicPage ? '/home' : '/campus-home'" class="brand-link">
           <img src="@/assets/images/logo/桂电透明背景logo.png" alt="创客平台" class="brand-logo" />
           <span class="brand-name">创客平台</span>
         </router-link>
       </div>
-      <nav class="main-nav">
+
+      <!-- 外网导航（展示型）：外网首页和外网信息页面使用 -->
+      <nav v-if="isPublicPage" class="main-nav">
         <router-link to="/home" class="nav-link" active-class="active">首页</router-link>
+        <router-link to="/partners" class="nav-link" active-class="active">合作企业</router-link>
+        <router-link to="/about" class="nav-link" active-class="active">关于我们</router-link>
+        <router-link to="/help" class="nav-link" active-class="active">帮助中心</router-link>
+      </nav>
+
+      <!-- 内网导航（功能型） -->
+      <nav v-else class="main-nav">
+        <router-link to="/campus-home" class="nav-link" active-class="active">首页</router-link>
         <router-link to="/projects" class="nav-link" active-class="active">项目大厅</router-link>
         <span class="nav-link" :class="{ active: isMyProjectsActive }" @click="goMyProjects">我的项目</span>
       </nav>
+
       <div class="auth-area">
-        <template v-if="!isLoggedIn">
-          <button class="auth-btn" @click="openAuthDialog('login')">登录</button>
-          <button class="auth-btn solid" @click="openAuthDialog('register')">注册</button>
+        <!-- 外网页面：只显示校内登录按钮 -->
+        <template v-if="isPublicPage">
+          <button class="auth-btn solid" @click="handleCampusLogin">校内登录</button>
         </template>
+        <!-- 内网页面：只显示用户信息（已登录状态） -->
         <template v-else>
           <UserPanel :user-info="userInfo" :user-role="userRole" :quick-actions="quickActions" />
           <div class="header-extra-links">
@@ -53,6 +65,11 @@ import AuthDialog from '@/components/auth/AuthDialog.vue'
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
+
+// 判断是否为外网页面（外网首页或外网信息页面）
+const isPublicPage = computed(() => {
+  return route.meta?.isPublicHome === true || route.meta?.isPublicPage === true
+})
 
 // 登录状态：优先使用isAuthenticated，如果没有则检查token和localStorage
 const isLoggedIn = computed(() => {
@@ -157,9 +174,16 @@ const handleLoginSuccess = () => {
   if (pendingRedirect.value) {
     router.push(pendingRedirect.value)
     pendingRedirect.value = ''
-  } else if (route.path === '/login' || route.path === '/register') {
-    router.push('/home')
+  } else {
+    // 登录成功后默认跳转到校内首页
+    router.push('/campus-home')
   }
+}
+
+// 校内登录按钮点击处理
+const handleCampusLogin = () => {
+  pendingRedirect.value = '/campus-home'
+  openAuthDialog('login')
 }
 
 // 登录校验封装：未登录弹窗，已登录直接跳转
