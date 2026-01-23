@@ -228,7 +228,7 @@ const reviewHistory = ref([])
 
 // 面包屑导航数据
 const breadcrumbItems = computed(() => [
-  { title: '首页', path: '/home' },
+  { title: '首页', path: '/campus-home' },
   { title: '我的项目', path: '/my-projects' },
   { title: '项目管理', path: null }
 ])

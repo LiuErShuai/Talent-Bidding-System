@@ -26,174 +26,174 @@
       </div>
     </div>
 
+    <!-- 导航栏 -->
+    <div class="nav-tabs">
+      <div class="nav-tabs-container">
+        <button
+          v-for="tab in navTabs"
+          :key="tab.key"
+          :class="['nav-tab', { active: activeTab === tab.key }]"
+          @click="activeTab = tab.key"
+        >
+          {{ tab.label }}
+        </button>
+      </div>
+    </div>
+
     <!-- 面板内容 -->
     <div class="panel-content">
-      <!-- 任务描述板块 -->
-      <div class="section task-description-section">
-        <div class="description-content">
-          <p class="task-description">{{ milestone?.description || '暂无描述' }}</p>
+      <!-- 基本信息标签页 -->
+      <div v-if="activeTab === 'basic'" class="tab-content">
+        <!-- 任务描述板块 -->
+        <div class="section task-description-section">
+          <div class="description-content">
+            <p class="task-description">{{ milestone?.description || '暂无描述' }}</p>
 
-          <!-- 交付物要求 - 默认展开 -->
-          <div v-if="milestone?.deliverables?.length" class="deliverables-list">
-            <div class="deliverables-header">
-              <h4 class="deliverables-title">交付物要求</h4>
-            </div>
-            <div class="deliverables-items">
-              <div v-for="deliverable in milestone.deliverables" :key="deliverable.id" class="deliverable-item">
-                <div class="deliverable-info">
-                  <el-icon class="file-icon"><Document /></el-icon>
-                  <span class="deliverable-name">{{ deliverable.name }}</span>
-                  <el-tag size="small" type="info">
-                    {{ Array.isArray(deliverable.format) ? deliverable.format.join(' / ') : deliverable.format }}
-                  </el-tag>
+            <!-- 交付物要求 - 默认展开 -->
+            <div v-if="milestone?.deliverables?.length" class="deliverables-list">
+              <div class="deliverables-header">
+                <h4 class="deliverables-title">交付物要求</h4>
+              </div>
+              <div class="deliverables-items">
+                <div v-for="deliverable in milestone.deliverables" :key="deliverable.id" class="deliverable-item">
+                  <div class="deliverable-info">
+                    <el-icon class="file-icon"><Document /></el-icon>
+                    <span class="deliverable-name">{{ deliverable.name }}</span>
+                    <el-tag size="small" type="info">
+                      {{ Array.isArray(deliverable.format) ? deliverable.format.join(' / ') : deliverable.format }}
+                    </el-tag>
+                  </div>
+                  <p class="deliverable-requirement">{{ deliverable.requirement }}</p>
                 </div>
-                <p class="deliverable-requirement">{{ deliverable.requirement }}</p>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- 任务文件栏 - 默认折叠 -->
-      <div class="section task-files-section">
-        <div class="section-header">
-          <h4 class="section-title">任务文件</h4>
-          <el-button
-            link
-            size="small"
-            class="toggle-btn"
-            @click="taskFilesExpanded = !taskFilesExpanded"
-          >
-            <el-icon class="arrow-icon" :class="{ 'expanded': taskFilesExpanded }">
-              <ArrowRight />
-            </el-icon>
-            <span class="toggle-text">{{ taskFilesExpanded ? '收起' : '展开' }}</span>
-          </el-button>
-        </div>
-
-        <ul v-show="taskFilesExpanded" v-if="milestone?.taskFiles?.length" class="task-files-list">
-          <li v-for="file in milestone.taskFiles" :key="file.id" class="task-file-item">
-            <div class="file-info">
-              <el-icon class="file-icon"><Document /></el-icon>
-              <span class="file-name">{{ file.name }}</span>
-              <span class="file-size">{{ file.size }}</span>
-            </div>
-            <el-button link type="primary" @click="handleDownloadTaskFile(file)">
-              <el-icon><Download /></el-icon>
-            </el-button>
-          </li>
-        </ul>
-        <el-empty v-show="taskFilesExpanded" v-if="!milestone?.taskFiles?.length" description="暂无任务文件" :image-size="40" />
-      </div>
-
-      <!-- 我的提交记录区 -->
-      <div class="section submissions-section">
-        <div class="section-header">
-          <h4 class="section-title">我的提交</h4>
-          <div class="header-actions">
-            <el-button
-              v-if="milestone?.status === 'in-progress'"
-              type="primary"
-              size="small"
-              @click="handleUpload"
-            >
-              <el-icon><Upload /></el-icon>
-              上传交付物
-            </el-button>
-            <el-button
-              v-if="historySubmissions.length > 0"
-              type="primary"
-              plain
-              size="small"
-              @click="handleViewHistory"
-            >
-              查看历史提交
-            </el-button>
+        <!-- 意见反馈区 -->
+        <div class="section feedback-section">
+          <div class="section-header">
+            <h4 class="section-title">意见反馈</h4>
           </div>
-        </div>
 
-        <div v-if="latestSubmission" class="latest-submission">
-          <submission-item
-            :submission="latestSubmission"
-            @download="handleDownload"
-            @view="handleViewSubmission"
-          />
-        </div>
-
-        <el-empty v-if="!latestSubmission" description="暂未提交文件" :image-size="40" />
-      </div>
-
-      <!-- 意见反馈区 -->
-      <div class="section feedback-section">
-        <div class="section-header">
-          <h4 class="section-title">意见反馈</h4>
-        </div>
-
-        <!-- 历史反馈列表 -->
-        <div v-if="milestone?.feedbacks?.length" class="feedbacks-list">
-          <div
-            v-for="feedback in sortedFeedbacks"
-            :key="feedback.id"
-            class="feedback-item"
-          >
-            <!-- 缩略状态 -->
-            <div v-if="!expandedFeedbacks[feedback.id]" class="feedback-collapsed">
-              <span class="feedback-label">反馈内容：</span>
-              <span class="feedback-text-collapsed">{{ feedback.content }}</span>
-              <span class="feedback-time">{{ feedback.time }}</span>
-              <el-button
-                link
-                type="primary"
-                size="small"
-                @click="toggleFeedback(feedback.id)"
-                class="expand-btn"
-              >
-                展开
-              </el-button>
-            </div>
-
-            <!-- 展开状态 -->
-            <div v-else class="feedback-expanded">
-              <!-- 第一行：标签 + 时间 + 收起按钮 -->
-              <div class="feedback-expanded-header">
+          <!-- 历史反馈列表 -->
+          <div v-if="milestone?.feedbacks?.length" class="feedbacks-list">
+            <div
+              v-for="feedback in sortedFeedbacks"
+              :key="feedback.id"
+              class="feedback-item"
+            >
+              <!-- 缩略状态 -->
+              <div v-if="!expandedFeedbacks[feedback.id]" class="feedback-collapsed">
                 <span class="feedback-label">反馈内容：</span>
+                <span class="feedback-text-collapsed">{{ feedback.content }}</span>
                 <span class="feedback-time">{{ feedback.time }}</span>
                 <el-button
                   link
                   type="primary"
                   size="small"
                   @click="toggleFeedback(feedback.id)"
-                  class="collapse-btn"
+                  class="expand-btn"
                 >
-                  收起
+                  展开
                 </el-button>
               </div>
-              <!-- 反馈内容文本 -->
-              <div class="feedback-text-full">{{ feedback.content }}</div>
+
+              <!-- 展开状态 -->
+              <div v-else class="feedback-expanded">
+                <!-- 第一行：标签 + 时间 + 收起按钮 -->
+                <div class="feedback-expanded-header">
+                  <span class="feedback-label">反馈内容：</span>
+                  <span class="feedback-time">{{ feedback.time }}</span>
+                  <el-button
+                    link
+                    type="primary"
+                    size="small"
+                    @click="toggleFeedback(feedback.id)"
+                    class="collapse-btn"
+                  >
+                    收起
+                  </el-button>
+                </div>
+                <!-- 反馈内容文本 -->
+                <div class="feedback-text-full">{{ feedback.content }}</div>
+              </div>
             </div>
           </div>
-        </div>
 
-        <el-empty v-else description="暂无反馈意见" :image-size="40" />
+          <el-empty v-else description="暂无反馈意见" :image-size="40" />
+        </div>
+      </div>
+
+      <!-- 任务文件标签页 -->
+      <div v-if="activeTab === 'files'" class="tab-content">
+        <div class="section task-files-section">
+          <div class="section-header">
+            <h4 class="section-title">任务文件</h4>
+          </div>
+
+          <ul v-if="milestone?.taskFiles?.length" class="task-files-list">
+            <li v-for="file in milestone.taskFiles" :key="file.id" class="task-file-item">
+              <div class="file-info">
+                <el-icon class="file-icon"><Document /></el-icon>
+                <span class="file-name">{{ file.name }}</span>
+                <span class="file-size">{{ file.size }}</span>
+              </div>
+              <el-button link type="primary" @click="handleDownloadTaskFile(file)">
+                <el-icon><Download /></el-icon>
+              </el-button>
+            </li>
+          </ul>
+          <el-empty v-if="!milestone?.taskFiles?.length" description="暂无任务文件" :image-size="40" />
+        </div>
+      </div>
+
+      <!-- 提交文件标签页 -->
+      <div v-if="activeTab === 'submissions'" class="tab-content">
+        <div class="section submissions-section">
+          <div class="section-header">
+            <h4 class="section-title">我的提交</h4>
+            <div class="header-actions">
+              <el-button
+                v-if="milestone?.status === 'in-progress'"
+                type="primary"
+                size="small"
+                @click="handleUpload"
+              >
+                <el-icon><Upload /></el-icon>
+                上传交付物
+              </el-button>
+            </div>
+          </div>
+
+          <!-- 最新提交 -->
+          <div v-if="latestSubmission" class="latest-submission">
+            <submission-item
+              :submission="latestSubmission"
+              @download="handleDownload"
+              @view="handleViewSubmission"
+            />
+          </div>
+
+          <el-empty v-if="!latestSubmission" description="暂未提交文件" :image-size="40" />
+
+          <!-- 历史提交 -->
+          <div v-if="historySubmissions.length > 0" class="history-submissions">
+            <div class="section-header">
+              <h4 class="section-title">历史提交</h4>
+            </div>
+            <submission-item
+              v-for="sub in historySubmissions"
+              :key="sub.id"
+              :submission="sub"
+              @download="handleDownload"
+              @view="handleViewSubmission"
+            />
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- 历史提交记录对话框 -->
-    <el-dialog
-      v-model="historyDialogVisible"
-      title="历史提交记录"
-      width="700px"
-    >
-      <div class="history-submissions-dialog">
-        <submission-item
-          v-for="sub in historySubmissions"
-          :key="sub.id"
-          :submission="sub"
-          @download="handleDownload"
-          @view="handleViewSubmission"
-        />
-      </div>
-    </el-dialog>
   </div>
 </template>
 
@@ -229,6 +229,16 @@ const emit = defineEmits(['prev', 'next', 'upload', 'viewSubmission'])
 
 // 任务文件展开/收起状态 - 默认折叠
 const taskFilesExpanded = ref(false)
+
+// 导航栏状态
+const activeTab = ref('basic')
+
+// 导航栏配置
+const navTabs = [
+  { key: 'basic', label: '基本信息' },
+  { key: 'files', label: '任务文件' },
+  { key: 'submissions', label: '提交文件' }
+]
 
 // 状态文本映射
 const statusText = computed(() => {
@@ -354,12 +364,6 @@ function toggleFeedback(feedbackId) {
   expandedFeedbacks.value[feedbackId] = !expandedFeedbacks.value[feedbackId]
 }
 
-// 历史提交记录对话框
-const historyDialogVisible = ref(false)
-
-function handleViewHistory() {
-  historyDialogVisible.value = true
-}
 
 // 事件处理
 const handlePrev = () => emit('prev')
@@ -425,9 +429,45 @@ function handleDownloadTaskFile(file) {
   gap: 8px;
 }
 
+/* 导航栏 */
+.nav-tabs {
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.nav-tabs-container {
+  display: flex;
+  padding: 0 24px;
+}
+
+.nav-tab {
+  padding: 12px 24px;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.nav-tab:hover {
+  color: #2563eb;
+}
+
+.nav-tab.active {
+  color: #2563eb;
+  border-bottom-color: #2563eb;
+}
+
 /* 面板内容 */
 .panel-content {
   padding: 0 24px 24px 24px;
+}
+
+.tab-content {
+  padding: 24px 0 0 0;
 }
 
 /* 区块样式 */
@@ -733,13 +773,9 @@ function handleDownloadTaskFile(file) {
   border-top: 1px solid #e5e7eb;
 }
 
-/* 历史提交对话框 */
-.history-submissions-dialog {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  max-height: 60vh;
-  overflow-y: auto;
+/* 历史提交区域 */
+.history-submissions {
+  margin-top: 24px;
 }
 
 /* 响应式设计 */
