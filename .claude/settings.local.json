@@ -13,7 +13,8 @@
       "Bash(if exist nul del /f nul)",
       "Bash(tree:*)",
       "Bash(git mv:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(wc:*)"
     ],
     "deny": [],
     "ask": []
