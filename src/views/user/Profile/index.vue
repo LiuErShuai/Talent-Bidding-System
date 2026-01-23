@@ -9,65 +9,37 @@
           <button
             class="sidebar-item"
             :class="{ active: activeSection === 'profile' }"
-            @click="activeSection = 'profile'"
+            @click="setActiveSection('profile')"
           >
             个人资料
           </button>
           <button
             class="sidebar-item"
-            :class="{ active: activeSection === 'detail' }"
-            @click="activeSection = 'detail'"
-          >
-            详细资料
-          </button>
-          <button
-            class="sidebar-item"
-            :class="{ active: activeSection === 'skills' }"
-            @click="activeSection = 'skills'"
-          >
-            技能标签管理
-          </button>
-          <button
-            class="sidebar-item"
             :class="{ active: activeSection === 'account' }"
-            @click="activeSection = 'account'"
+            @click="setActiveSection('account')"
           >
             账号设置
           </button>
           <button
             class="sidebar-item"
             :class="{ active: activeSection === 'achievements' }"
-            @click="activeSection = 'achievements'"
+            @click="setActiveSection('achievements')"
           >
             我的成果
           </button>
           <button
             class="sidebar-item"
-            :class="{ active: activeSection === 'rewards' }"
-            @click="activeSection = 'rewards'"
-          >
-            我的奖金
-          </button>
-          <button
-            class="sidebar-item"
-            :class="{ active: activeSection === 'ability' }"
-            @click="activeSection = 'ability'"
-          >
-            能力评估
-          </button>
-          <button
-            class="sidebar-item"
             :class="{ active: activeSection === 'certificates' }"
-            @click="activeSection = 'certificates'"
+            @click="setActiveSection('certificates')"
           >
             我的证书
           </button>
           <button
             class="sidebar-item"
-            :class="{ active: activeSection === 'privacy' }"
-            @click="activeSection = 'privacy'"
+            :class="{ active: activeSection === 'team' }"
+            @click="setActiveSection('team')"
           >
-            隐私设置
+            团队管理
           </button>
         </aside>
 
@@ -136,42 +108,6 @@
             </div>
           </section>
 
-          <!-- 详细资料 -->
-          <section v-else-if="activeSection === 'detail'" class="info-section">
-            <SettingsForm />
-          </section>
-
-          <!-- 技能标签管理 -->
-          <section v-else-if="activeSection === 'skills'" class="info-section">
-        <div class="section-header">
-          <h2 class="section-title">技能标签管理</h2>
-        </div>
-        <div class="info-grid">
-          <div class="info-card">
-            <div class="skills-input-row">
-              <input
-                v-model="newSkillTag"
-                class="info-input"
-                placeholder="输入技能标签，如：Vue、Python"
-                @keyup.enter="addSkillTag"
-              />
-              <button class="save-btn" @click="addSkillTag">添加标签</button>
-            </div>
-            <div class="skills-tags">
-              <span
-                v-for="(tag, index) in skillTags"
-                :key="tag + index"
-                class="skill-tag"
-              >
-                {{ tag }}
-                <button class="tag-remove" @click="removeSkillTag(index)">×</button>
-              </span>
-              <p v-if="!skillTags.length" class="empty-hint">暂未添加任何技能标签</p>
-            </div>
-          </div>
-        </div>
-          </section>
-
           <!-- 账号设置 -->
           <section v-else-if="activeSection === 'account'" class="info-section">
         <div class="section-header">
@@ -208,30 +144,6 @@
         </div>
           </section>
 
-          <!-- 我的奖金 -->
-          <section v-else-if="activeSection === 'rewards'" class="info-section">
-        <div class="section-header">
-          <h2 class="section-title">我的奖金</h2>
-        </div>
-        <div class="info-grid">
-          <div class="info-card">
-            <p class="empty-hint">这里可以展示项目奖金统计、收益明细等信息。</p>
-          </div>
-        </div>
-          </section>
-
-          <!-- 能力评估 -->
-          <section v-else-if="activeSection === 'ability'" class="info-section">
-            <div class="section-header">
-              <h2 class="section-title">能力评估</h2>
-            </div>
-            <div class="info-grid">
-              <div class="info-card">
-                <p class="empty-hint">这里可以展示能力雷达图和综合评分。</p>
-              </div>
-            </div>
-          </section>
-
           <!-- 我的证书 -->
           <section v-else-if="activeSection === 'certificates'" class="info-section">
         <div class="section-header">
@@ -244,14 +156,37 @@
         </div>
           </section>
 
-          <!-- 隐私设置 -->
-          <section v-else-if="activeSection === 'privacy'" class="info-section">
+          <!-- 团队管理 -->
+          <section v-else-if="activeSection === 'team'" class="info-section">
             <div class="section-header">
-              <h2 class="section-title">隐私设置</h2>
+              <h2 class="section-title">团队管理</h2>
+              <button class="save-btn ghost" @click="openCreateTeamDialog">创建团队</button>
             </div>
             <div class="info-grid">
               <div class="info-card">
-                <p class="empty-hint">这里可以配置资料公开范围、消息通知等隐私选项。</p>
+                <div class="info-item full-width">
+                  <label class="info-label">团队概览</label>
+                  <div class="team-list">
+                    <button
+                      v-for="team in teamList"
+                      :key="team.id"
+                      class="team-item"
+                      @click="openManageDialog(team)"
+                    >
+                      <div class="team-header">
+                        <div>
+                          <div class="team-name">{{ team.name }}</div>
+                          <p class="team-desc">{{ team.description }}</p>
+                        </div>
+                        <span class="team-meta">成员：{{ team.members.length }} | 角色：{{ team.roleLabel }}</span>
+                      </div>
+                      <div class="team-project">
+                        关联项目：{{ team.project.name }}（{{ team.project.stage }} / {{ team.project.statusText }}）
+                      </div>
+                    </button>
+                    <p v-if="!teamList.length" class="empty-hint">暂无团队，可点击右上角“创建团队”添加。</p>
+                  </div>
+                </div>
               </div>
             </div>
           </section>
@@ -259,24 +194,125 @@
       </div>
     </main>
 
+    <!-- 创建团队弹窗 -->
+    <div v-if="createDialogVisible" class="overlay">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title">创建团队</h3>
+          <button class="close-btn" @click="closeCreateTeamDialog">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-row">
+            <label class="info-label">团队名称</label>
+            <input v-model="teamForm.name" class="info-input" placeholder="输入团队名称，如：智能开发小组" />
+          </div>
+          <div class="form-row">
+            <label class="info-label">团队简介</label>
+            <textarea v-model="teamForm.description" class="info-textarea" rows="3" placeholder="简要描述团队职责与定位"></textarea>
+          </div>
+          <div class="form-row">
+            <label class="info-label">可见范围</label>
+            <select v-model="teamForm.visibility" class="info-input">
+              <option value="private">仅团队成员</option>
+              <option value="school">校内可见</option>
+              <option value="public">公开可见</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label class="info-label">关联项目</label>
+            <input v-model="teamForm.project" class="info-input" placeholder="输入关联项目名称或ID" />
+          </div>
+          <div class="form-row">
+            <label class="info-label">团队标签</label>
+            <input v-model="teamForm.tags" class="info-input" placeholder="如：前端 / 数据 / 移动端" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="cancel-btn" @click="closeCreateTeamDialog">取消</button>
+          <button class="save-btn" @click="createTeam">创建团队</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 管理团队弹窗 -->
+    <div v-if="manageDialogVisible && selectedTeam" class="overlay">
+      <div class="modal large">
+        <div class="modal-header">
+          <div>
+            <h3 class="modal-title">{{ selectedTeam.name }}</h3>
+            <p class="modal-subtitle">{{ selectedTeam.description }}</p>
+            <p class="modal-subtitle">关联项目：{{ selectedTeam.project.name }}（{{ selectedTeam.project.stage }} / {{ selectedTeam.project.statusText }}）</p>
+          </div>
+          <button class="close-btn" @click="closeManageDialog">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="member-tag-grid">
+            <button
+              v-for="member in selectedTeam.members"
+              :key="member.name"
+              class="member-tag"
+              :class="{ selected: selectedMemberName === member.name }"
+              @click="toggleMemberSelection(member)"
+            >
+              <span class="member-tag-name">{{ member.name }}</span>
+              <span class="member-tag-role">{{ member.role }}</span>
+              <span class="member-tag-duty">{{ member.duty }}</span>
+            </button>
+            <p v-if="!selectedTeam.members.length" class="empty-hint">暂无成员，可先邀请成员。</p>
+          </div>
+          <div class="form-actions" style="justify-content:flex-start; gap:8px; margin-top:12px;">
+            <button class="save-btn" @click="openInviteForm">邀请成员</button>
+            <button class="ghost-chip" @click="handleManageAction('role')">调整角色</button>
+            <button class="ghost-chip danger" @click="handleManageAction('remove')">移除成员</button>
+          </div>
+          <div v-if="manageMessage" class="dialog-feedback">{{ manageMessage }}</div>
+          <div v-if="inviteFormVisible" class="form-actions-block">
+            <h4 class="section-subtitle">邀请成员</h4>
+            <div class="form-row">
+              <label class="info-label">成员邮箱</label>
+              <input v-model="inviteEmail" class="info-input" placeholder="输入成员邮箱，发送邀请" />
+            </div>
+            <div class="form-row">
+              <label class="info-label">角色</label>
+              <select v-model="inviteRole" class="info-input">
+                <option value="负责人">负责人</option>
+                <option value="前端">前端</option>
+                <option value="后端">后端</option>
+                <option value="算法">算法</option>
+                <option value="测试">测试</option>
+                <option value="产品">产品</option>
+              </select>
+            </div>
+            <div class="form-actions">
+              <button class="save-btn" @click="sendInvite">发送邀请</button>
+            </div>
+            <p v-if="inviteMessage" class="dialog-feedback">{{ inviteMessage }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@store/modules/user'
 import { useAuthStore } from '@store/modules/auth'
 import { ElMessage } from 'element-plus'
 import ProfileCard from '@/components/user/ProfileCard.vue'
-import SettingsForm from '@/components/user/SettingsForm.vue'
   
 const router = useRouter()
+const route = useRoute()
 const userStore = useUserStore()
 const authStore = useAuthStore()
 
 // 个人中心内部菜单
 const activeSection = ref('profile')
+const setActiveSection = (section) => {
+  activeSection.value = section
+  router.replace({ path: route.path, query: { section } })
+}
 
 // 编辑模式
 const editMode = ref(false)
@@ -289,23 +325,6 @@ const userProfileData = ref(null)
 const userInfo = computed(() => authStore.userInfo || {})
 
 const userRole = computed(() => authStore.userRole || 'student')
-
-  // 技能标签管理
-  const skillTags = ref(['Vue', 'JavaScript', 'Python'])
-  const newSkillTag = ref('')
-
-  const addSkillTag = () => {
-    const value = newSkillTag.value.trim()
-    if (!value) return
-    if (!skillTags.value.includes(value)) {
-      skillTags.value.push(value)
-    }
-    newSkillTag.value = ''
-  }
-
-  const removeSkillTag = (index) => {
-    skillTags.value.splice(index, 1)
-  }
 
 // 用户统计信息
 const userStats = reactive({
@@ -322,6 +341,118 @@ const userLogs = reactive([
   { id: 3, type: 'bid', action: '参与竞标 "电商平台UI设计"', time: new Date(Date.now() - 1000 * 60 * 60 * 5) },
   { id: 4, type: 'login', action: '上次登录', time: new Date(Date.now() - 1000 * 60 * 60 * 24) }
 ])
+
+// 团队管理数据
+const teamList = ref([
+  {
+    id: 'team-1',
+    name: '智能开发小组',
+    description: '负责前端与移动端交互开发，兼顾性能优化与体验提升。',
+    roleLabel: '负责人',
+    project: { name: '智慧校园协同平台', stage: '开发中', statusText: '进行中' },
+    members: [{ name: '张三' }, { name: '李四' }, { name: '王五' }]
+  },
+  {
+    id: 'team-2',
+    name: '数据先锋队',
+    description: '聚焦数据分析与可视化交付，支持业务看板建设。',
+    roleLabel: '成员',
+    project: { name: '运营数据看板', stage: '测试中', statusText: '待验收' },
+    members: [{ name: '张三' }, { name: '周八' }]
+  }
+])
+
+const teamForm = reactive({
+  name: '',
+  description: '',
+  visibility: 'private',
+  project: '',
+  tags: ''
+})
+
+const inviteEmail = ref('')
+const inviteRole = ref('前端')
+const inviteMessage = ref('')
+const manageMessage = ref('')
+const createDialogVisible = ref(false)
+const manageDialogVisible = ref(false)
+const selectedTeam = ref(null)
+const inviteFormVisible = ref(false)
+const selectedMemberName = ref('')
+
+// 创建团队占位逻辑（仅前端模拟）
+const createTeam = () => {
+  if (!teamForm.name.trim()) {
+    ElMessage.warning('请输入团队名称')
+    return
+  }
+  teamList.value.unshift({
+    id: `team-${Date.now()}`,
+    name: teamForm.name,
+    description: teamForm.description || '团队简介待补充',
+    roleLabel: '负责人',
+    project: { name: teamForm.project || '待关联项目', stage: '规划中', statusText: '草拟' },
+    members: []
+  })
+  ElMessage.success('已创建团队（前端示例）')
+  Object.assign(teamForm, { name: '', description: '', visibility: 'private', project: '', tags: '' })
+  closeCreateTeamDialog()
+}
+
+// 邀请成员占位逻辑（仅前端模拟）
+const sendInvite = () => {
+  if (!inviteEmail.value.trim()) {
+    ElMessage.warning('请输入成员邮箱')
+    return
+  }
+  inviteMessage.value = `已向 ${inviteEmail.value} 发送邀请，角色：${inviteRole.value}（前端示例）`
+  ElMessage.success('邀请已发送（前端示例）')
+  inviteEmail.value = ''
+}
+
+const openCreateTeamDialog = () => {
+  createDialogVisible.value = true
+}
+
+const closeCreateTeamDialog = () => {
+  createDialogVisible.value = false
+}
+
+const openManageDialog = (team) => {
+  selectedTeam.value = team
+  manageDialogVisible.value = true
+  manageMessage.value = ''
+  inviteFormVisible.value = false
+  selectedMemberName.value = ''
+}
+
+const closeManageDialog = () => {
+  manageDialogVisible.value = false
+  selectedTeam.value = null
+  inviteFormVisible.value = false
+  manageMessage.value = ''
+  inviteMessage.value = ''
+  selectedMemberName.value = ''
+}
+
+const openInviteForm = () => {
+  inviteFormVisible.value = true
+}
+
+// 成员管理占位逻辑
+const handleManageAction = (action) => {
+  if (!selectedMemberName.value) {
+    ElMessage.warning('请选择需要操作的成员')
+    return
+  }
+  manageMessage.value = `已对 ${selectedMemberName.value} 触发${action === 'role' ? '角色调整' : '移除成员'}操作（前端示例）`
+  ElMessage.success(manageMessage.value)
+}
+
+const toggleMemberSelection = (member) => {
+  const name = member.name
+  selectedMemberName.value = selectedMemberName.value === name ? '' : name
+}
 
 // 头像上传处理
 const handleAvatarUpload = async (event) => {
@@ -407,6 +538,12 @@ const loadUserProfile = async () => {
 onMounted(() => {
   // 加载用户详细信息
   loadUserProfile()
+
+  // 如果路由带有section参数，默认切换到对应模块
+  const section = route.query.section
+  if (section && typeof section === 'string') {
+    activeSection.value = section
+  }
 })
 </script>
 
@@ -817,18 +954,19 @@ onMounted(() => {
 .save-btn {
   background: #1890FF;
   color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 6px;
-  font-weight: 500;
+  border: 1px solid #1890ff;
+  padding: 12px 22px;
+  border-radius: 12px;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
+  box-shadow: 0 8px 18px rgba(24, 144, 255, 0.25);
 }
 
 .save-btn:hover {
-  background: #40a9ff;
+  background: linear-gradient(120deg, #1890ff, #40a9ff);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+  box-shadow: 0 10px 22px rgba(24, 144, 255, 0.35);
 }
 
 .cancel-btn {
@@ -844,6 +982,48 @@ onMounted(() => {
 
 .cancel-btn:hover {
   background: #e8e8e8;
+}
+
+.ghost-chip {
+  padding: 10px 18px;
+  border-radius: 12px;
+  border: 1px solid #d6ddf5;
+  background: #fff;
+  color: #4a5676;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+}
+
+.ghost-chip:hover {
+  border-color: #1890ff;
+  color: #1890ff;
+  box-shadow: 0 6px 14px rgba(24, 144, 255, 0.2);
+}
+
+.ghost-chip.danger {
+  border-color: #ffa39e;
+  color: #cf1322;
+  background: #fff1f0;
+  box-shadow: 0 6px 14px rgba(255, 163, 158, 0.2);
+}
+
+.close-btn {
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  cursor: pointer;
+  color: #7b859f;
+  line-height: 1;
+  padding: 8px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+  color: #1f274b;
+  background: rgba(0, 0, 0, 0.05);
 }
 
 /* 最近活动区 */
@@ -938,6 +1118,204 @@ onMounted(() => {
 .copyright {
   color: #999;
   font-size: 0.9rem;
+}
+
+/* 团队管理样式 */
+.team-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.team-item {
+  border: 1px solid #e6f0ff;
+  border-radius: 10px;
+  padding: 12px;
+  background: #f8fbff;
+  cursor: pointer;
+  text-align: left;
+}
+
+.team-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.team-name {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.team-desc {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #4f5d7a;
+}
+
+.team-meta {
+  font-size: 12px;
+  color: #7b859f;
+  white-space: nowrap;
+}
+
+.team-project {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #1f274b;
+}
+
+.section-subtitle {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 16px 0 12px;
+  color: #1f274b;
+}
+
+.form-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.form-row .info-label {
+  width: 90px;
+  margin-right: 0;
+}
+
+.form-actions-block {
+  margin-top: 20px;
+  padding-top: 12px;
+  border-top: 1px dashed #e0e6f2;
+}
+
+.dialog-feedback {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: #1890ff;
+  background: #e6f4ff;
+  padding: 8px 10px;
+  border-radius: 8px;
+}
+
+.member-tag-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.member-tag {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid #e6f0ff;
+  border-radius: 10px;
+  background: #f8fbff;
+  cursor: pointer;
+  min-width: 160px;
+  transition: all 0.2s ease;
+}
+
+.member-tag:hover {
+  border-color: #1890ff;
+  box-shadow: 0 6px 14px rgba(24, 144, 255, 0.18);
+}
+
+.member-tag.selected {
+  border-color: #1890ff;
+  background: #e6f4ff;
+  box-shadow: 0 6px 14px rgba(24, 144, 255, 0.2);
+}
+
+.member-tag-name {
+  font-weight: 600;
+  color: #1f274b;
+}
+
+.member-tag-role {
+  font-size: 12px;
+  color: #1890ff;
+  background: #e6f4ff;
+  border-radius: 8px;
+  padding: 2px 6px;
+}
+
+.member-tag-duty {
+  font-size: 12px;
+  color: #4f5d7a;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 12px;
+}
+
+.modal {
+  width: 640px;
+  max-width: 95vw;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+}
+
+.modal.large {
+  width: 800px;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1f274b;
+}
+
+.modal-subtitle {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #7b859f;
+}
+
+.modal-body {
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modal-footer {
+  padding: 12px 20px 16px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.save-btn.ghost {
+  background: transparent;
+  color: #1890ff;
+  border: 1px solid #1890ff;
 }
 
 /* 动画效果 */
