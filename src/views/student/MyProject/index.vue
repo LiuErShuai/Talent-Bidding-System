@@ -294,11 +294,25 @@
   <div v-if="teamDialogVisible && selectedTeam" class="team-dialog-overlay">
     <div class="team-dialog">
       <div class="team-dialog-header">
-        <div>
+        <div class="dialog-title-area">
           <h3 class="dialog-title">{{ selectedTeam.name }}</h3>
-          <p class="dialog-subtitle">
-            关联项目：{{ selectedTeam.project.name }}（{{ selectedTeam.project.stage }} / {{ selectedTeam.project.statusText }}）
-          </p>
+          <div class="dialog-project-block">
+            <div class="project-block-title">执行项目</div>
+            <div class="dialog-project-row">
+              <button class="project-link" @click="goProjectDetail(selectedTeam.project)">
+                关联项目：{{ selectedTeam.project.name }}
+              </button>
+              <span class="dialog-subtitle-inline">
+                （{{ selectedTeam.project.stage }} / {{ selectedTeam.project.statusText }}）
+              </span>
+              <span v-if="selectedTeam.project.progress !== undefined" class="dialog-subtitle-inline">
+                · 进度：{{ selectedTeam.project.progress }}%
+              </span>
+              <span v-if="selectedTeam.project.deadline" class="dialog-subtitle-inline">
+                · 截止：{{ selectedTeam.project.deadline }}
+              </span>
+            </div>
+          </div>
         </div>
         <button class="close-btn" @click="closeTeamDetail">×</button>
       </div>
@@ -307,17 +321,6 @@
         <div class="dialog-section">
           <h4>团队简介</h4>
           <p class="dialog-text">{{ selectedTeam.description }}</p>
-        </div>
-
-        <div class="dialog-section">
-          <h4>项目概况</h4>
-          <div class="dialog-meta-row">
-            <span>阶段：{{ selectedTeam.project.stage }}</span>
-            <span>状态：{{ selectedTeam.project.statusText }}</span>
-            <span>进度：{{ selectedTeam.project.progress }}%</span>
-            <span>截止：{{ selectedTeam.project.deadline }}</span>
-          </div>
-          <p class="dialog-text">{{ selectedTeam.project.detail }}</p>
         </div>
 
         <div class="dialog-section">
@@ -331,17 +334,6 @@
               <span class="member-duty">{{ member.duty }}</span>
             </li>
           </ul>
-        </div>
-
-        <div v-if="selectedTeam.isOwner" class="dialog-section manage-actions">
-          <h4>成员管理</h4>
-          <div class="dialog-actions">
-            <button class="ghost-chip" @click="handleManageMember('add')">新增成员</button>
-            <button class="ghost-chip" @click="handleManageMember('edit')">调整角色</button>
-            <button class="ghost-chip danger" @click="handleManageMember('remove')">移除成员</button>
-          </div>
-          <p class="dialog-tip">当前为负责人视角，可在此处进行成员管理（前端占位操作）。</p>
-          <p v-if="manageActionMessage" class="dialog-feedback">{{ manageActionMessage }}</p>
         </div>
       </div>
     </div>
@@ -442,6 +434,7 @@ const teamData = ref({
       isOwner: true,
       description: '负责平台前端与移动端开发的学生团队，承担核心架构与交互体验交付。',
       project: {
+        id: 101,
         name: '智慧校园协同平台',
         stage: '开发中',
         statusText: '进行中',
@@ -463,6 +456,7 @@ const teamData = ref({
       isOwner: true,
       description: '移动端专项团队，负责课程与项目的移动端适配与迭代。',
       project: {
+        id: 102,
         name: '实训工厂移动端',
         stage: '设计评审',
         statusText: '待开发',
@@ -485,6 +479,7 @@ const teamData = ref({
       isOwner: false,
       description: '聚焦人工智能与数据分析的项目团队，负责算法与数据管道搭建。',
       project: {
+        id: 201,
         name: '智能问答助手',
         stage: '联调中',
         statusText: '进行中',
@@ -505,6 +500,7 @@ const teamData = ref({
       isOwner: false,
       description: '数据可视化与报表团队，聚焦业务看板建设。',
       project: {
+        id: 202,
         name: '企业运营数据看板',
         stage: '测试中',
         statusText: '待验收',
@@ -535,7 +531,6 @@ const setTeamModule = (category) => {
 
 const teamDialogVisible = ref(false)
 const selectedTeam = ref(null)
-const manageActionMessage = ref('')
 
 // 打开团队详情弹窗
 const openTeamDetail = (team) => {
@@ -546,13 +541,6 @@ const openTeamDetail = (team) => {
 // 关闭团队详情弹窗
 const closeTeamDetail = () => {
   teamDialogVisible.value = false
-  manageActionMessage.value = ''
-}
-
-// 成员管理操作占位（仅负责人可见）
-const handleManageMember = (action) => {
-  // 前端占位反馈，实际对接后可替换为接口调用
-  manageActionMessage.value = `已触发「${action}」操作（团队：${selectedTeam.value?.name}），后续可接入真实接口。`
 }
 
 const setResultModule = (key) => {
@@ -587,6 +575,12 @@ const uploadDeliverable = (project) => {
 
 const openTeamCollab = (project) => {
   router.push(`/tracker/${project.id}`)
+}
+
+// 跳转关联项目详情
+const goProjectDetail = (project) => {
+  if (!project?.id) return
+  router.push(`/projects/${project.id}`)
 }
 
 onMounted(() => {
@@ -994,6 +988,12 @@ onMounted(() => {
   gap: 12px;
 }
 
+.dialog-title-area {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .dialog-title {
   margin: 0;
   font-size: 18px;
@@ -1001,8 +1001,59 @@ onMounted(() => {
   color: #1f274b;
 }
 
-.dialog-subtitle {
-  margin: 4px 0 0;
+.dialog-project-block {
+  background: linear-gradient(180deg, #f7faff 0%, #f1f5ff 100%);
+  border: 1px solid #dbe6ff;
+  border-radius: 12px;
+  padding: 12px 14px;
+  box-shadow: 0 10px 24px rgba(12, 95, 231, 0.12);
+}
+
+.project-block-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #0c2f88;
+  margin: 0 0 8px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(12, 95, 231, 0.08);
+  border: 1px solid rgba(12, 95, 231, 0.12);
+}
+
+.dialog-project-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.project-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid #c7d9ff;
+  background: linear-gradient(120deg, #f2f6ff, #e6efff);
+  color: #0c5fe7;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 999px;
+  box-shadow: 0 6px 12px rgba(12, 95, 231, 0.12);
+  transition: all 0.2s ease;
+}
+
+.project-link:hover {
+  color: #0848b3;
+  border-color: #84a7ff;
+  box-shadow: 0 8px 16px rgba(12, 95, 231, 0.18);
+  transform: translateY(-1px);
+}
+
+.dialog-subtitle-inline {
   font-size: 13px;
   color: #7b859f;
 }
