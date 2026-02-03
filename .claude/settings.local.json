@@ -14,7 +14,12 @@
       "Bash(tree:*)",
       "Bash(git mv:*)",
       "Bash(npm run build:*)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(git fetch:*)",
+      "Bash(git merge:*)",
+      "Bash(git push:*)",
+      "Bash(dir /b \"E:\\\\Code\\\\产教融合项目\\\\揭榜挂帅前端\\\\Talent-Bidding-System-master\\\\src\\\\views\\\\auth\")",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []

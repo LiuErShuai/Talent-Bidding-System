@@ -3,8 +3,8 @@ import { ElMessage } from 'element-plus'
 
 
 const request = axios.create({
-  baseURL: 'http://localhost:8091/api/v1',
-  timeout: 5000
+  baseURL: 'http://43.142.157.145:8091/api/v1',
+  timeout: 10000
 }) 
 
 request.interceptors.request.use(
@@ -22,14 +22,15 @@ request.interceptors.request.use(
 request.interceptors.response.use(
   (response) => {
     const res = response.data
-    if (res.code !== 200) {
-      ElMessage.error(res.message || '请求错误')
+    // 兼容 code 为 200 或 "0000" 的成功响应
+    if (res.code !== 200 && res.code !== '0000') {
+      ElMessage.error(res.info || res.message || '请求错误')
       return Promise.reject(res)
     }
     return res
   },
   (error) => {
-    ElMessage.error(error.response?.data?.message || '网络错误')
+    ElMessage.error(error.response?.data?.info || error.response?.data?.message || '网络错误')
     return Promise.reject(error)
   }
 )

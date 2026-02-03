@@ -41,8 +41,8 @@
               >
                 <el-option label="学生" value="student" />
                 <el-option label="企业" value="enterprise" />
-                <el-option label="教师" value="teacher" />
-                <el-option label="管理员" value="admin" />
+                <el-option label="教师（暂不可用）" value="teacher" disabled />
+                <el-option label="管理员（暂不可用）" value="admin" disabled />
               </el-select>
             </el-form-item>
 
@@ -162,7 +162,21 @@ import { ref, computed, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/store/modules/auth'
-import { registerAPI } from '@/api/user'
+import { registerAPI, loginAPI } from '@/api/user'
+
+// 预设测试账号（用于便捷登录）
+const PRESET_ACCOUNTS = {
+  student: {
+    identityType: 'username',
+    identifier: 'test_student',
+    credential: 'Test123456'
+  },
+  enterprise: {
+    identityType: 'username',
+    identifier: 'test_enterprise',
+    credential: 'Test123456'
+  }
+}
 
 // 属性与事件
 const props = defineProps({
@@ -303,39 +317,41 @@ const handleLogin = () => {
         return
       }
 
-      const roleNames = {
-        student: '学生',
-        enterprise: '企业',
-        teacher: '教师',
-        admin: '管理员'
+      // 检查是否有预设账号
+      const presetAccount = PRESET_ACCOUNTS[testRole]
+      if (!presetAccount) {
+        ElMessage.warning('该角色暂不支持便捷登录')
+        loginLoading.value = false
+        return
       }
-      const testUserIds = {
-        student: 'test_student_001',
-        enterprise: 'enterprise-001',
-        teacher: 'test_teacher_001',
-        admin: 'test_admin_001'
-      }
-      const testUserData = {
-        username: `测试${roleNames[testRole]}`,
-        role: testRole,
-        id: testUserIds[testRole] || `test_${testRole}_${Date.now()}`,
-        userId: testUserIds[testRole] || `test_${testRole}_${Date.now()}`,
-        avatar: `https://picsum.photos/seed/${testRole}/40/40.jpg`
-      }
-      const testToken = `test_token_${testRole}_${Date.now()}`
 
-      ElMessage.success(`登录成功！欢迎，${testUserData.username}`)
-      localStorage.setItem('token', testToken)
+      // 调用真实登录 API
+      const res = await loginAPI(presetAccount)
+
+      // 处理登录成功
+      const userData = {
+        userId: res.data.userId,
+        username: res.data.nickname,
+        nickname: res.data.nickname,
+        role: testRole,
+        type: res.data.type,
+        avatar: res.data.avatarUrl || '',
+        avatarUrl: res.data.avatarUrl || ''
+      }
+      const token = res.data.authentication
+
+      ElMessage.success(`登录成功！欢迎，${userData.nickname}`)
+      localStorage.setItem('token', token)
       localStorage.setItem('userRole', testRole)
-      localStorage.setItem('userData', JSON.stringify(testUserData))
-      authStore.login(testUserData, testToken)
+      localStorage.setItem('userData', JSON.stringify(userData))
+      authStore.login(userData, token)
 
       visible.value = false
-      emit('login-success', testUserData)
-      loginLoading.value = false
+      emit('login-success', userData)
     } catch (err) {
       console.error('登录错误:', err)
-      ElMessage.error(err?.response?.data?.message || err?.message || '登录失败')
+      ElMessage.error(err?.info || err?.message || '登录失败，请检查网络连接')
+    } finally {
       loginLoading.value = false
     }
   })
@@ -358,10 +374,10 @@ const handleRegister = () => {
                               registerFormData.value.identityType === 'phone' ? '手机号' : '用户名'
       ElMessage.success(`注册成功！您可以使用${identityTypeText}：${registerFormData.value.identifier} 进行登录`)
       switchToLogin()
-      registerLoading.value = false
     } catch (err) {
       console.error('注册错误:', err)
-      ElMessage.error(err?.response?.data?.message || err?.message || '注册失败，请稍后重试')
+      ElMessage.error(err?.info || err?.message || '注册失败，请稍后重试')
+    } finally {
       registerLoading.value = false
     }
   })

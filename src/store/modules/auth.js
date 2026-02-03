@@ -36,9 +36,9 @@ export const useAuthStore = defineStore('auth', {
     login(userData, token) {
       this.token = token
       this.userInfo = userData
-      this.userRole = userData.role || ''
+      this.userRole = userData.role || userData.type?.toLowerCase() || ''
       this.isLoggedIn = true
-      
+
       // 保存到本地存储
       local.set(STORAGE_KEYS.TOKEN, token)
       local.set(STORAGE_KEYS.USER_INFO, userData)
