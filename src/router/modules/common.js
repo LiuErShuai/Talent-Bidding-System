@@ -44,7 +44,7 @@ export default [
         meta: {
           title: '项目大厅',
           transition: 'fade',
-          requiresAuth: false
+          requiresAuth: true
         }
       },
       {
@@ -66,7 +66,7 @@ export default [
         meta: {
           title: '项目详情',
           transition: 'fade',
-          requiresAuth: false
+          requiresAuth: true
         }
       },
       {
@@ -110,8 +110,7 @@ export default [
         meta: {
           title: '关于我们',
           transition: 'fade',
-          requiresAuth: false,
-          isPublicPage: true  // 标记为外网页面
+          requiresAuth: true
         }
       },
       {
@@ -143,8 +142,7 @@ export default [
         meta: {
           title: '隐私政策',
           transition: 'fade',
-          requiresAuth: false,
-          isPublicPage: true  // 标记为外网页面
+          requiresAuth: true
         }
       },
       // 合作企业页面
