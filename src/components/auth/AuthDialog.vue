@@ -112,9 +112,9 @@
                 placeholder="请选择注册方式"
                 style="width: 100%"
               >
-                <el-option label="👤 用户名注册" value="username" />
-                <el-option label="📧 邮箱注册" value="email" />
-                <el-option label="📱 电话号码注册" value="phone" />
+                <el-option label="👤 用户名注册" value="USERNAME" />
+                <el-option label="📧 邮箱注册" value="EMAIL" />
+                <el-option label="📱 电话号码注册" value="PHONE" />
               </el-select>
             </el-form-item>
 
@@ -122,7 +122,7 @@
               <el-input
                 v-model="registerFormData.identifier"
                 :placeholder="`请输入${identifierLabel}`"
-                :type="registerFormData.identityType === 'phone' ? 'tel' : 'text'"
+                :type="registerFormData.identityType === 'PHONE' ? 'tel' : 'text'"
                 clearable
               />
             </el-form-item>
@@ -167,12 +167,12 @@ import { registerAPI, loginAPI } from '@/api/user'
 // 预设测试账号（用于便捷登录）
 const PRESET_ACCOUNTS = {
   student: {
-    identityType: 'username',
+    identityType: 'USERNAME',
     identifier: 'test_student',
     credential: 'Test123456'
   },
   enterprise: {
-    identityType: 'username',
+    identityType: 'USERNAME',
     identifier: 'test_enterprise',
     credential: 'Test123456'
   }
@@ -219,14 +219,14 @@ const registerForm = ref(null)
 const registerFormData = ref({
   nickname: '',
   type: '学生',
-  identityType: 'username',
+  identityType: 'USERNAME',
   identifier: '',
   credential: ''
 })
 
 const identifierLabel = computed(() => {
-  if (registerFormData.value.identityType === 'phone') return '电话号码'
-  if (registerFormData.value.identityType === 'username') return '用户名'
+  if (registerFormData.value.identityType === 'PHONE') return '电话号码'
+  if (registerFormData.value.identityType === 'USERNAME') return '用户名'
   return '邮箱'
 })
 
@@ -241,19 +241,19 @@ const validateIdentifier = (rule, value, callback) => {
     callback(new Error(`请输入${identifierLabel.value}`))
     return
   }
-  if (registerFormData.value.identityType === 'email') {
+  if (registerFormData.value.identityType === 'EMAIL') {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(value)) {
       callback(new Error('请输入正确的邮箱格式'))
       return
     }
-  } else if (registerFormData.value.identityType === 'phone') {
+  } else if (registerFormData.value.identityType === 'PHONE') {
     const phoneRegex = /^1[3-9]\d{9}$/
     if (!phoneRegex.test(value)) {
       callback(new Error('请输入正确的手机号码格式（11位数字）'))
       return
     }
-  } else if (registerFormData.value.identityType === 'username') {
+  } else if (registerFormData.value.identityType === 'USERNAME') {
     if (value.length < 3 || value.length > 20) {
       callback(new Error('用户名长度应为3-20个字符'))
       return
@@ -341,9 +341,7 @@ const handleLogin = () => {
       const token = res.data.authentication
 
       ElMessage.success(`登录成功！欢迎，${userData.nickname}`)
-      localStorage.setItem('token', token)
-      localStorage.setItem('userRole', testRole)
-      localStorage.setItem('userData', JSON.stringify(userData))
+      // 统一由 authStore.login 管理存储，不再重复写 localStorage
       authStore.login(userData, token)
 
       visible.value = false
@@ -370,8 +368,8 @@ const handleRegister = () => {
         identifier: registerFormData.value.identifier,
         credential: registerFormData.value.credential
       })
-      const identityTypeText = registerFormData.value.identityType === 'email' ? '邮箱' :
-                              registerFormData.value.identityType === 'phone' ? '手机号' : '用户名'
+      const identityTypeText = registerFormData.value.identityType === 'EMAIL' ? '邮箱' :
+                              registerFormData.value.identityType === 'PHONE' ? '手机号' : '用户名'
       ElMessage.success(`注册成功！您可以使用${identityTypeText}：${registerFormData.value.identifier} 进行登录`)
       switchToLogin()
     } catch (err) {
