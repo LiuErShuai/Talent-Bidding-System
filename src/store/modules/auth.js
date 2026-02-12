@@ -141,9 +141,17 @@ export const useAuthStore = defineStore('auth', {
         const MAX_TOKEN_AGE = 24 * 60 * 60 * 1000 // 24小时
         const now = Date.now()
 
-        if (loginTime && (now - loginTime > MAX_TOKEN_AGE)) {
-          // Token 已过期，清除所有认证信息
-          console.warn('Token 已过期，需要重新登录')
+        // 如果没有 loginTime，说明是旧数据（升级前的数据），清除并要求重新登录
+        if (!loginTime) {
+          console.warn('检测到旧版本登录数据，需要重新登录')
+          this.logout()
+          this.isLoggedIn = false
+          return
+        }
+
+        // 检查 token 是否超过最大有效期
+        if (now - loginTime > MAX_TOKEN_AGE) {
+          console.warn('Token 已过期（超过24小时），需要重新登录')
           this.logout()
           this.isLoggedIn = false
         } else {
