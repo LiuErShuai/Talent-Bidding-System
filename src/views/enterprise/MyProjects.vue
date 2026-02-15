@@ -90,14 +90,6 @@
                       <span class="form-tip">单位：元，最低1000元</span>
                     </el-form-item>
                   </el-col>
-                  <el-col :span="12">
-                    <el-form-item label="需求人数" prop="teamSize">
-                      <el-input
-                        v-model="publishForm.teamSize"
-                        placeholder="例如：2-4人"
-                      />
-                    </el-form-item>
-                  </el-col>
                 </el-row>
 
                 <el-form-item label="项目周期" prop="duration">
@@ -144,100 +136,16 @@
               <div class="form-section">
                 <h3 class="form-section-title">项目详情</h3>
 
-                <el-form-item label="项目背景" prop="background">
+                <el-form-item label="项目详情" prop="description">
                   <el-input
-                    v-model="publishForm.background"
+                    v-model="publishForm.description"
                     type="textarea"
-                    :rows="4"
-                    placeholder="请描述项目的背景和需求来源，例如：随着人工智能技术的发展，智能客服已成为企业提升服务质量的重要工具..."
-                    maxlength="1000"
+                    :rows="12"
+                    placeholder="请详细描述项目信息，建议包含以下内容：&#10;&#10;• 项目背景：项目的需求来源和背景说明&#10;• 项目目标：预期达成的目标和成果&#10;• 成果形式：最终交付物的形式（源代码、文档、视频等）&#10;• 功能要求：详细的功能需求和技术规范&#10;• 技术栈要求：所需的技术栈（如 Vue3、Spring Boot 等）&#10;• 性能指标：响应时间、并发数、可用性等要求&#10;• 联系方式：项目联系人及联系电话"
+                    maxlength="5000"
                     show-word-limit
                   />
                 </el-form-item>
-
-                <el-form-item label="项目目标" prop="objectives">
-                  <el-input
-                    v-model="publishForm.objectives"
-                    type="textarea"
-                    :rows="4"
-                    placeholder="请列出项目的主要目标和预期成果，例如：&#10;• 实现7×24小时智能在线客服&#10;• 支持多轮对话和上下文理解&#10;• 集成知识库管理系统"
-                    maxlength="1000"
-                    show-word-limit
-                  />
-                </el-form-item>
-
-                <el-form-item label="成果形式" prop="deliverableForm">
-                  <el-input
-                    v-model="publishForm.deliverableForm"
-                    type="textarea"
-                    :rows="3"
-                    placeholder="请描述最终交付的成果形式，例如：&#10;• 完整的系统源代码&#10;• 系统部署文档&#10;• 用户使用手册&#10;• 项目演示视频"
-                    maxlength="500"
-                    show-word-limit
-                  />
-                </el-form-item>
-
-                <el-form-item label="功能要求" prop="requirements">
-                  <el-input
-                    v-model="publishForm.requirements"
-                    type="textarea"
-                    :rows="6"
-                    placeholder="请详细描述项目的功能要求和技术规范，包括用户管理、核心功能、系统设置等模块的详细需求..."
-                    maxlength="2000"
-                    show-word-limit
-                  />
-                </el-form-item>
-
-                <el-form-item label="技术栈要求" prop="techStack">
-                  <el-input
-                    v-model="publishForm.techStack"
-                    type="textarea"
-                    :rows="3"
-                    placeholder="请列出项目所需的技术栈，如：Vue3、Spring Boot、MySQL、Redis等..."
-                    maxlength="500"
-                    show-word-limit
-                  />
-                </el-form-item>
-
-                <el-form-item label="性能指标" prop="performanceMetrics">
-                  <el-input
-                    v-model="publishForm.performanceMetrics"
-                    type="textarea"
-                    :rows="3"
-                    placeholder="请描述项目的性能指标要求，如：响应时间、并发用户数、系统可用性等..."
-                    maxlength="500"
-                    show-word-limit
-                  />
-                </el-form-item>
-
-                <el-form-item label="评审方式" prop="reviewMethod">
-                  <el-input
-                    v-model="publishForm.reviewMethod"
-                    placeholder="请输入评审方式，如：企业评审、专家评审、企业+专家联合评审等"
-                    maxlength="100"
-                  />
-                </el-form-item>
-
-                <el-row :gutter="20">
-                  <el-col :span="12">
-                    <el-form-item label="项目联系人" prop="contactName">
-                      <el-input
-                        v-model="publishForm.contactName"
-                        placeholder="请输入联系人姓名"
-                        maxlength="50"
-                      />
-                    </el-form-item>
-                  </el-col>
-                  <el-col :span="12">
-                    <el-form-item label="联系电话" prop="contactPhone">
-                      <el-input
-                        v-model="publishForm.contactPhone"
-                        placeholder="请输入联系电话"
-                        maxlength="20"
-                      />
-                    </el-form-item>
-                  </el-col>
-                </el-row>
 
                 <el-form-item label="任务文件" prop="taskFiles">
                   <el-upload
@@ -296,82 +204,18 @@
                   </el-row>
                 </el-form-item>
 
-                <el-form-item label="必备技能" prop="requiredSkills">
-                  <el-select
-                    v-model="publishForm.requiredSkills"
-                    multiple
-                    filterable
-                    allow-create
-                    default-first-option
-                    :reserve-keyword="false"
-                    placeholder="请选择或输入必备技能（支持自定义）"
-                    style="width: 100%"
-                  >
-                    <el-option label="Vue.js" value="Vue.js" />
-                    <el-option label="React" value="React" />
-                    <el-option label="Angular" value="Angular" />
-                    <el-option label="Spring Boot" value="Spring Boot" />
-                    <el-option label="Node.js" value="Node.js" />
-                    <el-option label="Python" value="Python" />
-                    <el-option label="Java" value="Java" />
-                    <el-option label="MySQL" value="MySQL" />
-                    <el-option label="Redis" value="Redis" />
-                    <el-option label="MongoDB" value="MongoDB" />
-                    <el-option label="Docker" value="Docker" />
-                    <el-option label="Kubernetes" value="Kubernetes" />
-                    <el-option label="微信小程序" value="微信小程序" />
-                    <el-option label="Android" value="Android" />
-                    <el-option label="iOS" value="iOS" />
-                    <el-option label="人工智能" value="人工智能" />
-                    <el-option label="机器学习" value="机器学习" />
-                    <el-option label="数据分析" value="数据分析" />
-                  </el-select>
-                </el-form-item>
-
-                <el-form-item label="加分技能" prop="bonusSkills">
-                  <el-select
-                    v-model="publishForm.bonusSkills"
-                    multiple
-                    filterable
-                    allow-create
-                    default-first-option
-                    :reserve-keyword="false"
-                    placeholder="请选择或输入加分技能（可选）"
-                    style="width: 100%"
-                  >
-                    <el-option label="UI/UX设计" value="UI/UX设计" />
-                    <el-option label="软件测试" value="软件测试" />
-                    <el-option label="项目管理" value="项目管理" />
-                    <el-option label="敏捷开发" value="敏捷开发" />
-                    <el-option label="DevOps" value="DevOps" />
-                    <el-option label="云计算" value="云计算" />
-                    <el-option label="大数据" value="大数据" />
-                    <el-option label="区块链" value="区块链" />
-                    <el-option label="网络安全" value="网络安全" />
-                    <el-option label="英语能力" value="英语能力" />
-                  </el-select>
-                </el-form-item>
-
-                <el-form-item label="经验要求" prop="experienceRequirement">
-                  <el-radio-group v-model="publishForm.experienceRequirement">
-                    <el-radio value="none">无经验要求</el-radio>
-                    <el-radio value="basic">有基础项目经验</el-radio>
-                    <el-radio value="intermediate">有中级项目经验（1-2个项目）</el-radio>
-                    <el-radio value="advanced">有高级项目经验（3个以上项目）</el-radio>
-                  </el-radio-group>
-                </el-form-item>
-
-                <el-form-item label="其他要求" prop="otherRequirements">
+                <el-form-item label="项目要求" prop="projectRequirements">
                   <el-input
-                    v-model="publishForm.otherRequirements"
+                    v-model="publishForm.projectRequirements"
                     type="textarea"
                     :rows="4"
-                    placeholder="请描述其他特殊要求，如：需要有开源项目经验、需要通过特定认证、工作时间要求等..."
+                    placeholder="请描述对揭榜团队的要求，如：技能要求、经验要求、工作时间要求等..."
                     maxlength="500"
                     show-word-limit
                   />
                 </el-form-item>
 
+                <!-- TODO: 后端暂不支持 maxApplications 字段，待版本更新后恢复
                 <el-form-item label="最大申请数" prop="maxApplications">
                   <el-input-number
                     v-model="publishForm.maxApplications"
@@ -382,6 +226,7 @@
                   />
                   <span class="form-tip" style="margin-left: 10px;">限制最多接收的揭榜申请数量，建议10-30个</span>
                 </el-form-item>
+                -->
               </div>
 
               <!-- 步骤1按钮 -->
@@ -441,6 +286,7 @@
                   <!-- 里程碑配置表单 -->
                   <div v-show="milestone.enabled && milestone.expanded" class="milestone-config-form">
                     <el-form :model="milestone" label-width="120px">
+                      <!-- TODO: 后端暂不支持 goal 字段，待版本更新后恢复
                       <el-form-item label="里程碑目标">
                         <el-input
                           v-model="milestone.goal"
@@ -451,17 +297,29 @@
                           show-word-limit
                         />
                       </el-form-item>
+                      -->
 
-                      <el-form-item label="计划完成时间">
+                      <el-form-item label="计划开始时间">
                         <el-date-picker
-                          v-model="milestone.plannedDate"
+                          v-model="milestone.plannedStartDate"
                           type="date"
-                          placeholder="选择计划完成日期"
+                          placeholder="选择计划开始日期"
                           style="width: 100%"
                           :disabled-date="disabledMilestoneDate"
                         />
                       </el-form-item>
 
+                      <el-form-item label="计划结束时间">
+                        <el-date-picker
+                          v-model="milestone.plannedEndDate"
+                          type="date"
+                          placeholder="选择计划结束日期"
+                          style="width: 100%"
+                          :disabled-date="disabledMilestoneDate"
+                        />
+                      </el-form-item>
+
+                      <!-- TODO: 后端暂不支持 deliverables 字段，待版本更新后恢复
                       <el-form-item label="交付物要求">
                         <div class="deliverables-config">
                           <div
@@ -471,7 +329,7 @@
                           >
                             <el-input
                               v-model="deliverable.name"
-                    placeholder="交付物名称，如：技术方案文档"
+                              placeholder="交付物名称，如：技术方案文档"
                               style="margin-bottom: 8px"
                             />
                             <el-input
@@ -505,6 +363,7 @@
                           </el-button>
                         </div>
                       </el-form-item>
+                      -->
 
                       <el-form-item label="任务文件">
                         <el-upload
@@ -570,8 +429,8 @@
                       <span class="value price">￥{{ publishForm.reward }}</span>
                     </div>
                     <div class="confirm-info-item">
-                      <span class="label">需求人数：</span>
-                      <span class="value">{{ publishForm.teamSize }}</span>
+                      <span class="label">团队规模：</span>
+                      <span class="value">{{ publishForm.minTeamSize }} - {{ publishForm.maxTeamSize }} 人</span>
                     </div>
                     <div class="confirm-info-item">
                       <span class="label">项目周期：</span>
@@ -585,14 +444,14 @@
                       <span class="label">预计交付时间：</span>
                       <span class="value">{{ formatDate(publishForm.deliveryDate) }}</span>
                     </div>
-                    <div class="confirm-info-item">
-                      <span class="label">项目联系人：</span>
-                      <span class="value">{{ publishForm.contactName }}</span>
-                    </div>
-                    <div class="confirm-info-item">
-                      <span class="label">联系电话：</span>
-                      <span class="value">{{ publishForm.contactPhone }}</span>
-                    </div>
+                  </div>
+                </div>
+
+                <!-- 项目详情预览 -->
+                <div class="confirm-section">
+                  <h4 class="confirm-section-title">项目详情</h4>
+                  <div class="confirm-description">
+                    <pre class="description-content">{{ publishForm.description || '未填写' }}</pre>
                   </div>
                 </div>
 
@@ -607,12 +466,19 @@
                     >
                       <div class="milestone-preview-header">
                         <span class="milestone-preview-title">{{ milestone.title }}</span>
-                        <span class="milestone-preview-date">{{ formatDate(milestone.plannedDate) }}</span>
+                        <span class="milestone-preview-date">
+                          {{ formatDate(milestone.plannedStartDate) }} ~ {{ formatDate(milestone.plannedEndDate) }}
+                        </span>
                       </div>
+                      <div class="milestone-preview-goal">{{ milestone.description }}</div>
+                      <!-- TODO: 后端暂不支持 goal 字段，待版本更新后恢复
                       <div class="milestone-preview-goal">{{ milestone.goal || '未设置目标' }}</div>
+                      -->
+                      <!-- TODO: 后端暂不支持 deliverables 字段，待版本更新后恢复
                       <div class="milestone-preview-deliverables">
                         交付物：{{ milestone.deliverables.length }}个
                       </div>
+                      -->
                     </div>
                   </div>
                 </div>
@@ -688,7 +554,17 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/store/modules/auth'
 import { Plus, Document, Upload } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElLoading } from 'element-plus'
+import {
+  saveProjectDraftAPI,
+  getMyProjectsAPI,
+  getAllMilestoneTemplatesAPI,
+  getOptionalMilestoneTemplatesAPI,
+  getMilestonesByProjectAPI,
+  addOptionalMilestonesAPI,
+  updateMilestoneAPI,
+  submitReviewAPI
+} from '@/api/project'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -702,45 +578,15 @@ const activeTab = ref('published')
 // 发布步骤
 const currentStep = ref(0)
 
-// 我承接的项目（企业作为承接方）- 已删除
-const contractedProjects = ref([])
+// 当前草稿项目ID（步骤一保存后获取）
+const currentProjectId = ref(null)
+
+// 加载状态
+const publishLoading = ref(false)
 
 // 我发布的项目（企业作为发布方）
-const publishedProjects = ref([
-  {
-    id: 'proj-001',
-    name: 'AI智能客服系统开发',
-    status: 'ongoing',
-    statusText: '进行中',
-    stageText: '方案提交阶段',
-    remainDays: 45,
-    contractor: '张三团队',
-    publisher: 'XX科技有限公司',
-    brief: '为平台构建基于NLP的智能客服系统，提高客户服务效率和满意度。'
-  },
-  {
-    id: 'proj-002',
-    name: '企业数据分析平台',
-    status: 'ongoing',
-    statusText: '进行中',
-    stageText: '项目执行阶段',
-    remainDays: 30,
-    contractor: '李四团队',
-    publisher: 'XX科技有限公司',
-    brief: '开发企业级数据分析平台，支持多维度数据可视化和智能报表生成。'
-  },
-  {
-    id: 'proj-003',
-    name: '移动端电商APP',
-    status: 'completed',
-    statusText: '已完成',
-    stageText: '项目结算',
-    remainDays: 0,
-    contractor: '王五团队',
-    publisher: 'XX科技有限公司',
-    brief: '开发一款功能完善的移动端电商应用，包含商品展示、购物车、支付等功能。'
-  }
-])
+const publishedProjects = ref([])
+const projectsLoading = ref(false)
 
 // 发布项目表单
 const publishFormRef = ref(null)
@@ -748,32 +594,18 @@ const publishForm = ref({
   name: '',
   category: '',
   reward: 5000,
-  teamSize: '',
   duration: 60,
   deadline: '',
   deliveryDate: '',
-  background: '',
-  objectives: '',
-  deliverableForm: '',
-  requirements: '',
-  techStack: '',
-  performanceMetrics: '',
-  reviewMethod: '',
-  contactName: '',
-  contactPhone: '',
+  description: '',
   taskFiles: [],
   // 揭榜要求
   biddingMode: 'team',
   minTeamSize: 2,
   maxTeamSize: 4,
-  requiredSkills: [],
-  bonusSkills: [],
-  experienceRequirement: 'none',
-  educationRequirement: 'none',
-  gradeRequirement: [],
-  otherRequirements: '',
-  reviewProcess: 'mixed',
-  maxApplications: 20
+  projectRequirements: '',
+  // TODO: 后端暂不支持 maxApplications 字段，待版本更新后恢复
+  // maxApplications: 20
 })
 
 // 表单验证规则
@@ -789,9 +621,6 @@ const publishRules = {
     { required: true, message: '请输入悬赏金额', trigger: 'blur' },
     { type: 'number', min: 1000, message: '悬赏金额最低1000元', trigger: 'blur' }
   ],
-  teamSize: [
-    { required: true, message: '请输入需求人数', trigger: 'blur' }
-  ],
   duration: [
     { required: true, message: '请输入项目周期', trigger: 'blur' },
     { type: 'number', min: 7, max: 365, message: '项目周期在 7 到 365 天之间', trigger: 'blur' }
@@ -799,33 +628,9 @@ const publishRules = {
   deadline: [
     { required: true, message: '请选择截止时间', trigger: 'change' }
   ],
-  background: [
-    { required: true, message: '请描述项目背景', trigger: 'blur' },
-    { min: 50, message: '项目背景至少50个字符', trigger: 'blur' }
-  ],
-  objectives: [
-    { required: true, message: '请列出项目目标', trigger: 'blur' },
-    { min: 50, message: '项目目标至少50个字符', trigger: 'blur' }
-  ],
-  deliverableForm: [
-    { required: true, message: '请描述成果形式', trigger: 'blur' }
-  ],
-  requirements: [
-    { required: true, message: '请描述功能要求', trigger: 'blur' },
-    { min: 100, message: '功能要求至少100个字符', trigger: 'blur' }
-  ],
-  techStack: [
-    { required: true, message: '请列出技术栈要求', trigger: 'blur' }
-  ],
-  reviewMethod: [
-    { required: true, message: '请输入评审方式', trigger: 'blur' }
-  ],
-  contactName: [
-    { required: true, message: '请输入项目联系人', trigger: 'blur' }
-  ],
-  contactPhone: [
-    { required: true, message: '请输入联系电话', trigger: 'blur' },
-    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号码', trigger: 'blur' }
+  description: [
+    { required: true, message: '请填写项目详情', trigger: 'blur' },
+    { min: 100, message: '项目详情至少100个字符', trigger: 'blur' }
   ]
 }
 
@@ -881,108 +686,66 @@ const handleMilestoneFileExceed = (files, fileList) => {
   ElMessage.warning(`最多只能上传 3 个文件，当前已选择 ${files.length + fileList.length} 个文件`)
 }
 
-// 里程碑数据
-const milestones = ref([
-  {
-    code: 'proposal',
-    title: '方案提交',
-    description: '提交详细的技术方案和项目实施计划，包括系统架构设计、技术选型、进度安排等',
-    required: true,
-    enabled: true,
-    expanded: false,
-    goal: '',
-    plannedDate: '',
-    taskFiles: [],
-    deliverables: [
-      { name: '技术方案文档', format: 'PDF / Word', requirement: '不少于10页，需包含系统架构设计、技术选型依据' },
-      { name: '项目计划甘特图', format: 'Excel / Project / PDF', requirement: '详细到周级别的任务分解' }
-    ]
-  },
-  {
-    code: 'agreement',
-    title: '协议签订',
-    description: '双方签订正式的项目合作协议，明确权利义务、交付标准、验收条件等',
-    required: true,
-    enabled: true,
-    expanded: false,
-    goal: '',
-    plannedDate: '',
-    taskFiles: [],
-    deliverables: [
-      { name: '项目合作协议', format: 'PDF', requirement: '双方签字盖章的正式协议' }
-    ]
-  },
-  {
-    code: 'midterm',
-    title: '中期答辩',
-    description: '项目进行到中期时，进行阶段性成果展示和答辩，评估项目进展情况',
-    required: false,
-    enabled: false,
-    expanded: false,
-    goal: '',
-    plannedDate: '',
-    taskFiles: [],
-    deliverables: [
-      { name: '中期报告', format: 'PDF / PPT', requirement: '包含已完成工作、遇到的问题、下一步计划' },
-      { name: '演示视频', format: 'MP4', requirement: '展示当前系统功能' }
-    ]
-  },
-  {
-    code: 'result_submit',
-    title: '成果提交',
-    description: '提交项目最终成果，包括源代码、文档、部署包等所有交付物',
-    required: true,
-    enabled: true,
-    expanded: false,
-    goal: '',
-    plannedDate: '',
-    taskFiles: [],
-    deliverables: [
-      { name: '源代码', format: 'ZIP / Git仓库', requirement: '完整的项目源代码，包含README' },
-      { name: '部署文档', format: 'PDF / Markdown', requirement: '详细的部署和配置说明' },
-      { name: '用户手册', fmat: 'PDF', requirement: '面向最终用户的使用手册' }
-    ]
-  },
-  {
-    code: 'result_review',
-    title: '成果评审',
-    description: '企业和专家对项目成果进行评审，评估是否达到预期目标和质量标准',
-    required: false,
-    enabled: false,
-    expanded: false,
-    goal: '',
-    plannedDate: '',
-    taskFiles: [],
-    deliverables: []
-  },
-  {
-    code: 'settlement',
-    title: '项目结算',
-    description: '项目验收通过后，进行费用结算和支付',
-    required: true,
-    enabled: true,
-    expanded: false,
-    goal: '',
-    plannedDate: '',
-    taskFiles: [],
-    deliverables: [
-      { name: '验收报告', format: 'PDF', requirement: '项目验收通过的正式报告' },
-      { name: '发票', format: 'PDF / 纸质', requirement: '符合财务要求的正式发票' }
-    ]
-  },
-  {
-    code: 'publicity',
-    title: '结项公示',
-    description: '项目结项后进行公示，接受监督和申诉',
-    required: false,
-    enabled: false,
-    expanded: false,
-    goal: '',
-    plannedDate: '',
-    taskFiles: [],
-    deliverables: []
+// 里程碑数据（从后端模板动态生成）
+const milestones = ref([])
+
+// 日期格式化为 ISO 字符串（yyyy-MM-dd）
+const formatISO = (date) => {
+  if (!date) return ''
+  const d = new Date(date)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+// 从后端模板生成里程碑列表
+function buildMilestonesFromTemplates(allTemplates, optionalTemplates) {
+  const optionalCodes = new Set(optionalTemplates.map(t => t.milestoneCode))
+  return allTemplates
+    .sort((a, b) => a.defaultSequenceOrder - b.defaultSequenceOrder)
+    .map(t => ({
+      code: t.milestoneCode,
+      templateId: t.templateId,
+      title: t.name,
+      description: t.description,
+      required: !optionalCodes.has(t.milestoneCode),
+      enabled: !optionalCodes.has(t.milestoneCode), // 必选默认启用，可选默认禁用
+      expanded: false,
+      // TODO: 后端暂不支持 goal 字段，待版本更新后恢复
+      // goal: '',
+      plannedStartDate: '',
+      plannedEndDate: '',
+      // TODO: 后端暂不支持 deliverables 字段，待版本更新后恢复
+      // deliverables: [],
+      taskFiles: [],
+    }))
+}
+
+// 加载企业项目列表
+async function fetchMyProjects() {
+  projectsLoading.value = true
+  try {
+    const res = await getMyProjectsAPI()
+    // 拦截器已返回 response.data，res 即 { code, data, message }
+    const list = res.data || []
+    publishedProjects.value = list.map(p => ({
+      id: p.projectId,
+      name: p.title,
+      status: p.status || 'pending',
+      statusText: p.statusText || '待审核',
+      stageText: p.currentStage || '',
+      remainDays: p.remainDays || 0,
+      contractor: p.contractor || '',
+      brief: p.description || ''
+    }))
+  } catch (err) {
+    console.error('获取项目列表失败:', err)
+    // 认证失败已由拦截器统一处理，这里只处理其他错误
+    if (err?.code !== 'ERR_AUTH_003' && err?.code !== 'ERR_AUTH_001') {
+      ElMessage.error('获取项目列表失败')
+    }
+  } finally {
+    projectsLoading.value = false
   }
-])
+}
 
 // 计算属性：已启用的里程碑
 const enabledMilestones = computed(() => {
@@ -1000,19 +763,20 @@ const handleMilestoneToggle = (milestone) => {
   }
 }
 
-// 添加交付物
-const addDeliverable = (milestone) => {
-  milestone.deliverables.push({
-    name: '',
-    format: '',
-    requirement: ''
-  })
-}
-
-// 删除交付物
-const removeDeliverable = (milestone, index) => {
-  milestone.deliverables.splice(index, 1)
-}
+// TODO: 后端暂不支持 deliverables 字段，待版本更新后恢复
+// // 添加交付物
+// const addDeliverable = (milestone) => {
+//   milestone.deliverables.push({
+//     name: '',
+//     format: '',
+//     requirement: ''
+//   })
+// }
+//
+// // 删除交付物
+// const removeDeliverable = (milestone, index) => {
+//   milestone.deliverables.splice(index, 1)
+// }
 
 // 禁用里程碑日期（不能早于揭榜截止时间）
 const disabledMilestoneDate = (time) => {
@@ -1030,10 +794,74 @@ const formatDate = (date) => {
 }
 
 // 步骤导航
-const handleNextStep = () => {
-  // 直接进入下一步，不做验证
-  if (currentStep.value < 2) {
-    currentStep.value++
+const handleNextStep = async () => {
+  // 步骤一 → 步骤二：保存草稿 + 获取projectId + 加载里程碑模板
+  if (currentStep.value === 0) {
+    // 验证表单
+    if (!publishFormRef.value) return
+    try {
+      await publishFormRef.value.validate()
+    } catch {
+      ElMessage.error('请完善项目基本信息')
+      return
+    }
+
+    publishLoading.value = true
+    try {
+      // 1. 映射字段，保存草稿
+      const draftParams = {
+        title: publishForm.value.name,
+        description: publishForm.value.description,
+        categoryId: publishForm.value.category,
+        tags: '[]',
+        requirements: publishForm.value.projectRequirements,
+        skillLevel: 'intermediate',
+        teamSizeMin: publishForm.value.minTeamSize,
+        teamSizeMax: publishForm.value.maxTeamSize,
+        durationDays: publishForm.value.duration,
+        budgetType: 'fixed',
+        budgetAmount: publishForm.value.reward,
+        currency: 'CNY',
+        applicationDeadline: formatISO(publishForm.value.deadline),
+        expectedStartDate: formatISO(publishForm.value.deadline),
+        expectedEndDate: formatISO(publishForm.value.deliveryDate)
+      }
+      await saveProjectDraftAPI(draftParams)
+
+      // 2. 查询企业项目列表，取最新一条的 projectId
+      const projRes = await getMyProjectsAPI()
+      const projList = projRes.data || []
+      if (projList.length === 0) {
+        ElMessage.error('保存草稿后未能获取到项目，请重试')
+        return
+      }
+      currentProjectId.value = projList[projList.length - 1].projectId
+
+      // 3. 获取里程碑模板
+      const [allRes, optRes] = await Promise.all([
+        getAllMilestoneTemplatesAPI(),
+        getOptionalMilestoneTemplatesAPI()
+      ])
+      const allTemplates = allRes.data || []
+      const optionalTemplates = optRes.data || []
+
+      // 4. 生成动态里程碑列表
+      milestones.value = buildMilestonesFromTemplates(allTemplates, optionalTemplates)
+
+      currentStep.value = 1
+    } catch (err) {
+      console.error('步骤一提交失败:', err)
+      // 认证失败已由拦截器统一处理
+      if (err?.code !== 'ERR_AUTH_003' && err?.code !== 'ERR_AUTH_001') {
+        ElMessage.error(err?.info || err?.message || '保存草稿失败，请重试')
+      }
+    } finally {
+      publishLoading.value = false
+    }
+  }
+  // 步骤二 → 步骤三：纯前端切换
+  else if (currentStep.value === 1) {
+    currentStep.value = 2
   }
 }
 
@@ -1048,52 +876,83 @@ const handleSubmitPublish = async () => {
   // 验证第一步：基本信息表单
   if (!publishFormRef.value) return
 
-  let isValid = false
-  await publishFormRef.value.validate((valid) => {
-    isValid = valid
-    if (!valid) {
-      ElMessage.error('请完善项目基本信息')
-      currentStep.value = 0 // 跳转到第一步
-    }
-  })
-
-  if (!isValid) return
+  try {
+    await publishFormRef.value.validate()
+  } catch {
+    ElMessage.error('请完善项目基本信息')
+    currentStep.value = 0
+    return
+  }
 
   // 验证第二步：里程碑配置
   const enabledMilestonesList = milestones.value.filter(m => m.enabled)
   if (enabledMilestonesList.length === 0) {
     ElMessage.error('请至少选择一个里程碑')
-    currentStep.value = 1 // 跳转到第二步
+    currentStep.value = 1
     return
   }
 
-  // 检查每个启用的里程碑是否配置完整
+  // 检查每个启用的里程碑是否配置了计划时间
   for (const milestone of enabledMilestonesList) {
-    if (!milestone.goal) {
-      ElMessage.error(`请配置"${milestone.title}"的里程碑目标`)
-      currentStep.value = 1 // 跳转到第二步
-      return
-    }
-    if (!milestone.plannedDate) {
-      ElMessage.error(`请设置"${milestone.title}"的计划完成时间`)
-      currentStep.value = 1 // 跳转到第二步
+    if (!milestone.plannedStartDate || !milestone.plannedEndDate) {
+      ElMessage.error(`请设置"${milestone.title}"的计划开始和结束时间`)
+      currentStep.value = 1
       return
     }
   }
 
-  // 所有验证通过，提交发布
-  console.log('提交发布项目:', {
-    basicInfo: publishForm.value,
-    milestones: enabledMilestones.value
-  })
+  publishLoading.value = true
+  try {
+    const projectId = currentProjectId.value
 
-  ElMessage.success('项目发布成功！')
-  // TODO: 调用API提交项目
+    // 1. 收集用户启用的可选里程碑 templateIds
+    const optionalEnabled = enabledMilestonesList.filter(m => !m.required)
+    if (optionalEnabled.length > 0) {
+      const templateIds = optionalEnabled.map(m => m.templateId)
+      await addOptionalMilestonesAPI({ projectId, templateIds })
+    }
 
-  // 重置表单并返回列表
-  publishFormRef.value.resetFields()
-  currentStep.value = 0
-  activeTab.value = 'published'
+    // 2. 重新获取完整里程碑列表（拿到 milestoneId）
+    const msRes = await getMilestonesByProjectAPI(projectId)
+    const serverMilestones = msRes.data || []
+
+    // 3. 逐个更新里程碑信息（通过 milestoneCode 匹配）
+    const updatePromises = enabledMilestonesList.map(frontMs => {
+      const serverMs = serverMilestones.find(s => s.milestoneCode === frontMs.code)
+      if (!serverMs) return Promise.resolve()
+      return updateMilestoneAPI({
+        milestoneId: serverMs.milestoneId,
+        description: frontMs.description,
+        plannedStartTime: formatISO(frontMs.plannedStartDate),
+        plannedEndTime: formatISO(frontMs.plannedEndDate),
+        remindBeforeHours: 24
+      })
+    })
+    await Promise.all(updatePromises)
+
+    // 4. 提交审核
+    await submitReviewAPI(projectId)
+
+    ElMessage.success('项目发布成功，已提交审核！')
+
+    // 重置表单并返回列表
+    publishFormRef.value.resetFields()
+    milestones.value = []
+    currentProjectId.value = null
+    currentStep.value = 0
+    activeTab.value = 'published'
+    // 刷新项目列表
+    fetchMyProjects()
+  } catch (err) {
+    console.error('提交发布失败:', err)
+    // 认证失败已由拦截器统一处理
+    if (err?.code !== 'ERR_AUTH_003' && err?.code !== 'ERR_AUTH_001') {
+      const errMsg = err?.info || err?.message || '提交发布失败，请重试'
+      ElMessage.error(errMsg)
+    }
+  } finally {
+    publishLoading.value = false
+  }
 }
 
 // 取消发布
@@ -1123,6 +982,8 @@ function handlePublishProject() {
 onMounted(() => {
   console.log('企业端"我的项目"页面加载')
   console.log('当前用户角色:', authStore.userRole)
+  // 加载企业项目列表
+  fetchMyProjects()
 })
 </script>
 
@@ -1633,6 +1494,24 @@ onMounted(() => {
 .milestone-preview-deliverables {
   font-size: 13px;
   color: #909399;
+}
+
+/* 项目详情预览 */
+.confirm-description {
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  padding: 16px;
+}
+
+.description-content {
+  margin: 0;
+  font-size: 14px;
+  color: #606266;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-family: inherit;
 }
 
 .form-section {

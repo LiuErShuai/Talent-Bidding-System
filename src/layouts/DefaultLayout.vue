@@ -29,6 +29,7 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/store/modules/auth'
 import { getNavByRole } from '@/utils/navConfig'
+import { useInactivityTimeout } from '@/composables/useInactivityTimeout'
 import AppHeader from '@/components/layout/AppHeader/index.vue'
 import AppFooter from '@/components/layout/AppFooter/index.vue'
 
@@ -77,6 +78,21 @@ const navConfig = computed(() => {
 const unreadCount = computed(() => ({
   messages: 0 // 当前 mock 为 0，避免显示徽章
 }))
+
+// ========================================
+// 无操作自动退出
+// ========================================
+
+/**
+ * 启用无操作自动退出功能
+ * - 30分钟无操作自动登出
+ * - 登出前1分钟弹出警告
+ */
+useInactivityTimeout({
+  timeout: 30 * 60 * 1000, // 30分钟
+  warningTime: 1 * 60 * 1000, // 提前1分钟警告
+  enabled: true
+})
 </script>
 
 <style scoped>

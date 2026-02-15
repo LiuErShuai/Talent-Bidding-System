@@ -41,8 +41,8 @@
               >
                 <el-option label="学生" value="student" />
                 <el-option label="企业" value="enterprise" />
-                <el-option label="教师" value="teacher" />
-                <el-option label="管理员" value="admin" />
+                <el-option label="教师（暂不可用）" value="teacher" disabled />
+                <el-option label="管理员（暂不可用）" value="admin" disabled />
               </el-select>
             </el-form-item>
 
@@ -112,9 +112,9 @@
                 placeholder="请选择注册方式"
                 style="width: 100%"
               >
-                <el-option label="👤 用户名注册" value="username" />
-                <el-option label="📧 邮箱注册" value="email" />
-                <el-option label="📱 电话号码注册" value="phone" />
+                <el-option label="👤 用户名注册" value="USERNAME" />
+                <el-option label="📧 邮箱注册" value="EMAIL" />
+                <el-option label="📱 电话号码注册" value="PHONE" />
               </el-select>
             </el-form-item>
 
@@ -122,7 +122,7 @@
               <el-input
                 v-model="registerFormData.identifier"
                 :placeholder="`请输入${identifierLabel}`"
-                :type="registerFormData.identityType === 'phone' ? 'tel' : 'text'"
+                :type="registerFormData.identityType === 'PHONE' ? 'tel' : 'text'"
                 clearable
               />
             </el-form-item>
@@ -162,7 +162,21 @@ import { ref, computed, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/store/modules/auth'
-import { registerAPI } from '@/api/user'
+import { registerAPI, loginAPI } from '@/api/user'
+
+// 预设测试账号（用于便捷登录）
+const PRESET_ACCOUNTS = {
+  student: {
+    identityType: 'USERNAME',
+    identifier: 'test_student',
+    credential: 'Test123456'
+  },
+  enterprise: {
+    identityType: 'USERNAME',
+    identifier: 'test_enterprise',
+    credential: 'Test123456'
+  }
+}
 
 // 属性与事件
 const props = defineProps({
@@ -205,14 +219,14 @@ const registerForm = ref(null)
 const registerFormData = ref({
   nickname: '',
   type: '学生',
-  identityType: 'username',
+  identityType: 'USERNAME',
   identifier: '',
   credential: ''
 })
 
 const identifierLabel = computed(() => {
-  if (registerFormData.value.identityType === 'phone') return '电话号码'
-  if (registerFormData.value.identityType === 'username') return '用户名'
+  if (registerFormData.value.identityType === 'PHONE') return '电话号码'
+  if (registerFormData.value.identityType === 'USERNAME') return '用户名'
   return '邮箱'
 })
 
@@ -227,19 +241,19 @@ const validateIdentifier = (rule, value, callback) => {
     callback(new Error(`请输入${identifierLabel.value}`))
     return
   }
-  if (registerFormData.value.identityType === 'email') {
+  if (registerFormData.value.identityType === 'EMAIL') {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(value)) {
       callback(new Error('请输入正确的邮箱格式'))
       return
     }
-  } else if (registerFormData.value.identityType === 'phone') {
+  } else if (registerFormData.value.identityType === 'PHONE') {
     const phoneRegex = /^1[3-9]\d{9}$/
     if (!phoneRegex.test(value)) {
       callback(new Error('请输入正确的手机号码格式（11位数字）'))
       return
     }
-  } else if (registerFormData.value.identityType === 'username') {
+  } else if (registerFormData.value.identityType === 'USERNAME') {
     if (value.length < 3 || value.length > 20) {
       callback(new Error('用户名长度应为3-20个字符'))
       return
@@ -303,39 +317,39 @@ const handleLogin = () => {
         return
       }
 
-      const roleNames = {
-        student: '学生',
-        enterprise: '企业',
-        teacher: '教师',
-        admin: '管理员'
+      // 检查是否有预设账号
+      const presetAccount = PRESET_ACCOUNTS[testRole]
+      if (!presetAccount) {
+        ElMessage.warning('该角色暂不支持便捷登录')
+        loginLoading.value = false
+        return
       }
-      const testUserIds = {
-        student: 'test_student_001',
-        enterprise: 'enterprise-001',
-        teacher: 'test_teacher_001',
-        admin: 'test_admin_001'
-      }
-      const testUserData = {
-        username: `测试${roleNames[testRole]}`,
-        role: testRole,
-        id: testUserIds[testRole] || `test_${testRole}_${Date.now()}`,
-        userId: testUserIds[testRole] || `test_${testRole}_${Date.now()}`,
-        avatar: `https://picsum.photos/seed/${testRole}/40/40.jpg`
-      }
-      const testToken = `test_token_${testRole}_${Date.now()}`
 
-      ElMessage.success(`登录成功！欢迎，${testUserData.username}`)
-      localStorage.setItem('token', testToken)
-      localStorage.setItem('userRole', testRole)
-      localStorage.setItem('userData', JSON.stringify(testUserData))
-      authStore.login(testUserData, testToken)
+      // 调用真实登录 API
+      const res = await loginAPI(presetAccount)
+
+      // 处理登录成功
+      const userData = {
+        userId: res.data.userId,
+        username: res.data.nickname,
+        nickname: res.data.nickname,
+        role: testRole,
+        type: res.data.type,
+        avatar: res.data.avatarUrl || '',
+        avatarUrl: res.data.avatarUrl || ''
+      }
+      const token = res.data.authentication
+
+      ElMessage.success(`登录成功！欢迎，${userData.nickname}`)
+      // 统一由 authStore.login 管理存储，不再重复写 localStorage
+      authStore.login(userData, token)
 
       visible.value = false
-      emit('login-success', testUserData)
-      loginLoading.value = false
+      emit('login-success', userData)
     } catch (err) {
       console.error('登录错误:', err)
-      ElMessage.error(err?.response?.data?.message || err?.message || '登录失败')
+      ElMessage.error(err?.info || err?.message || '登录失败，请检查网络连接')
+    } finally {
       loginLoading.value = false
     }
   })
@@ -354,14 +368,14 @@ const handleRegister = () => {
         identifier: registerFormData.value.identifier,
         credential: registerFormData.value.credential
       })
-      const identityTypeText = registerFormData.value.identityType === 'email' ? '邮箱' :
-                              registerFormData.value.identityType === 'phone' ? '手机号' : '用户名'
+      const identityTypeText = registerFormData.value.identityType === 'EMAIL' ? '邮箱' :
+                              registerFormData.value.identityType === 'PHONE' ? '手机号' : '用户名'
       ElMessage.success(`注册成功！您可以使用${identityTypeText}：${registerFormData.value.identifier} 进行登录`)
       switchToLogin()
-      registerLoading.value = false
     } catch (err) {
       console.error('注册错误:', err)
-      ElMessage.error(err?.response?.data?.message || err?.message || '注册失败，请稍后重试')
+      ElMessage.error(err?.info || err?.message || '注册失败，请稍后重试')
+    } finally {
       registerLoading.value = false
     }
   })
