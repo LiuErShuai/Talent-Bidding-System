@@ -6,7 +6,8 @@
         <h4 class="section-title">{{ milestone.title }}</h4>
         <p class="task-description">{{ milestone.description }}</p>
 
-        <!-- 交付物要求 -->
+        <!-- 【V2.0功能】交付物要求 - 当前版本暂不实现，后续版本开启 -->
+        <!--
         <div v-if="milestone.deliverables && milestone.deliverables.length" class="deliverables-list">
           <div class="deliverables-header">
             <h5 class="deliverables-title">交付物要求</h5>
@@ -45,6 +46,7 @@
             </li>
           </ul>
         </div>
+        -->
       </div>
       <div class="status-badge">
         <el-tag
@@ -115,7 +117,8 @@
       <el-empty v-if="!latestSubmission" description="承接方暂未提交文件" :image-size="40" />
     </div>
 
-    <!-- 意见反馈区 -->
+    <!-- 【V2.0功能】意见反馈 - 当前版本暂不实现，后续版本开启 -->
+    <!--
     <div class="section feedback-section">
       <div class="section-header">
         <h4 class="section-title">
@@ -123,14 +126,12 @@
         </h4>
       </div>
 
-      <!-- 历史反馈列表 -->
       <div v-if="milestone.feedbacks && milestone.feedbacks.length" class="feedbacks-list">
         <div
           v-for="feedback in sortedFeedbacks"
           :key="feedback.id"
           class="feedback-item"
         >
-          <!-- 缩略状态 -->
           <div v-if="!expandedFeedbacks[feedback.id]" class="feedback-collapsed">
             <span class="feedback-label">反馈内容：</span>
             <span class="feedback-text-collapsed">{{ feedback.content }}</span>
@@ -146,9 +147,7 @@
             </el-button>
           </div>
 
-          <!-- 展开状态 -->
           <div v-else class="feedback-expanded">
-            <!-- 第一行：标签 + 时间 + 收起按钮 -->
             <div class="feedback-expanded-header">
               <span class="feedback-label">反馈内容：</span>
               <span class="feedback-time">{{ feedback.time }}</span>
@@ -162,7 +161,6 @@
                 收起
               </el-button>
             </div>
-            <!-- 反馈内容文本 -->
             <div class="feedback-text-full">{{ feedback.content }}</div>
           </div>
         </div>
@@ -170,6 +168,7 @@
 
       <el-empty v-else description="暂无反馈意见" :image-size="40" />
     </div>
+    -->
 
     <!-- 操作按钮区 -->
     <div v-if="canEdit" class="actions-section">
@@ -181,6 +180,8 @@
         <el-icon><Check /></el-icon>
         通过节点
       </el-button>
+      <!-- 【V2.0功能】反馈意见按钮 - 当前版本暂不实现 -->
+      <!--
       <el-button
         type="warning"
         size="large"
@@ -189,9 +190,11 @@
         <el-icon><ChatDotRound /></el-icon>
         反馈意见
       </el-button>
+      -->
     </div>
 
-    <!-- 反馈意见对话框 -->
+    <!-- 【V2.0功能】反馈对话框 - 当前版本暂不实现 -->
+    <!--
     <el-dialog
       v-model="feedbackVisible"
       title="反馈意见"
@@ -219,6 +222,7 @@
         <el-button type="primary" @click="handleSubmitFeedback">提交反馈</el-button>
       </template>
     </el-dialog>
+    -->
 
     <!-- 历史提交记录对话框 -->
     <el-dialog
@@ -314,7 +318,8 @@
       </template>
     </el-dialog>
 
-    <!-- 编辑交付物要求对话框 -->
+    <!-- 【V2.0功能】编辑交付物对话框 - 当前版本暂不实现 -->
+    <!--
     <el-dialog
       v-model="editDeliverablesVisible"
       title="编辑交付物要求"
@@ -323,7 +328,6 @@
       top="5vh"
     >
       <div class="edit-deliverables-dialog">
-        <!-- 交付物列表 -->
         <div class="deliverables-edit-list">
           <div
             v-for="(deliverable, index) in editDeliverablesForm.deliverables"
@@ -373,7 +377,6 @@
           </div>
         </div>
 
-        <!-- 添加交付物按钮 -->
         <el-button
           type="primary"
           plain
@@ -390,6 +393,7 @@
         <el-button type="primary" @click="handleSaveDeliverables">保存</el-button>
       </template>
     </el-dialog>
+    -->
   </div>
 </template>
 
@@ -423,8 +427,8 @@ const props = defineProps({
 
 const emit = defineEmits(['refresh'])
 
-// 交付物要求展开/收起状态
-const deliverablesExpanded = ref(false)
+// 【V2.0功能】交付物要求相关逻辑 - 当前版本暂不实现
+// const deliverablesExpanded = ref(false)
 
 // 是否可以编辑（已完成的不可编辑）
 const canEdit = computed(() => {
@@ -447,6 +451,8 @@ const historySubmissions = computed(() => {
   return props.milestone.submissions.slice(1)
 })
 
+// 【V2.0功能】意见反馈相关逻辑 - 当前版本暂不实现
+/*
 // 排序后的反馈（新到旧）
 const sortedFeedbacks = computed(() => {
   if (!props.milestone.feedbacks) return []
@@ -483,6 +489,7 @@ function handleSubmitFeedback() {
   feedbackVisible.value = false
   emit('refresh')
 }
+*/
 
 // 历史提交记录对话框
 function handleApprove() {
@@ -642,6 +649,8 @@ function handleSaveTaskFiles() {
   console.log('保存任务文件：', editTaskFilesForm.files)
 }
 
+// 【V2.0功能】交付物要求相关逻辑 - 当前版本暂不实现
+/*
 // 编辑交付物要求
 const editDeliverablesVisible = ref(false)
 const editDeliverablesForm = reactive({
@@ -702,6 +711,7 @@ function handleSaveDeliverables() {
   emit('refresh')
   console.log('保存交付物要求：', editDeliverablesForm.deliverables)
 }
+*/
 </script>
 
 <style scoped>
@@ -770,7 +780,8 @@ function handleSaveDeliverables() {
   color: #606266;
 }
 
-/* 交付物要求 */
+/* 【V2.0功能】交付物要求样式 - 当前版本暂不实现 */
+/*
 .deliverables-list {
   margin-top: 16px;
 }
@@ -878,6 +889,7 @@ function handleSaveDeliverables() {
   line-height: 1.6;
   color: #606266;
 }
+*/
 
 .status-badge {
   flex-shrink: 0;
@@ -959,7 +971,8 @@ function handleSaveDeliverables() {
   overflow-y: auto;
 }
 
-/* 反馈列表 */
+/* 【V2.0功能】意见反馈样式 - 当前版本暂不实现 */
+/*
 .feedbacks-list {
   display: flex;
   flex-direction: column;
@@ -973,7 +986,6 @@ function handleSaveDeliverables() {
   padding: 16px;
 }
 
-/* 缩略状态 */
 .feedback-collapsed {
   display: flex;
   align-items: center;
@@ -1012,7 +1024,6 @@ function handleSaveDeliverables() {
   margin-left: 4px;
 }
 
-/* 展开状态 */
 .feedback-expanded {
   display: flex;
   flex-direction: column;
@@ -1048,6 +1059,7 @@ function handleSaveDeliverables() {
   word-break: break-word;
   padding-left: 0;
 }
+*/
 
 /* 操作按钮区 */
 .actions-section {
@@ -1176,7 +1188,8 @@ function handleSaveDeliverables() {
   min-height: 100px;
 }
 
-/* 编辑交付物对话框 */
+/* 【V2.0功能】编辑交付物对话框样式 - 当前版本暂不实现 */
+/*
 .edit-deliverables-dialog {
   display: flex;
   flex-direction: column;
@@ -1263,6 +1276,7 @@ function handleSaveDeliverables() {
   width: 100%;
   flex-shrink: 0;
 }
+*/
 
 /* 响应式 */
 @media (max-width: 768px) {
