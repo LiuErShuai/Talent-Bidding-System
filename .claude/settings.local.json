@@ -29,7 +29,12 @@
       "Bash(ssh ubuntu@43.142.157.145 \"echo ''=== 检查腾讯云安全组件 ==='' && ls -la /usr/local/qcloud/ 2>/dev/null || echo ''无腾讯云目录'' && echo '''' && echo ''=== 检查 YunJing 进程 ==='' && ps aux | grep -i yunjing | grep -v grep\")",
       "Bash(xargs:*)",
       "Bash(sort:*)",
-      "Bash(node -e:*)"
+      "Bash(node -e:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(ls:*)",
+      "Bash(dir:*)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []

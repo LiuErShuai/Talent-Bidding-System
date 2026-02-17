@@ -22,8 +22,17 @@ request.interceptors.request.use(
         token = raw
       }
     }
+
+    // 调试日志：检查 token 格式
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`
+      console.log('[请求拦截器] Token 原始值:', raw)
+      console.log('[请求拦截器] Token 解析后:', token)
+      console.log('[请求拦截器] Token 类型:', typeof token)
+      console.log('[请求拦截器] Authorization header:', token)
+      // 注意：后端不需要 "Bearer " 前缀，直接发送 token
+      config.headers.Authorization = token
+    } else {
+      console.warn('[请求拦截器] 未找到 token')
     }
     return config
   },
@@ -38,10 +47,20 @@ let isLoggingOut = false
 request.interceptors.response.use(
   (response) => {
     const res = response.data
+
+    // 调试日志：记录响应详情
+    console.log('[响应拦截器] 请求 URL:', response.config.url)
+    console.log('[响应拦截器] 请求方法:', response.config.method)
+    console.log('[响应拦截器] 请求 headers:', response.config.headers)
+    console.log('[响应拦截器] HTTP 状态码:', response.status)
+    console.log('[响应拦截器] 业务响应码:', res.code)
+    console.log('[响应拦截器] 响应数据:', res)
+
     // 兼容 code 为 200 或 "0000" 的成功响应
     if (res.code !== 200 && res.code !== '0000') {
       // 认证失败：清除凭证，跳转首页
       if (res.code === 'ERR_AUTH_003' || res.code === 'ERR_AUTH_001' || res.code === 401) {
+        console.error('[响应拦截器] 认证失败，错误码:', res.code, '错误信息:', res.info)
         handleAuthFailure(res.info || '登录凭证无效，请重新登录')
       }
       return Promise.reject(res)
@@ -49,6 +68,9 @@ request.interceptors.response.use(
     return res
   },
   (error) => {
+    console.error('[响应拦截器] HTTP 错误:', error)
+    console.error('[响应拦截器] 错误响应:', error.response)
+
     // HTTP 401 状态码处理
     if (error.response && error.response.status === 401) {
       handleAuthFailure('登录已过期，请重新登录')

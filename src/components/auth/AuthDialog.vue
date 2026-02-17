@@ -328,6 +328,12 @@ const handleLogin = () => {
       // 调用真实登录 API
       const res = await loginAPI(presetAccount)
 
+      // 调试日志：检查后端返回的数据
+      console.log('[登录] 后端返回完整响应:', res)
+      console.log('[登录] res.data:', res.data)
+      console.log('[登录] authentication 字段:', res.data.authentication)
+      console.log('[登录] authentication 类型:', typeof res.data.authentication)
+
       // 处理登录成功
       const userData = {
         userId: res.data.userId,
@@ -339,6 +345,9 @@ const handleLogin = () => {
         avatarUrl: res.data.avatarUrl || ''
       }
       const token = res.data.authentication
+
+      console.log('[登录] 准备存储的 token:', token)
+      console.log('[登录] 准备存储的 userData:', userData)
 
       ElMessage.success(`登录成功！欢迎，${userData.nickname}`)
       // 统一由 authStore.login 管理存储，不再重复写 localStorage

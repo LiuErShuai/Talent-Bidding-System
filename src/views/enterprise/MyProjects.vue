@@ -725,7 +725,8 @@ async function fetchMyProjects() {
   try {
     const res = await getMyProjectsAPI()
     // 拦截器已返回 response.data，res 即 { code, data, message }
-    const list = res.data || []
+    // 后端返回的 data 是对象：{ projects: [...], total, pageNum, pageSize }
+    const list = res.data?.projects || []
     publishedProjects.value = list.map(p => ({
       id: p.projectId,
       name: p.title,

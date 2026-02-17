@@ -37,6 +37,10 @@ export const useAuthStore = defineStore('auth', {
     login(userData, token) {
       const now = Date.now()
 
+      console.log('[authStore.login] 接收到的 token:', token)
+      console.log('[authStore.login] token 类型:', typeof token)
+      console.log('[authStore.login] 接收到的 userData:', userData)
+
       this.token = token
       this.userInfo = userData
       this.userRole = userData.role || userData.type?.toLowerCase() || ''
@@ -48,6 +52,10 @@ export const useAuthStore = defineStore('auth', {
       local.set(STORAGE_KEYS.USER_INFO, userData)
       local.set(STORAGE_KEYS.USER_ROLE, this.userRole)
       local.set('loginTime', now)
+
+      // 验证存储结果
+      console.log('[authStore.login] localStorage 中的 token:', localStorage.getItem('token'))
+      console.log('[authStore.login] 通过 local.get 读取的 token:', local.get(STORAGE_KEYS.TOKEN))
     },
 
     /**
