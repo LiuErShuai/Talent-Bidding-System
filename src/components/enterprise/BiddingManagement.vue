@@ -44,10 +44,10 @@
     <div class="filter-section">
       <el-radio-group v-model="filterStatus" @change="handleFilterChange">
         <el-radio-button value="all">全部 ({{ applications.length }})</el-radio-button>
-        <el-radio-button value="submitted">待审核 ({{ submittedCount }})</el-radio-button>
-        <el-radio-button value="approved">审核通过 ({{ approvedCount }})</el-radio-button>
+        <el-radio-button value="applied">待审核 ({{ submittedCount }})</el-radio-button>
+        <el-radio-button value="shortlisted">已入围 ({{ approvedCount }})</el-radio-button>
         <el-radio-button value="rejected">已拒绝 ({{ rejectedCount }})</el-radio-button>
-        <el-radio-button value="selected">已中标 ({{ selectedCount }})</el-radio-button>
+        <el-radio-button value="confirmed">已中标 ({{ selectedCount }})</el-radio-button>
       </el-radio-group>
     </div>
 
@@ -138,7 +138,7 @@
               v-for="record in currentTeam.reviewHistory"
               :key="record.id"
               :timestamp="record.time"
-              :type="record.action === 'approved' || record.action === 'selected' ? 'success' : 'danger'"
+              :type="record.action === 'shortlisted' || record.action === 'confirmed' ? 'success' : 'danger'"
             >
               <div class="review-record">
                 <div class="review-action">{{ record.actionText }}</div>
@@ -151,7 +151,7 @@
         <!-- 操作按钮 -->
         <div class="detail-actions">
           <!-- 待审核状态 -->
-          <template v-if="currentTeam.status === 'submitted'">
+          <template v-if="currentTeam.status === 'applied'">
             <div class="action-with-note">
               <el-input
                 v-model="actionNote"
@@ -173,8 +173,8 @@
             </div>
           </template>
 
-          <!-- 审核通过状态 -->
-          <template v-if="currentTeam.status === 'approved'">
+          <!-- 审核通过状态（已入围） -->
+          <template v-if="currentTeam.status === 'shortlisted'">
             <div class="action-with-note">
               <el-input
                 v-model="actionNote"
@@ -193,7 +193,7 @@
           </template>
 
           <!-- 已中标状态 -->
-          <template v-if="currentTeam.status === 'selected'">
+          <template v-if="currentTeam.status === 'confirmed'">
             <el-tag type="success" size="large">
               <el-icon><Trophy /></el-icon>
               中标团队
@@ -242,6 +242,14 @@ import {
   View
 } from '@element-plus/icons-vue'
 
+// 申请状态枚举（与后端保持一致）
+const BID_STATUS = {
+  APPLIED: 'applied',        // 已申请（待审核）
+  SHORTLISTED: 'shortlisted', // 已入围（审核通过）
+  CONFIRMED: 'confirmed',     // 已中标
+  REJECTED: 'rejected'        // 已拒绝
+}
+
 const props = defineProps({
   projectId: {
     type: String,
@@ -264,7 +272,7 @@ const applications = ref([
     contact: '13800138000',
     applyTime: '2025-11-01 10:30',
     description: '我们是一支经验丰富的AI开发团队，曾参与多个智能客服项目的开发，对NLP技术有深入研究。团队成员来自计算机科学专业，具备扎实的技术功底。',
-    status: 'selected',
+    status: 'confirmed',
     detailFiles: [
       { id: 'f1', name: '团队介绍.pdf', size: '2.3 MB' },
       { id: 'f2', name: '身份认证.pdf', size: '1.5 MB' },
@@ -274,14 +282,14 @@ const applications = ref([
       {
         id: 'r1',
         time: '2025-11-02 14:00',
-        action: 'approved',
-        actionText: '审核通过',
+        action: 'shortlisted',
+        actionText: '审核通过（入围）',
         comment: '团队资质符合要求，技术方案完善'
       },
       {
         id: 'r2',
         time: '2025-11-03 10:00',
-        action: 'selected',
+        action: 'confirmed',
         actionText: '选为中标团队',
         comment: '技术方案完善，团队经验丰富，综合评分最高'
       }
@@ -295,7 +303,7 @@ const applications = ref([
     contact: '13900139000',
     applyTime: '2025-11-01 11:20',
     description: '我们团队专注于人工智能领域，有丰富的机器学习和深度学习项目经验。',
-    status: 'approved',
+    status: 'shortlisted',
     detailFiles: [
       { id: 'f4', name: '团队介绍.pdf', size: '1.8 MB' },
       { id: 'f5', name: '技术方案.pdf', size: '3.5 MB' }
@@ -304,8 +312,8 @@ const applications = ref([
       {
         id: 'r3',
         time: '2025-11-02 15:30',
-        action: 'approved',
-        actionText: '审核通过',
+        action: 'shortlisted',
+        actionText: '审核通过（入围）',
         comment: '团队经验丰富，符合项目要求'
       }
     ]
@@ -318,7 +326,7 @@ const applications = ref([
     contact: '13700137000',
     applyTime: '2025-11-01 14:50',
     description: '我们是一支年轻但充满活力的团队，虽然经验不多，但学习能力强，愿意接受挑战。',
-    status: 'submitted',
+    status: 'applied',
     detailFiles: [
       { id: 'f6', name: '团队介绍.pdf', size: '1.2 MB' },
       { id: 'f7', name: '技术方案.pdf', size: '2.8 MB' }
@@ -353,12 +361,12 @@ const applications = ref([
 const filterStatus = ref('all')
 
 // 计算属性
-const submittedCount = computed(() => applications.value.filter(app => app.status === 'submitted').length)
+const submittedCount = computed(() => applications.value.filter(app => app.status === 'applied').length)
 const pendingCount = computed(() => submittedCount.value)
-const approvedCount = computed(() => applications.value.filter(app => app.status === 'approved').length)
+const approvedCount = computed(() => applications.value.filter(app => app.status === 'shortlisted').length)
 const rejectedCount = computed(() => applications.value.filter(app => app.status === 'rejected').length)
-const selectedCount = computed(() => applications.value.filter(app => app.status === 'selected').length)
-const selectedTeam = computed(() => applications.value.find(app => app.status === 'selected'))
+const selectedCount = computed(() => applications.value.filter(app => app.status === 'confirmed').length)
+const selectedTeam = computed(() => applications.value.find(app => app.status === 'confirmed'))
 
 // 过滤后的申请列表
 const filteredApplications = computed(() => {
@@ -388,16 +396,16 @@ function handleViewTeamDetail(app) {
 function handleApproveWithNote(app) {
   const note = actionNote.value.trim() || '审核通过'
 
-  app.status = 'approved'
+  app.status = 'shortlisted'
   app.reviewHistory.push({
     id: `r${Date.now()}`,
     time: new Date().toLocaleString('zh-CN'),
-    action: 'approved',
-    actionText: '审核通过',
+    action: 'shortlisted',
+    actionText: '审核通过（入围）',
     comment: note
   })
 
-  ElMessage.success('已审核通过')
+  ElMessage.success('已审核通过，团队已入围')
 
   // 更新弹窗内容
   if (currentTeam.value && currentTeam.value.id === app.id) {
@@ -438,7 +446,7 @@ function handleRejectWithNote(app) {
 // 带备注的选为中标团队
 function handleSelectTeamWithNote(app) {
   // 检查是否已经存在中标团队
-  const existingSelectedTeam = applications.value.find(a => a.status === 'selected')
+  const existingSelectedTeam = applications.value.find(a => a.status === 'confirmed')
 
   if (existingSelectedTeam) {
     ElMessageBox.alert(
@@ -464,11 +472,11 @@ function handleSelectTeamWithNote(app) {
     }
   ).then(() => {
     // 设置当前团队为中标
-    app.status = 'selected'
+    app.status = 'confirmed'
     app.reviewHistory.push({
       id: `r${Date.now()}`,
       time: new Date().toLocaleString('zh-CN'),
-      action: 'selected',
+      action: 'confirmed',
       actionText: '选为中标团队',
       comment: note
     })
@@ -488,10 +496,10 @@ function handleSelectTeamWithNote(app) {
 // 状态标签类型
 function getStatusTagType(status) {
   const map = {
-    submitted: 'warning',
-    approved: 'success',
+    applied: 'warning',
+    shortlisted: 'success',
     rejected: 'info',
-    selected: 'success'
+    confirmed: 'success'
   }
   return map[status] || 'info'
 }
@@ -499,10 +507,10 @@ function getStatusTagType(status) {
 // 状态文本
 function getStatusText(status) {
   const map = {
-    submitted: '待审核',
-    approved: '审核通过',
+    applied: '待审核',
+    shortlisted: '已入围',
     rejected: '已拒绝',
-    selected: '已中标'
+    confirmed: '已中标'
   }
   return map[status] || '未知'
 }
@@ -517,7 +525,7 @@ function handleApprove(app) {
   reviewDialogTitle.value = '通过初审'
   reviewForm.value = {
     comment: '',
-    action: 'approved',
+    action: 'shortlisted',
     applicationId: app.id
   }
   reviewDialogVisible.value = true
@@ -548,11 +556,11 @@ function handleConfirmReview() {
       id: `r${Date.now()}`,
       time: new Date().toLocaleString('zh-CN'),
       action: reviewForm.value.action,
-      actionText: reviewForm.value.action === 'approved' ? '审核通过' : '拒绝申请',
+      actionText: reviewForm.value.action === 'shortlisted' ? '审核通过（入围）' : '拒绝申请',
       comment: reviewForm.value.comment
     })
 
-    ElMessage.success(reviewForm.value.action === 'approved' ? '已审核通过' : '已拒绝申请')
+    ElMessage.success(reviewForm.value.action === 'shortlisted' ? '已审核通过，团队已入围' : '已拒绝申请')
 
     // 如果当前弹窗显示的是该团队，更新弹窗内容
     if (currentTeam.value && currentTeam.value.id === app.id) {
@@ -566,7 +574,7 @@ function handleConfirmReview() {
 // 选为中标团队
 function handleSelectTeam(app) {
   // 检查是否已经存在中标团队
-  const existingSelectedTeam = applications.value.find(a => a.status === 'selected')
+  const existingSelectedTeam = applications.value.find(a => a.status === 'confirmed')
 
   if (existingSelectedTeam) {
     ElMessageBox.alert(
@@ -590,11 +598,11 @@ function handleSelectTeam(app) {
     }
   ).then(() => {
     // 设置当前团队为中标
-    app.status = 'selected'
+    app.status = 'confirmed'
     app.reviewHistory.push({
       id: `r${Date.now()}`,
       time: new Date().toLocaleString('zh-CN'),
-      action: 'selected',
+      action: 'confirmed',
       actionText: '选为中标团队',
       comment: '恭喜！您的团队已被选为中标团队'
     })
