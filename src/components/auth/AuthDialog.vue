@@ -39,7 +39,9 @@
                 style="width: 100%"
                 clearable
               >
-                <el-option label="学生" value="student" />
+                <el-option label="测试学生1" value="student" />
+                <el-option label="测试学生2" value="student2" />
+                <el-option label="测试学生3" value="student3" />
                 <el-option label="企业" value="enterprise" />
                 <el-option label="教师（暂不可用）" value="teacher" disabled />
                 <el-option label="管理员（暂不可用）" value="admin" disabled />
@@ -169,6 +171,16 @@ const PRESET_ACCOUNTS = {
   student: {
     identityType: 'USERNAME',
     identifier: 'test_student',
+    credential: 'Test123456'
+  },
+  student2: {
+    identityType: 'USERNAME',
+    identifier: 'test_student2',
+    credential: 'Test123456'
+  },
+  student3: {
+    identityType: 'USERNAME',
+    identifier: 'test_student3',
     credential: 'Test123456'
   },
   enterprise: {
@@ -339,7 +351,7 @@ const handleLogin = () => {
         userId: res.data.userId,
         username: res.data.nickname,
         nickname: res.data.nickname,
-        role: testRole,
+        role: ['student', 'student2', 'student3'].includes(testRole) ? 'student' : testRole,
         type: res.data.type,
         avatar: res.data.avatarUrl || '',
         avatarUrl: res.data.avatarUrl || ''

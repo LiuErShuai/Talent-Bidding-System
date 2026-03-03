@@ -10,9 +10,15 @@
       </el-icon>
     </div>
 
+    <!--
+      当前后端版本未实现文件说明字段（description/versionNote），
+      先注释展示，避免界面显示无效说明信息
+    -->
+    <!--
     <div v-if="submission.versionNote || submission.description" class="submission-description">
       {{ submission.versionNote || submission.description }}
     </div>
+    -->
   </div>
 </template>
 
@@ -92,9 +98,15 @@ function handleDownload() {
   color: #66b1ff;
 }
 
+/*
+  当前后端版本未实现文件说明字段（description/versionNote），
+  对应的说明样式暂时注释
+*/
+/*
 .submission-description {
   font-size: 13px;
   color: #606266;
   line-height: 1.6;
 }
+*/
 </style>

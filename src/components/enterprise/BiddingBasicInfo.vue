@@ -32,13 +32,6 @@
             <span class="value">{{ getBiddingStatusText() }}</span>
           </div>
         </div>
-
-        <div class="info-row">
-          <div class="info-item full-width">
-            <span class="label">项目描述</span>
-            <span class="value">{{ project.description }}</span>
-          </div>
-        </div>
       </div>
     </div>
 

@@ -49,7 +49,27 @@
           <div class="description-content">
             <p class="task-description">{{ milestone?.description || '暂无描述' }}</p>
 
-            <!-- 交付物要求 - 默认展开 -->
+            <!-- ==================== V2.0 功能：交付物要求 ==================== -->
+            <!--
+              功能说明：显示企业设定的交付物要求（名称、格式、详细要求）
+              延后原因：后端 API 暂未提供交付物要求数据结构
+              恢复方法：
+                1. 等待后端提供 API：GET /api/v1/milestone/{milestoneId}/deliverables
+                2. 取消下方 HTML 注释（删除 注释标记）
+                3. 在数据加载函数中填充 milestone.deliverables 字段
+              数据结构：
+                deliverables: [
+                  {
+                    id: Number,
+                    name: String,        // 交付物名称，如"技术方案文档"
+                    type: String,        // 类型（document/code/design）
+                    format: Array,       // 格式要求，如['PDF', 'Word']
+                    requirement: String  // 详细要求说明
+                  }
+                ]
+              恢复位置：本文件第52-86行
+            -->
+            <!--
             <div v-if="milestone?.deliverables?.length" class="deliverables-list">
               <div class="deliverables-header">
                 <h4 class="deliverables-title">交付物要求</h4>
@@ -67,23 +87,48 @@
                 </div>
               </div>
             </div>
+            -->
+            <!-- ==================== V2.0 功能结束 ==================== -->
           </div>
         </div>
 
-        <!-- 意见反馈区 -->
+        <!-- ==================== V2.0 功能：意见反馈 ==================== -->
+        <!--
+          功能说明：显示企业对里程碑提交的反馈意见（支持展开/收起）
+          延后原因：后端 API 暂未提供反馈意见数据结构
+          恢复方法：
+            1. 等待后端提供 API：GET /api/v1/milestone/{milestoneId}/feedbacks
+            2. 取消下方 HTML 注释（删除注释标记）
+            3. 在数据加载函数中填充 milestone.feedbacks 字段
+            4. 确保 expandedFeedbacks 和 toggleFeedback 函数可用（已存在，无需修改）
+          数据结构：
+            feedbacks: [
+              {
+                id: Number,
+                time: String,        // 反馈时间，如"2025-11-18 16:00"
+                content: String,     // 反馈内容
+                publisher: String,   // 发布方名称
+                suggestions: Array   // 建议列表（可选）
+              }
+            ]
+          相关函数：
+            - expandedFeedbacks: ref({}) - 控制展开/收起状态
+            - toggleFeedback(feedbackId) - 切换展开/收起
+            - sortedFeedbacks - 计算属性，按时间倒序排列
+          恢复位置：本文件第90-142行
+        -->
+        <!--
         <div class="section feedback-section">
           <div class="section-header">
             <h4 class="section-title">意见反馈</h4>
           </div>
 
-          <!-- 历史反馈列表 -->
           <div v-if="milestone?.feedbacks?.length" class="feedbacks-list">
             <div
               v-for="feedback in sortedFeedbacks"
               :key="feedback.id"
               class="feedback-item"
             >
-              <!-- 缩略状态 -->
               <div v-if="!expandedFeedbacks[feedback.id]" class="feedback-collapsed">
                 <span class="feedback-label">反馈内容：</span>
                 <span class="feedback-text-collapsed">{{ feedback.content }}</span>
@@ -99,9 +144,7 @@
                 </el-button>
               </div>
 
-              <!-- 展开状态 -->
               <div v-else class="feedback-expanded">
-                <!-- 第一行：标签 + 时间 + 收起按钮 -->
                 <div class="feedback-expanded-header">
                   <span class="feedback-label">反馈内容：</span>
                   <span class="feedback-time">{{ feedback.time }}</span>
@@ -115,7 +158,6 @@
                     收起
                   </el-button>
                 </div>
-                <!-- 反馈内容文本 -->
                 <div class="feedback-text-full">{{ feedback.content }}</div>
               </div>
             </div>
@@ -123,6 +165,8 @@
 
           <el-empty v-else description="暂无反馈意见" :image-size="40" />
         </div>
+        -->
+        <!-- ==================== V2.0 功能结束 ==================== -->
       </div>
 
       <!-- 任务文件标签页 -->
@@ -385,6 +429,145 @@ function handleDownloadTaskFile(file) {
 </script>
 
 <style scoped>
+/* ==================== V2.0 功能样式（已注释功能，保留样式便于恢复） ==================== */
+
+/* 交付物要求样式 */
+.deliverables-list {
+  margin-top: 16px;
+}
+
+.deliverables-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.deliverables-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+}
+
+.arrow-icon {
+  transition: transform 0.3s ease;
+}
+
+.arrow-icon.expanded {
+  transform: rotate(90deg);
+}
+
+.deliverables-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 12px 0 0 0;
+}
+
+.deliverable-item {
+  padding: 12px 16px;
+  background: #ffffff;
+  border: 1px solid #edf1fb;
+  border-radius: 8px;
+}
+
+.deliverable-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.deliverable-info .file-icon {
+  font-size: 16px;
+  color: #6b7280;
+  flex-shrink: 0;
+}
+
+.deliverable-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #303133;
+  flex: 1;
+}
+
+.deliverable-requirement {
+  margin: 0;
+  font-size: 13px;
+  color: #6b7280;
+  line-height: 1.5;
+  padding-left: 24px;
+}
+
+/* 反馈意见样式 */
+.feedback-section {
+  /* 保留原有样式 */
+}
+
+.feedbacks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.feedback-item {
+  padding: 12px;
+  background: #f9fafb;
+  border-radius: 6px;
+  border-left: 3px solid #f59e0b;
+}
+
+.feedback-collapsed {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.feedback-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.feedback-text-collapsed {
+  flex: 1;
+  font-size: 13px;
+  color: #6b7280;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.feedback-time {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.feedback-expanded-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.feedback-text-full {
+  font-size: 13px;
+  color: #4b5563;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+/* ==================== V2.0 功能样式结束 ==================== */
+
 .milestone-detail-panel {
   background: #fff;
   border-radius: 12px;

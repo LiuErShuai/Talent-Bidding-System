@@ -45,7 +45,9 @@
     <!-- 可折叠内容 -->
     <el-collapse-transition>
       <div v-show="expanded" class="card-content">
-        <!-- 交付物要求 -->
+        <!-- ==================== V2.0 功能：交付物要求 ==================== -->
+        <!-- 详细说明见 MilestoneDetailPanel.vue 第52-86行的注释 -->
+        <!--
         <div class="section deliverables-requirements">
           <h4 class="section-title collapsible" @click="deliverablesExpanded = !deliverablesExpanded">
             <el-icon><List /></el-icon>
@@ -67,6 +69,8 @@
             </ul>
           </el-collapse-transition>
         </div>
+        -->
+        <!-- ==================== V2.0 功能结束 ==================== -->
 
         <!-- 我的提交记录 -->
         <div class="section submissions">
@@ -105,7 +109,9 @@
           </el-collapse-transition>
         </div>
 
-        <!-- 发布方反馈 -->
+        <!-- ==================== V2.0 功能：发布方反馈 ==================== -->
+        <!-- 详细说明见 MilestoneDetailPanel.vue 第90-142行的注释 -->
+        <!--
         <div class="section feedback">
           <h4 class="section-title collapsible" @click="feedbackExpanded = !feedbackExpanded">
             <el-icon><ChatDotRound /></el-icon>
@@ -149,6 +155,8 @@
             </div>
           </el-collapse-transition>
         </div>
+        -->
+        <!-- ==================== V2.0 功能结束 ==================== -->
 
       </div>
     </el-collapse-transition>
@@ -277,6 +285,141 @@ function handleDownloadSubmission(submission) {
 </script>
 
 <style scoped>
+/* ==================== V2.0 功能样式（已注释功能，保留样式便于恢复） ==================== */
+
+/* 交付物要求样式 */
+.deliverables-list {
+  list-style: none;
+  padding: 0;
+  margin: 4px 0 0 0;
+  background: #f5f7fb;
+  border-radius: 0 0 8px 8px;
+  overflow: hidden;
+}
+
+.deliverable-item {
+  padding: 12px 16px;
+  border-bottom: 1px dashed #9ca3af;
+}
+
+.deliverable-item:last-child {
+  border-bottom: none;
+  padding-bottom: 12px;
+}
+
+.deliverable-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.deliverable-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.deliverable-requirement {
+  margin: 0;
+  font-size: 13px;
+  color: #606266;
+  line-height: 1.6;
+}
+
+/* 发布方反馈样式 */
+.feedbacks-list {
+  margin-top: 8px;
+}
+
+.feedback-item {
+  background: #f5f7fb;
+  border-radius: 0 0 8px 8px;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+}
+
+.feedback-item:last-child {
+  margin-bottom: 0;
+}
+
+.feedback-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.feedback-publisher {
+  font-weight: 600;
+  color: #303133;
+  font-size: 14px;
+}
+
+.feedback-time {
+  font-size: 12px;
+  color: #909399;
+}
+
+.feedback-content {
+  font-size: 13px;
+  color: #606266;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.suggestions-inline {
+  margin-top: 8px;
+}
+
+.suggestion-title {
+  font-weight: 600;
+  color: #303133;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+.suggestion-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.suggestion-item {
+  font-size: 13px;
+  color: #606266;
+  line-height: 1.5;
+  position: relative;
+  padding-left: 16px;
+  margin-bottom: 4px;
+}
+
+.suggestion-item:before {
+  content: '•';
+  color: #909399;
+  position: absolute;
+  left: 0;
+  font-weight: normal;
+}
+
+.suggestion-item:last-child {
+  margin-bottom: 0;
+}
+
+.empty-feedback {
+  text-align: center;
+  padding: 24px 16px;
+  color: #C0C4CC;
+}
+
+.empty-feedback p {
+  margin-top: 12px;
+  font-size: 14px;
+}
+
+/* ==================== V2.0 功能样式结束 ==================== */
+
 .milestone-card-contractor {
   background: #fff;
   border-radius: 12px;
