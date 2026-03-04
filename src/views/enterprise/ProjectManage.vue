@@ -71,7 +71,15 @@ import BiddingManagement from '@/components/enterprise/BiddingManagement.vue'
 import MilestoneDetail from '@/components/enterprise/MilestoneDetail.vue'
 import HistoryRecords from '@/components/enterprise/HistoryRecords.vue'
 
-// Mock 数据导入
+// API 导入
+import {
+  getProjectDetailAPI,
+  getMyProjectsAPI,
+  getMilestonesByProjectAPI,
+  getProjectBidsAPI
+} from '@/api/project'
+
+// Mock 数据导入（接口失败兜底）
 import { mockProjectManageData } from '@/mock/projectManage'
 
 const route = useRoute()
@@ -94,28 +102,172 @@ const breadcrumbItems = computed(() => [
 const currentMilestone = computed(() => {
   if (!activeSection.value.startsWith('milestone-')) return null
   const milestoneId = activeSection.value.replace('milestone-', '')
-  return milestones.value.find(m => m.id === milestoneId)
+  return milestones.value.find(m => String(m.id) === milestoneId)
 })
+
+// 项目状态文案映射
+function mapProjectStatusText(status) {
+  const map = {
+    draft: '草稿',
+    pending_review: '待审核',
+    rejected: '已拒绝',
+    published: '已发布',
+    in_progress: '进行中',
+    completed: '已完成',
+    closed: '已关闭'
+  }
+  return map[status] || status || '未知状态'
+}
+
+// 项目状态映射到页面组件使用值
+function mapProjectStatus(status) {
+  const map = {
+    pending_review: 'pending',
+    published: 'bidding',
+    in_progress: 'ongoing',
+    completed: 'completed',
+    closed: 'cancelled',
+    rejected: 'cancelled',
+    draft: 'pending'
+  }
+  return map[status] || 'pending'
+}
+
+// 里程碑状态映射
+function mapMilestoneStatus(status) {
+  const map = {
+    planned: 'pending',
+    in_progress: 'in-progress',
+    delivered: 'in-progress',
+    under_review: 'in-progress',
+    completed: 'completed',
+    rejected: 'skipped',
+    expired: 'skipped',
+    skipped: 'skipped'
+  }
+  return map[status] || 'pending'
+}
+
+// 里程碑状态文案
+function mapMilestoneStatusText(status) {
+  const map = {
+    planned: '待开始',
+    in_progress: '进行中',
+    delivered: '已交付',
+    under_review: '评审中',
+    completed: '已完成',
+    rejected: '已拒绝',
+    expired: '已过期',
+    skipped: '已跳过'
+  }
+  return map[status] || status || '待开始'
+}
+
+// 统一获取响应 data
+function extractData(response) {
+  if (!response) return null
+  if (Array.isArray(response)) return response
+  return response.data ?? response
+}
+
+// 构建页面需要的项目数据结构
+function buildProjectModel(detailData, myProjectItem, bids) {
+  const totalApplications = myProjectItem?.applicationCount ?? bids.length
+  const approvedApplications = bids.filter(item => ['shortlisted', 'confirmed'].includes(item.status)).length
+  const pendingApplications = bids.filter(item => item.status === 'applied').length
+  const confirmedBid = bids.find(item => item.status === 'confirmed')
+  const selectedTeam = confirmedBid?.teamName || (myProjectItem?.acceptedTeamId ? '已选定团队' : '')
+
+  return {
+    id: detailData?.projectId || detailData?.id || projectId,
+    name: detailData?.title || myProjectItem?.title || '未命名项目',
+    status: mapProjectStatus(detailData?.status),
+    statusText: mapProjectStatusText(detailData?.status),
+    startDate: detailData?.expectedStartDate || detailData?.startDate || '',
+    endDate: detailData?.expectedEndDate || detailData?.endDate || '',
+    publisher: detailData?.publisherName || detailData?.enterpriseName || '--',
+    publisherId: detailData?.publisherId || '',
+    biddingStats: {
+      totalApplications,
+      approvedApplications,
+      pendingApplications,
+      selectedTeam
+    }
+  }
+}
+
+// 构建页面需要的里程碑数据结构
+function buildMilestoneModel(milestoneData) {
+  const list = Array.isArray(milestoneData?.milestones)
+    ? milestoneData.milestones
+    : Array.isArray(milestoneData)
+      ? milestoneData
+      : []
+
+  return list.map((item, index) => ({
+    id: item.milestoneId || item.id || `${item.milestoneCode || 'milestone'}-${index}`,
+    title: item.name || item.title || '未命名里程碑',
+    description: item.description || '',
+    status: mapMilestoneStatus(item.status),
+    statusText: mapMilestoneStatusText(item.status),
+    plannedDate: item.plannedEndTime || item.planEndTime || '',
+    deliverables: item.deliverables || []
+  }))
+}
 
 // 数据加载
 async function fetchProjectData() {
   loading.value = true
   try {
-    // 模拟API延迟
-    await new Promise(resolve => setTimeout(resolve, 800))
+    const [detailResult, milestonesResult, myProjectsResult, bidsResult] = await Promise.allSettled([
+      getProjectDetailAPI(projectId),
+      getMilestonesByProjectAPI(projectId),
+      getMyProjectsAPI({ pageNum: 1, pageSize: 200 }),
+      getProjectBidsAPI(projectId, { pageNum: 1, pageSize: 200 })
+    ])
 
-    // 使用 Mock 数据
-    const data = mockProjectManageData
-    project.value = data.project
-    milestones.value = data.milestones
+    if (detailResult.status !== 'fulfilled') {
+      throw detailResult.reason
+    }
+
+    const detailData = extractData(detailResult.value)
+    const milestoneData = milestonesResult.status === 'fulfilled' ? extractData(milestonesResult.value) : null
+    const myProjectsData = myProjectsResult.status === 'fulfilled' ? extractData(myProjectsResult.value) : null
+    const bidsData = bidsResult.status === 'fulfilled' ? extractData(bidsResult.value) : null
+
+    const myProjects = Array.isArray(myProjectsData?.records)
+      ? myProjectsData.records
+      : Array.isArray(myProjectsData?.projects)
+        ? myProjectsData.projects
+        : Array.isArray(myProjectsData)
+          ? myProjectsData
+          : []
+
+    const currentProject = myProjects.find(item => String(item.projectId || item.id) === String(projectId))
+
+    const bids = Array.isArray(bidsData?.records)
+      ? bidsData.records
+      : Array.isArray(bidsData?.bids)
+        ? bidsData.bids
+        : Array.isArray(bidsData)
+          ? bidsData
+          : []
+
+    project.value = buildProjectModel(detailData, currentProject, bids)
+    milestones.value = buildMilestoneModel(milestoneData)
 
     console.log('企业方项目数据加载成功：', {
       项目名称: project.value.name,
       里程碑数量: milestones.value.length
     })
   } catch (error) {
-    ElMessage.error('加载项目数据失败')
+    ElMessage.error('加载项目数据失败，已切换为默认数据')
     console.error(error)
+
+    // 接口异常时回退 Mock
+    const data = mockProjectManageData
+    project.value = data.project
+    milestones.value = data.milestones
   } finally {
     loading.value = false
   }

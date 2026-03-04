@@ -122,10 +122,6 @@ const goSettings = () => {
 const handleLogout = () => {
   hideDropdown()
   authStore.logout()
-  // 清除旧的 localStorage 数据
-  localStorage.removeItem('token')
-  localStorage.removeItem('userRole')
-  localStorage.removeItem('userData')
   ElMessage.success('已退出登录')
   router.push('/home')
 }

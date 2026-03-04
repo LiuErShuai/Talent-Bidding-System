@@ -13,7 +13,7 @@
 
       <div class="publisher-info">
         <span class="publisher-label">发布方：</span>
-        <span class="publisher-link" @click="goToPublisherProfile">{{ project.publisher }}</span>
+        <span class="publisher-link" @click="goToPublisherProfile">{{ project.publisher || '--' }}</span>
       </div>
 
       <!-- 项目基本信息卡片 -->
@@ -21,11 +21,11 @@
         <div class="info-row">
           <div class="info-item">
             <span class="label">发布时间</span>
-            <span class="value">{{ project.startDate }}</span>
+            <span class="value">{{ project.startDate || '--' }}</span>
           </div>
           <div class="info-item">
             <span class="label">项目周期</span>
-            <span class="value">{{ calculateDuration() }}天</span>
+            <span class="value">{{ calculateDuration() > 0 ? `${calculateDuration()}天` : '--' }}</span>
           </div>
           <div class="info-item">
             <span class="label">揭榜状态</span>

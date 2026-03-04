@@ -30,15 +30,60 @@ export function updateProjectAPI(data) {
 // 查看项目详细信息
 export function getProjectDetailAPI(projectId) {
   return request({
-    url: `/project/project/${projectId}`,
+    url: `/project/detail/${projectId}`,
     method: 'get'
   })
 }
 
 // 企业查询旗下项目列表
-export function getMyProjectsAPI() {
+export function getMyProjectsAPI(params = {}) {
   return request({
     url: '/project/my_projects',
+    method: 'get',
+    params
+  })
+}
+
+// 企业查询项目竞榜列表
+export function getProjectBidsAPI(projectId, params = {}) {
+  return request({
+    url: `/bid/project/${projectId}`,
+    method: 'get',
+    params
+  })
+}
+
+// 入围竞榜
+export function shortlistBidAPI(data) {
+  return request({
+    url: '/bid/shortlist',
+    method: 'post',
+    data
+  })
+}
+
+// 确认中标
+export function confirmBidAPI(data) {
+  return request({
+    url: '/bid/confirm',
+    method: 'post',
+    data
+  })
+}
+
+// 拒绝竞榜
+export function rejectBidAPI(data) {
+  return request({
+    url: '/bid/reject',
+    method: 'post',
+    data
+  })
+}
+
+// 查询团队详情
+export function getTeamDetailAPI(teamId) {
+  return request({
+    url: `/team/detail/${teamId}`,
     method: 'get'
   })
 }

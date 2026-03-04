@@ -11,24 +11,27 @@ const request = axios.create({
 
 request.interceptors.request.use(
   (config) => {
-    // local.set 会 JSON.stringify，所以 localStorage 里存的是 '"token_value"'
-    // 需要先 JSON.parse 还原，失败则当原始字符串用
-    const raw = localStorage.getItem('token')
-    let token = null
-    if (raw) {
-      try {
-        token = JSON.parse(raw)
-      } catch {
-        token = raw
+    const authStore = useAuthStore()
+
+    // 优先使用 Pinia 中的 token，兜底读取 localStorage
+    let token = authStore.token || ''
+    if (!token) {
+      const raw = localStorage.getItem('token')
+      if (raw) {
+        try {
+          token = JSON.parse(raw)
+        } catch {
+          token = raw
+        }
       }
     }
 
-    // 调试日志：检查 token 格式
+    // 过滤无效 token
+    if (token === 'null' || token === 'undefined') {
+      token = ''
+    }
+
     if (token) {
-      console.log('[请求拦截器] Token 原始值:', raw)
-      console.log('[请求拦截器] Token 解析后:', token)
-      console.log('[请求拦截器] Token 类型:', typeof token)
-      console.log('[请求拦截器] Authorization header:', token)
       // 注意：后端不需要 "Bearer " 前缀，直接发送 token
       config.headers.Authorization = token
     } else {

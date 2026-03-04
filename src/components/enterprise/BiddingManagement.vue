@@ -208,28 +208,11 @@
       </div>
     </el-dialog>
 
-    <!-- 审核对话框 -->
-    <el-dialog v-model="reviewDialogVisible" :title="reviewDialogTitle" width="600px">
-      <el-form :model="reviewForm" label-width="100px">
-        <el-form-item label="审核意见">
-          <el-input
-            v-model="reviewForm.comment"
-            type="textarea"
-            :rows="4"
-            placeholder="请输入审核意见"
-          />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="reviewDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleConfirmReview">确定</el-button>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   User,
@@ -238,17 +221,17 @@ import {
   Trophy,
   Document,
   Download,
-  Close,
-  View
+  Close
 } from '@element-plus/icons-vue'
+import {
+  getProjectBidsAPI,
+  shortlistBidAPI,
+  confirmBidAPI,
+  rejectBidAPI,
+  getTeamDetailAPI
+} from '@/api/project'
 
-// 申请状态枚举（与后端保持一致）
-const BID_STATUS = {
-  APPLIED: 'applied',        // 已申请（待审核）
-  SHORTLISTED: 'shortlisted', // 已入围（审核通过）
-  CONFIRMED: 'confirmed',     // 已中标
-  REJECTED: 'rejected'        // 已拒绝
-}
+const emit = defineEmits(['refresh'])
 
 const props = defineProps({
   projectId: {
@@ -257,107 +240,41 @@ const props = defineProps({
   }
 })
 
-// 团队详情弹窗状态
-const teamDetailDialogVisible = ref(false)
-const currentTeam = ref(null)
-const actionNote = ref('')
-
-// 申请列表数据（从 Mock 数据获取）
-const applications = ref([
+// Mock 数据（接口失败兜底）
+const MOCK_APPLICATIONS = [
   {
     id: 'app-001',
     teamName: '创新科技团队',
-    leader: '张三',
+    leader: '--',
     memberCount: 5,
-    contact: '13800138000',
+    contact: '--',
     applyTime: '2025-11-01 10:30',
-    description: '我们是一支经验丰富的AI开发团队，曾参与多个智能客服项目的开发，对NLP技术有深入研究。团队成员来自计算机科学专业，具备扎实的技术功底。',
+    description: '我们是一支经验丰富的AI开发团队，曾参与多个智能客服项目的开发。',
     status: 'confirmed',
-    detailFiles: [
-      { id: 'f1', name: '团队介绍.pdf', size: '2.3 MB' },
-      { id: 'f2', name: '身份认证.pdf', size: '1.5 MB' },
-      { id: 'f3', name: '技术方案.pdf', size: '4.2 MB' }
-    ],
-    reviewHistory: [
-      {
-        id: 'r1',
-        time: '2025-11-02 14:00',
-        action: 'shortlisted',
-        actionText: '审核通过（入围）',
-        comment: '团队资质符合要求，技术方案完善'
-      },
-      {
-        id: 'r2',
-        time: '2025-11-03 10:00',
-        action: 'confirmed',
-        actionText: '选为中标团队',
-        comment: '技术方案完善，团队经验丰富，综合评分最高'
-      }
-    ]
+    detailFiles: [],
+    reviewHistory: []
   },
   {
     id: 'app-002',
     teamName: '智能开发小组',
-    leader: '李四',
+    leader: '--',
     memberCount: 4,
-    contact: '13900139000',
+    contact: '--',
     applyTime: '2025-11-01 11:20',
     description: '我们团队专注于人工智能领域，有丰富的机器学习和深度学习项目经验。',
-    status: 'shortlisted',
-    detailFiles: [
-      { id: 'f4', name: '团队介绍.pdf', size: '1.8 MB' },
-      { id: 'f5', name: '技术方案.pdf', size: '3.5 MB' }
-    ],
-    reviewHistory: [
-      {
-        id: 'r3',
-        time: '2025-11-02 15:30',
-        action: 'shortlisted',
-        actionText: '审核通过（入围）',
-        comment: '团队经验丰富，符合项目要求'
-      }
-    ]
-  },
-  {
-    id: 'app-003',
-    teamName: '未来科技工作室',
-    leader: '王五',
-    memberCount: 3,
-    contact: '13700137000',
-    applyTime: '2025-11-01 14:50',
-    description: '我们是一支年轻但充满活力的团队，虽然经验不多，但学习能力强，愿意接受挑战。',
     status: 'applied',
-    detailFiles: [
-      { id: 'f6', name: '团队介绍.pdf', size: '1.2 MB' },
-      { id: 'f7', name: '技术方案.pdf', size: '2.8 MB' }
-    ],
+    detailFiles: [],
     reviewHistory: []
-  },
-  {
-    id: 'app-004',
-    teamName: '测试团队',
-    leader: '赵六',
-    memberCount: 2,
-    contact: '13600136000',
-    applyTime: '2025-11-01 16:00',
-    description: '测试申请',
-    status: 'rejected',
-    detailFiles: [
-      { id: 'f8', name: '团队介绍.pdf', size: '800 KB' }
-    ],
-    reviewHistory: [
-      {
-        id: 'r4',
-        time: '2025-11-02 16:30',
-        action: 'rejected',
-        actionText: '拒绝申请',
-        comment: '团队人数不足，经验不符合要求'
-      }
-    ]
   }
-])
+]
 
-// 筛选状态
+// 状态
+const applications = ref([])
+const loading = ref(false)
+const actionLoading = ref(false)
+const teamDetailDialogVisible = ref(false)
+const currentTeam = ref(null)
+const actionNote = ref('')
 const filterStatus = ref('all')
 
 // 计算属性
@@ -368,22 +285,71 @@ const rejectedCount = computed(() => applications.value.filter(app => app.status
 const selectedCount = computed(() => applications.value.filter(app => app.status === 'confirmed').length)
 const selectedTeam = computed(() => applications.value.find(app => app.status === 'confirmed'))
 
-// 过滤后的申请列表
 const filteredApplications = computed(() => {
-  if (filterStatus.value === 'all') {
-    return applications.value
-  }
+  if (filterStatus.value === 'all') return applications.value
   return applications.value.filter(app => app.status === filterStatus.value)
 })
 
-// 审核对话框
-const reviewDialogVisible = ref(false)
-const reviewDialogTitle = ref('')
-const reviewForm = ref({
-  comment: '',
-  action: '',
-  applicationId: ''
-})
+// 将后端 bid + teamDetail 映射为组件数据结构
+function mapBidToApplication(bid, teamDetail) {
+  // 附件：将单个 URL 转为文件数组
+  const detailFiles = []
+  if (bid.attachmentUrl) {
+    const fileName = bid.attachmentUrl.split('/').pop() || '附件'
+    detailFiles.push({ id: bid.bidId, name: fileName, url: bid.attachmentUrl })
+  }
+
+  return {
+    id: bid.bidId,
+    teamName: teamDetail?.teamName || '未知团队',
+    leader: '--',
+    memberCount: teamDetail?.memberCount || 0,
+    contact: '--',
+    applyTime: bid.createdAt ? new Date(bid.createdAt).toLocaleString('zh-CN') : '--',
+    description: bid.content || '',
+    status: bid.status || 'applied',
+    detailFiles,
+    reviewHistory: []
+  }
+}
+
+// 加载竞榜列表
+async function loadApplications() {
+  loading.value = true
+  try {
+    const res = await getProjectBidsAPI(props.projectId, { pageNum: 1, pageSize: 200 })
+    const data = res?.data ?? res
+    const bids = Array.isArray(data?.bids) ? data.bids : Array.isArray(data) ? data : []
+
+    if (bids.length === 0) {
+      applications.value = []
+      return
+    }
+
+    // 收集唯一 teamId，并发请求团队详情
+    const teamIds = [...new Set(bids.map(b => b.teamId).filter(Boolean))]
+    const teamResults = await Promise.allSettled(
+      teamIds.map(id => getTeamDetailAPI(id))
+    )
+
+    // 构建 teamId → teamDetail 映射表
+    const teamMap = {}
+    teamIds.forEach((id, index) => {
+      if (teamResults[index].status === 'fulfilled') {
+        const teamData = teamResults[index].value
+        teamMap[id] = teamData?.data ?? teamData
+      }
+    })
+
+    applications.value = bids.map(bid => mapBidToApplication(bid, teamMap[bid.teamId]))
+  } catch (error) {
+    console.error('加载竞榜列表失败：', error)
+    ElMessage.error('加载竞榜列表失败，已切换为默认数据')
+    applications.value = MOCK_APPLICATIONS
+  } finally {
+    loading.value = false
+  }
+}
 
 // 查看团队详情
 function handleViewTeamDetail(app) {
@@ -392,236 +358,117 @@ function handleViewTeamDetail(app) {
   teamDetailDialogVisible.value = true
 }
 
-// 带备注的审核通过
-function handleApproveWithNote(app) {
-  const note = actionNote.value.trim() || '审核通过'
-
-  app.status = 'shortlisted'
-  app.reviewHistory.push({
-    id: `r${Date.now()}`,
-    time: new Date().toLocaleString('zh-CN'),
-    action: 'shortlisted',
-    actionText: '审核通过（入围）',
-    comment: note
-  })
-
-  ElMessage.success('已审核通过，团队已入围')
-
-  // 更新弹窗内容
-  if (currentTeam.value && currentTeam.value.id === app.id) {
-    currentTeam.value = app
+// 审核通过（入围）
+async function handleApproveWithNote(app) {
+  if (actionLoading.value) return
+  actionLoading.value = true
+  try {
+    const remark = actionNote.value.trim() || undefined
+    await shortlistBidAPI({ bidId: app.id, remark })
+    ElMessage.success('已审核通过，团队已入围')
+    teamDetailDialogVisible.value = false
+    await loadApplications()
+    emit('refresh')
+  } catch (error) {
+    console.error('入围操作失败：', error)
+    ElMessage.error('操作失败，请重试')
+  } finally {
+    actionLoading.value = false
+    actionNote.value = ''
   }
-
-  actionNote.value = ''
 }
 
-// 带备注的拒绝申请
-function handleRejectWithNote(app) {
+// 拒绝申请
+async function handleRejectWithNote(app) {
   const note = actionNote.value.trim()
-
   if (!note) {
     ElMessage.warning('拒绝申请时必须填写备注信息')
     return
   }
-
-  app.status = 'rejected'
-  app.reviewHistory.push({
-    id: `r${Date.now()}`,
-    time: new Date().toLocaleString('zh-CN'),
-    action: 'rejected',
-    actionText: '拒绝申请',
-    comment: note
-  })
-
-  ElMessage.success('已拒绝申请')
-
-  // 更新弹窗内容
-  if (currentTeam.value && currentTeam.value.id === app.id) {
-    currentTeam.value = app
+  if (actionLoading.value) return
+  actionLoading.value = true
+  try {
+    await rejectBidAPI({ bidId: app.id, remark: note })
+    ElMessage.success('已拒绝申请')
+    teamDetailDialogVisible.value = false
+    await loadApplications()
+    emit('refresh')
+  } catch (error) {
+    console.error('拒绝操作失败：', error)
+    ElMessage.error('操作失败，请重试')
+  } finally {
+    actionLoading.value = false
+    actionNote.value = ''
   }
-
-  actionNote.value = ''
 }
 
-// 带备注的选为中标团队
-function handleSelectTeamWithNote(app) {
-  // 检查是否已经存在中标团队
+// 选为中标团队
+async function handleSelectTeamWithNote(app) {
   const existingSelectedTeam = applications.value.find(a => a.status === 'confirmed')
-
   if (existingSelectedTeam) {
     ElMessageBox.alert(
       `已存在中标团队"${existingSelectedTeam.teamName}"，中标团队确定后不可更改。如需更换，请先联系管理员处理。`,
       '无法选择',
-      {
-        confirmButtonText: '知道了',
-        type: 'warning'
-      }
+      { confirmButtonText: '知道了', type: 'warning' }
     )
     return
   }
 
-  const note = actionNote.value.trim() || '恭喜！您的团队已被选为中标团队'
+  try {
+    await ElMessageBox.confirm(
+      `确定选择"${app.teamName}"作为中标团队吗？选定后将无法更改。`,
+      '确认选择',
+      { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' }
+    )
+  } catch {
+    return // 用户取消
+  }
 
-  ElMessageBox.confirm(
-    `确定选择"${app.teamName}"作为中标团队吗？选定后将无法更改。`,
-    '确认选择',
-    {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    }
-  ).then(() => {
-    // 设置当前团队为中标
-    app.status = 'confirmed'
-    app.reviewHistory.push({
-      id: `r${Date.now()}`,
-      time: new Date().toLocaleString('zh-CN'),
-      action: 'confirmed',
-      actionText: '选为中标团队',
-      comment: note
-    })
-
-    // 更新弹窗内容
-    if (currentTeam.value && currentTeam.value.id === app.id) {
-      currentTeam.value = app
-    }
-
+  if (actionLoading.value) return
+  actionLoading.value = true
+  try {
+    const remark = actionNote.value.trim() || undefined
+    await confirmBidAPI({ bidId: app.id, remark })
     ElMessage.success('已选定中标团队')
+    teamDetailDialogVisible.value = false
+    await loadApplications()
+    emit('refresh')
+  } catch (error) {
+    console.error('确认中标操作失败：', error)
+    ElMessage.error('操作失败，请重试')
+  } finally {
+    actionLoading.value = false
     actionNote.value = ''
-  }).catch(() => {
-    // 取消操作
-  })
+  }
 }
 
 // 状态标签类型
 function getStatusTagType(status) {
-  const map = {
-    applied: 'warning',
-    shortlisted: 'success',
-    rejected: 'info',
-    confirmed: 'success'
-  }
+  const map = { applied: 'warning', shortlisted: 'success', rejected: 'info', confirmed: 'success' }
   return map[status] || 'info'
 }
 
 // 状态文本
 function getStatusText(status) {
-  const map = {
-    applied: '待审核',
-    shortlisted: '已入围',
-    rejected: '已拒绝',
-    confirmed: '已中标'
-  }
+  const map = { applied: '待审核', shortlisted: '已入围', rejected: '已拒绝', confirmed: '已中标' }
   return map[status] || '未知'
 }
 
-// 筛选变化
-function handleFilterChange() {
-  // 筛选逻辑已通过计算属性实现
-}
-
-// 通过初审
-function handleApprove(app) {
-  reviewDialogTitle.value = '通过初审'
-  reviewForm.value = {
-    comment: '',
-    action: 'shortlisted',
-    applicationId: app.id
-  }
-  reviewDialogVisible.value = true
-}
-
-// 拒绝申请
-function handleReject(app) {
-  reviewDialogTitle.value = '拒绝申请'
-  reviewForm.value = {
-    comment: '',
-    action: 'rejected',
-    applicationId: app.id
-  }
-  reviewDialogVisible.value = true
-}
-
-// 确认审核
-function handleConfirmReview() {
-  if (!reviewForm.value.comment.trim()) {
-    ElMessage.warning('请输入审核意见')
-    return
-  }
-
-  const app = applications.value.find(a => a.id === reviewForm.value.applicationId)
-  if (app) {
-    app.status = reviewForm.value.action
-    app.reviewHistory.push({
-      id: `r${Date.now()}`,
-      time: new Date().toLocaleString('zh-CN'),
-      action: reviewForm.value.action,
-      actionText: reviewForm.value.action === 'shortlisted' ? '审核通过（入围）' : '拒绝申请',
-      comment: reviewForm.value.comment
-    })
-
-    ElMessage.success(reviewForm.value.action === 'shortlisted' ? '已审核通过，团队已入围' : '已拒绝申请')
-
-    // 如果当前弹窗显示的是该团队，更新弹窗内容
-    if (currentTeam.value && currentTeam.value.id === app.id) {
-      currentTeam.value = app
-    }
-  }
-
-  reviewDialogVisible.value = false
-}
-
-// 选为中标团队
-function handleSelectTeam(app) {
-  // 检查是否已经存在中标团队
-  const existingSelectedTeam = applications.value.find(a => a.status === 'confirmed')
-
-  if (existingSelectedTeam) {
-    ElMessageBox.alert(
-      `已存在中标团队"${existingSelectedTeam.teamName}"，中标团队确定后不可更改。如需更换，请先联系管理员处理。`,
-      '无法选择',
-      {
-        confirmButtonText: '知道了',
-        type: 'warning'
-      }
-    )
-    return
-  }
-
-  ElMessageBox.confirm(
-    `确定选择"${app.teamName}"作为中标团队吗？选定后将无法更改。`,
-    '确认选择',
-    {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    }
-  ).then(() => {
-    // 设置当前团队为中标
-    app.status = 'confirmed'
-    app.reviewHistory.push({
-      id: `r${Date.now()}`,
-      time: new Date().toLocaleString('zh-CN'),
-      action: 'confirmed',
-      actionText: '选为中标团队',
-      comment: '恭喜！您的团队已被选为中标团队'
-    })
-
-    ElMessage.success('已选定中标团队')
-  }).catch(() => {
-    // 取消操作
-  })
-}
-
-// 查看详细资料（已废弃，使用 handleViewTeamDetail 代替）
-function handleViewDetail(app) {
-  handleViewTeamDetail(app)
-}
+// 筛选变化（逻辑已通过计算属性实现）
+function handleFilterChange() {}
 
 // 下载文件
 function handleDownloadFile(file) {
-  ElMessage.success(`正在下载：${file.name}`)
+  if (file.url) {
+    window.open(file.url, '_blank')
+  } else {
+    ElMessage.info('暂无下载链接')
+  }
 }
+
+onMounted(() => {
+  loadApplications()
+})
 </script>
 
 <style scoped>
