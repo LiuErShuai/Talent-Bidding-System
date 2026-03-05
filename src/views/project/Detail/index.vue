@@ -2436,15 +2436,40 @@ const projectSteps = ref([
   }
 ])
 
-/**
- * 格式化项目阶段数据（预留函数，后续接入后端时使用）
- * @param {Object} data - 后端返回的项目数据
- * @returns {Array} 格式化后的阶段数组
- */
-const formatProjectSteps = (data) => {
-  // TODO: 根据后端数据结构格式化阶段数据
-  // 计算每个阶段的状态和时间信息
-  return projectSteps.value
+// 根据里程碑数据生成进度条步骤
+const generateProjectStepsFromMilestones = () => {
+  if (!milestones.value || milestones.value.length === 0) return
+
+  projectSteps.value = milestones.value.map((milestone, index) => {
+    // 判断阶段状态
+    let status = 'wait'
+    if (milestone.status === 'completed') {
+      status = 'finish'
+    } else if (milestone.status === 'in-progress') {
+      status = 'process'
+    }
+
+    // 计算时间信息
+    let timeInfo = ''
+    if (milestone.plannedDate) {
+      if (status === 'process') {
+        timeInfo = calculateRemainingTime(milestone.plannedDate)
+      } else if (status === 'wait') {
+        const daysUntil = Math.ceil((new Date(milestone.plannedDate) - new Date()) / (1000 * 60 * 60 * 24))
+        timeInfo = daysUntil > 0 ? `预计${daysUntil}天` : '已逾期'
+      }
+    }
+
+    return {
+      code: milestone.code,
+      title: milestone.title,
+      status,
+      timeInfo,
+      startDate: milestone.actualDate ? milestone.actualDate.split('T')[0] : null,
+      endDate: milestone.actualDate ? milestone.actualDate.split('T')[0] : null,
+      deadline: milestone.plannedDate ? milestone.plannedDate.split('T')[0] : null
+    }
+  })
 }
 
 /**
@@ -2890,6 +2915,8 @@ onMounted(async () => {
     // 处理里程碑列表
     if (milestonesRes.status === 'fulfilled' && milestonesRes.value?.code === '0000') {
       mapMilestones(milestonesRes.value.data.milestones || [])
+      // 根据里程碑数据生成进度条
+      generateProjectStepsFromMilestones()
     } else {
       console.warn('里程碑列表加载失败，使用Mock数据')
     }
