@@ -16,14 +16,14 @@
         <div class="main-info-section">
           <div class="project-header">
             <div class="project-header-left">
-              <el-tag class="status-tag" type="success">揭榜中</el-tag>
-              <h1 class="project-title">AI智能客服系统</h1>
+              <el-tag class="status-tag" :type="statusTagType">{{ statusText }}</el-tag>
+              <h1 class="project-title">{{ project.title || '加载中...' }}</h1>
             </div>
             <button class="back-project-btn" @click="goBackToHall">返回大厅</button>
           </div>
-          
+
           <div class="publisher-info">
-            <span class="publisher">发布方：XX科技有限公司</span>
+            <span class="publisher">发布方：{{ project.publisherId || '未知' }}</span>
           </div>
           
           <!-- 项目基本信息卡片 -->
@@ -31,51 +31,51 @@
             <div class="info-row">
               <div class="info-item">
                 <span class="label">悬赏金额</span>
-                <span class="value price">￥15,000</span>
+                <span class="value price">{{ formatBudget(project.budgetAmount) }}</span>
               </div>
               <div class="info-item">
                 <span class="label">项目领域</span>
-                <span class="value">人工智能</span>
+                <span class="value">{{ categoryLabel }}</span>
               </div>
             </div>
-            
+
             <div class="info-row">
               <div class="info-item">
                 <span class="label">揭榜模式</span>
-                <span class="value">团队悬赏</span>
+                <span class="value">{{ budgetTypeLabel }}</span>
               </div>
               <div class="info-item">
                 <span class="label">需求人数</span>
-                <span class="value">2-4人</span>
+                <span class="value">{{ project.teamSizeMin }}-{{ project.teamSizeMax }}人</span>
               </div>
             </div>
-            
+
             <div class="info-row">
               <div class="info-item">
                 <span class="label">项目周期</span>
-                <span class="value">60天</span>
+                <span class="value">{{ project.durationDays }}天</span>
               </div>
               <div class="info-item">
                 <span class="label">发布时间</span>
-                <span class="value">2025-11-01</span>
+                <span class="value">{{ formatDate(project.publishedAt) }}</span>
               </div>
             </div>
-            
+
             <div class="info-row">
               <div class="info-item">
                 <span class="label">截止时间</span>
-                <span class="value">2025-11-15</span>
+                <span class="value">{{ formatDate(project.applicationDeadline) }}</span>
               </div>
               <div class="info-item">
                 <span class="label">剩余时间</span>
-                <span class="value time-left">7天</span>
+                <span class="value time-left">{{ remainingTimeText }}</span>
               </div>
             </div>
-            
+
             <div class="info-row">
               <div class="info-item">
                 <span class="label">已揭榜数</span>
-                <span class="value">12人</span>
+                <span class="value">{{ project.applicationCount }}人</span>
               </div>
             </div>
           </div>
@@ -137,15 +137,15 @@
         <div class="stats">
           <div class="stat-item">
             <el-icon><View /></el-icon>
-            <span>浏览量: 1,234</span>
+            <span>浏览量: {{ project.viewCount.toLocaleString() }}</span>
           </div>
           <div class="stat-item">
             <el-icon><Star /></el-icon>
-            <span>关注数: 45</span>
+            <span>关注数: {{ project.favoriteCount.toLocaleString() }}</span>
           </div>
           <div class="stat-item">
             <el-icon><User /></el-icon>
-            <span>揭榜数: 12</span>
+            <span>揭榜数: {{ project.applicationCount }}</span>
           </div>
         </div>
       </div>
@@ -247,213 +247,28 @@
         <el-tabs v-model="activeTab" class="detail-tabs">
           <el-tab-pane label="项目详情" name="details">
             <div class="detail-content">
-              <div class="section">
-                <h3>■ 项目背景</h3>
-                <div class="expandable-content" :class="{ expanded: expandedSections.background }">
-                  <div class="content-preview">
-                    随着人工智能技术的快速发展和深度学习算法的不断突破，智能客服已经成为企业数字化转型和提升客户服务质量的重要工具。然而，当前市场上大多数智能客服系统普遍存在响应速度慢、自然语言理解能力有限...
-                  </div>
-                  <div class="content-full">
-                    <p>随着人工智能技术的快速发展和深度学习算法的不断突破，智能客服已经成为企业数字化转型和提升客户服务质量的重要工具。然而，当前市场上大多数智能客服系统普遍存在响应速度慢、自然语言理解能力有限、多轮对话上下文记忆不足、知识库更新维护困难等问题，导致用户体验不佳，企业服务效率难以提升。本项目旨在开发一款基于最新AI技术的高性能智能客服系统，通过整合自然语言处理、知识图谱、深度学习等前沿技术，打造一个真正智能、高效、易用的企业级客服解决方案。</p>
-                  </div>
-                  <div class="expand-toggle" @click="toggleSection('background')">
-                    <span v-if="!expandedSections.background">
-                      <el-icon><ArrowDown /></el-icon>
-                      展开
-                    </span>
-                    <span v-else>
-                      <el-icon><ArrowUp /></el-icon>
-                      收起
-                    </span>
-                  </div>
+              <!-- 项目描述 -->
+              <div class="section" v-if="project.description">
+                <h3>■ 项目描述</h3>
+                <div class="description-text" style="white-space: pre-wrap;">{{ project.description }}</div>
+              </div>
+
+              <!-- 揭榜要求 -->
+              <div class="section" v-if="project.requirements">
+                <h3>■ 揭榜要求</h3>
+                <div class="description-text" style="white-space: pre-wrap;">{{ project.requirements }}</div>
+              </div>
+
+              <!-- 技术标签 -->
+              <div class="section" v-if="project.tags && project.tags.length > 0">
+                <h3>■ 技术标签</h3>
+                <div class="tags-list">
+                  <el-tag v-for="tag in project.tags" :key="tag" class="tag-item" style="margin-right: 8px; margin-bottom: 8px;">{{ tag }}</el-tag>
                 </div>
               </div>
 
-              <div class="section">
-                <h3>■ 项目目标</h3>
-                <ol>
-                  <li>实现7×24小时全天候智能在线客服，保证99.9%以上的系统可用性</li>
-                  <li>支持多轮对话和上下文理解，能够准确把握用户意图并提供连贯的对话体验</li>
-                  <li>集成智能知识库管理系统，支持知识的自动抽取、分类、更新和优化</li>
-                  <li>支持多种渠道无缝接入，包括网页端、微信公众号、微信小程序、移动APP等</li>
-                  <li>提供完善的数据统计分析功能，支持对话质量评估、用户行为分析、业务洞察报告</li>
-                  <li>实现智能学习能力，通过用户反馈和数据分析持续优化对话效果</li>
-                </ol>
-              </div>
-
-              <div class="section">
-                <h3>■ 成果形式</h3>
-                <ol>
-                  <li>完整的系统源代码（包括前端、后端、AI模型等所有模块）</li>
-                  <li>详细的系统部署文档（包含环境配置、依赖安装、部署步骤等）</li>
-                  <li>完整的用户使用手册（面向管理员和普通用户的操作指南）</li>
-                  <li>项目演示视频（不少于10分钟，展示核心功能和使用场景）</li>
-                  <li>API接口文档（详细说明所有接口的调用方式和参数）</li>
-                  <li>数据库设计文档（包含ER图和表结构说明）</li>
-                </ol>
-              </div>
-
-              <div class="section">
-                <h3>■ 功能要求</h3>
-                <div class="expandable-content" :class="{ expanded: expandedSections.functions }">
-                  <div class="content-preview">
-                    详细的功能需求包括：1. 用户管理模块 - 支持多角色权限管理、用户信息管理、登录认证等；2. 对话管理模块 - 实现智能对话、多轮对话、对话转人工、对话记录等；3. 知识库管理 - 支持知识分类、知识检索、知识更新、智能推荐等...
-                  </div>
-                  <div class="content-full">
-                    <ol>
-                      <li><strong>用户管理模块</strong>：支持多角色权限管理（管理员、客服人员、普通用户），用户信息管理，登录认证与安全控制</li>
-                      <li><strong>智能对话模块</strong>：实现智能对话引擎，支持意图识别、实体提取、多轮对话、上下文管理、对话转人工客服、对话记录保存与检索</li>
-                      <li><strong>知识库管理</strong>：支持知识分类与标签管理、全文检索、知识自动更新、智能推荐、知识评分与优化、FAQ管理</li>
-                      <li><strong>统计分析模块</strong>：提供实时数据大屏、对话质量分析、用户满意度统计、热点问题分析、业务趋势报告、导出功能</li>
-                      <li><strong>系统设置模块</strong>：支持系统参数配置、机器人形象设置、欢迎语配置、敏感词过滤、日志管理、备份恢复</li>
-                      <li><strong>多渠道接入</strong>：提供统一的接口标准，支持网页端、微信公众号、小程序、APP等多种渠道的快速接入</li>
-                    </ol>
-                  </div>
-                  <div class="expand-toggle" @click="toggleSection('functions')">
-                    <span v-if="!expandedSections.functions">
-                      <el-icon><ArrowDown /></el-icon>
-                      展开
-                    </span>
-                    <span v-else>
-                      <el-icon><ArrowUp /></el-icon>
-                      收起
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div class="section">
-                <h3>■ 技术栈要求</h3>
-                <div class="expandable-content" :class="{ expanded: expandedSections.techStack }">
-                  <div class="content-preview">
-                    前端：Vue3 + Element Plus + TypeScript；后端：Spring Boot + MyBatis-Plus + Redis；AI：Python + TensorFlow/PyTorch + BERT；数据库：MySQL + MongoDB + Elasticsearch...
-                  </div>
-                  <div class="content-full">
-                    <ol>
-                      <li><strong>前端技术</strong>：Vue3 + Element Plus + TypeScript + Vite + Pinia + Axios</li>
-                      <li><strong>后端技术</strong>：Spring Boot + Spring Security + MyBatis-Plus + Redis + RabbitMQ</li>
-                      <li><strong>AI技术</strong>：Python + TensorFlow/PyTorch + BERT/GPT + Jieba分词 + HanLP</li>
-                      <li><strong>数据库</strong>：MySQL（关系型数据） + MongoDB（对话记录） + Elasticsearch（全文检索）</li>
-                      <li><strong>部署运维</strong>：Docker + Nginx + Jenkins + Linux + Git</li>
-                    </ol>
-                  </div>
-                  <div class="expand-toggle" @click="toggleSection('techStack')">
-                    <span v-if="!expandedSections.techStack">
-                      <el-icon><ArrowDown /></el-icon>
-                      展开
-                    </span>
-                    <span v-else>
-                      <el-icon><ArrowUp /></el-icon>
-                      收起
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div class="section">
-                <h3>■ 性能指标</h3>
-                <div class="expandable-content" :class="{ expanded: expandedSections.performance }">
-                  <div class="content-preview">
-                    响应时间：系统平均响应时间小于200ms，95%请求响应时间小于500ms；并发能力：支持1000+并发用户同时在线，单服务器QPS达到500+...
-                  </div>
-                  <div class="content-full">
-                    <ol>
-                      <li><strong>响应时间</strong>：系统平均响应时间小于200ms，95%请求响应时间小于500ms，99%请求响应时间小于1秒</li>
-                      <li><strong>并发能力</strong>：支持1000+并发用户同时在线，单服务器QPS（每秒查询率）达到500+</li>
-                      <li><strong>系统可用性</strong>：年可用性达到99.9%（允许停机时间不超过8.76小时/年），支持故障自动恢复</li>
-                      <li><strong>准确率要求</strong>：意图识别准确率≥90%，知识匹配准确率≥85%，用户问题解决率≥75%</li>
-                      <li><strong>数据容量</strong>：支持千万级对话记录存储，百万级知识条目管理，TB级日志数据处理</li>
-                    </ol>
-                  </div>
-                  <div class="expand-toggle" @click="toggleSection('performance')">
-                    <span v-if="!expandedSections.performance">
-                      <el-icon><ArrowDown /></el-icon>
-                      展开
-                    </span>
-                    <span v-else>
-                      <el-icon><ArrowUp /></el-icon>
-                      收起
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div class="section">
-                <h3>■ 评审方式</h3>
-                <div class="expandable-content" :class="{ expanded: expandedSections.reviewMethod }">
-                  <div class="content-preview">
-                    本项目采用<strong>企业 + 专家联合评审</strong>的方式，评审团由3-5名行业专家和企业技术负责人组成。评审将分为中期答辩和成果评审两个阶段...
-                  </div>
-                  <div class="content-full">
-                    <p>本项目采用<strong>企业 + 专家联合评审</strong>的方式，评审团由3-5名行业专家和企业技术负责人组成。评审将分为中期答辩和成果评审两个阶段，综合考察项目的技术实现、功能完整性、创新性、实用性等多个维度，最终给出评审意见和项目评分。</p>
-                  </div>
-                  <div class="expand-toggle" @click="toggleSection('reviewMethod')">
-                    <span v-if="!expandedSections.reviewMethod">
-                      <el-icon><ArrowDown /></el-icon>
-                      展开
-                    </span>
-                    <span v-else>
-                      <el-icon><ArrowUp /></el-icon>
-                      收起
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div class="section">
-                <h3>■ 知识产权</h3>
-                <div class="expandable-content" :class="{ expanded: expandedSections.intellectualProperty }">
-                  <div class="content-preview">
-                    根据产教融合项目原则，项目成果的<strong>知识产权归学生团队所有</strong>，企业拥有永久免费使用权和优先商业化合作权...
-                  </div>
-                  <div class="content-full">
-                    <p>根据产教融合项目原则，项目成果的<strong>知识产权归学生团队所有</strong>，企业拥有永久免费使用权和优先商业化合作权。学生团队可以将项目成果用于学术研究、竞赛参赛、个人作品展示等用途，但不得将完全相同的系统出售给企业的直接竞争对手。</p>
-                  </div>
-                  <div class="expand-toggle" @click="toggleSection('intellectualProperty')">
-                    <span v-if="!expandedSections.intellectualProperty">
-                      <el-icon><ArrowDown /></el-icon>
-                      展开
-                    </span>
-                    <span v-else>
-                      <el-icon><ArrowUp /></el-icon>
-                      收起
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div class="section">
-                <h3>■ 附件资料</h3>
-                <div class="attachments">
-                  <div class="attachment-item">
-                    <el-icon><Document /></el-icon>
-                    <span>需求规格说明书.pdf (2.3MB)</span>
-                    <el-link type="primary">[下载]</el-link>
-                  </div>
-                  <div class="attachment-item">
-                    <el-icon><Document /></el-icon>
-                    <span>接口文档.docx (856KB)</span>
-                    <el-link type="primary">[下载]</el-link>
-                  </div>
-                  <div class="attachment-item">
-                    <el-icon><Document /></el-icon>
-                    <span>数据库设计规范.pdf (1.2MB)</span>
-                    <el-link type="primary">[下载]</el-link>
-                  </div>
-                  <div class="attachment-item">
-                    <el-icon><Document /></el-icon>
-                    <span>UI设计稿.zip (15.6MB)</span>
-                    <el-link type="primary">[下载]</el-link>
-                  </div>
-                </div>
-              </div>
-
-              <div class="section">
-                <h3>■ 联系方式</h3>
-                <p>联系人：李经理（项目负责人）</p>
-                <p>联系电话：138****1234 <el-link type="primary">[查看完整]</el-link> <span class="contact-tip">(提交揭榜申请后可见完整联系方式)</span></p>
-                <p>电子邮箱：project@****company.com <el-link type="primary">[查看完整]</el-link> <span class="contact-tip">(提交揭榜申请后可见)</span></p>
-              </div>
+              <!-- 无内容提示 -->
+              <el-empty v-if="!project.description && !project.requirements && (!project.tags || project.tags.length === 0)" description="暂无项目详情" />
             </div>
           </el-tab-pane>
           
@@ -1648,35 +1463,89 @@ const authStore = useAuthStore()
 const activeTab = ref('details')
 const loading = ref(false)
 
-// 可展开内容区域的状态
-const expandedSections = ref({
-  background: false,
-  functions: false,
-  techStack: false,
-  performance: false,
-  reviewMethod: false,
-  intellectualProperty: false
-})
-
-// 根据项目ID初始化项目数据（模拟数据，后续从API获取）
+// 初始化项目数据（默认值，API加载后覆盖）
 const initProjectData = () => {
-  const projectId = route.params.id
-  
-  // 项目1的承接方包含测试学生用户
-  const bidderIdsMap = {
-    '1': ['test_student_001', 'student-001', 'student-002'], // project/1 包含测试学生用户
-    '2': ['student-001', 'student-002'],
-    '3': ['student-002', 'student-003']
-  }
-  
   return {
-    rating: 4.5,
-    publisherId: 'enterprise-001', // 发布方ID（模拟数据，后续从API获取）
-    bidderIds: bidderIdsMap[projectId] || ['student-001', 'student-002'] // 承接方ID列表（根据项目ID设置，project/1包含测试学生用户）
+    title: '',
+    description: '',
+    status: '',
+    budgetAmount: 0,
+    budgetType: '',
+    currency: 'CNY',
+    categoryId: '',
+    tags: [],
+    requirements: '',
+    skillLevel: '',
+    teamSizeMin: 0,
+    teamSizeMax: 0,
+    durationDays: 0,
+    publisherId: '',
+    publisherName: '',
+    acceptedTeamId: null,
+    bidderIds: [],
+    applicationCount: 0,
+    viewCount: 0,
+    favoriteCount: 0,
+    publishedAt: '',
+    applicationDeadline: '',
+    expectedStartDate: '',
+    expectedEndDate: '',
+    rating: 4.5
   }
 }
 
 const project = ref(initProjectData())
+
+// ========== 开始：项目信息展示辅助函数 ==========
+// 状态映射
+const STATUS_MAP = {
+  draft: { text: '草稿', type: 'info' },
+  pending_review: { text: '审核中', type: 'warning' },
+  published: { text: '已发布', type: 'success' },
+  in_progress: { text: '进行中', type: '' },
+  completed: { text: '已完成', type: 'success' },
+  rejected: { text: '已驳回', type: 'danger' },
+  cancelled: { text: '已取消', type: 'info' }
+}
+const statusText = computed(() => STATUS_MAP[project.value.status]?.text || project.value.status || '未知')
+const statusTagType = computed(() => STATUS_MAP[project.value.status]?.type || 'info')
+
+// 分类映射
+const CATEGORY_MAP = {
+  WEB_DEVELOPMENT: 'Web开发',
+  MOBILE_DEVELOPMENT: '移动开发',
+  AI_ML: '人工智能',
+  DATA_ANALYSIS: '数据分析',
+  EMBEDDED_SYSTEM: '嵌入式系统',
+  GAME_DEVELOPMENT: '游戏开发',
+  BLOCKCHAIN: '区块链',
+  IOT: '物联网',
+  CLOUD_COMPUTING: '云计算',
+  CYBER_SECURITY: '网络安全'
+}
+const categoryLabel = computed(() => CATEGORY_MAP[project.value.categoryId] || project.value.categoryId || '未分类')
+
+// 揭榜模式映射
+const BUDGET_TYPE_MAP = { fixed: '固定悬赏', hourly: '按时计费', negotiable: '面议' }
+const budgetTypeLabel = computed(() => BUDGET_TYPE_MAP[project.value.budgetType] || project.value.budgetType || '未知')
+
+// 金额格式化（千分位）
+const formatBudget = (amount) => {
+  if (!amount) return '¥0'
+  return '¥' + Number(amount).toLocaleString('zh-CN')
+}
+
+// 日期格式化（ISO → YYYY-MM-DD）
+const formatDate = (dateStr) => {
+  if (!dateStr) return '--'
+  return dateStr.split('T')[0]
+}
+
+// 剩余时间（基于截止日期）
+const remainingTimeText = computed(() => {
+  return calculateRemainingTime(project.value.applicationDeadline)
+})
+// ========== 结束：项目信息展示辅助函数 ==========
 
 // ========== 开始：项目里程碑跟踪数据 (PROJECT_MILESTONE_TRACKING_DATA) ==========
 // 从store获取当前用户信息
@@ -2626,12 +2495,6 @@ const toggleFavorite = async () => {
     ElMessage.error('操作失败，请稍后重试')
   }
 }
-
-// 切换内容区域展开/折叠状态
-const toggleSection = (sectionName) => {
-  expandedSections.value[sectionName] = !expandedSections.value[sectionName]
-}
-
 // ========== 开始：揭榜申请相关 (BIDDING_APPLICATION_LOGIC) ==========
 // 申请弹窗状态
 const biddingDialogVisible = ref(false)
@@ -2841,25 +2704,40 @@ const getExperienceLevelText = (level) => {
 // 映射项目详情
 const mapProjectDetail = (apiData) => {
   if (!apiData) return
+  // tags 可能是 JSON 字符串数组或逗号分隔字符串
+  let parsedTags = []
+  if (apiData.tags) {
+    try {
+      parsedTags = JSON.parse(apiData.tags)
+    } catch {
+      parsedTags = apiData.tags.split(',').map(t => t.trim())
+    }
+  }
   project.value = {
     ...project.value,
-    title: apiData.title || project.value.title,
-    description: apiData.description || project.value.description,
-    status: apiData.status || project.value.status,
-    budgetAmount: apiData.budgetAmount || project.value.budgetAmount,
-    currency: apiData.currency || project.value.currency,
-    publisherId: apiData.publisherId || project.value.publisherId,
+    title: apiData.title || '',
+    description: apiData.description || '',
+    status: apiData.status || '',
+    budgetAmount: apiData.budgetAmount || 0,
+    budgetType: apiData.budgetType || '',
+    currency: apiData.currency || 'CNY',
+    categoryId: apiData.categoryId || '',
+    tags: parsedTags,
+    requirements: apiData.requirements || '',
+    skillLevel: apiData.skillLevel || '',
+    teamSizeMin: apiData.teamSizeMin || 0,
+    teamSizeMax: apiData.teamSizeMax || 0,
+    durationDays: apiData.durationDays || 0,
+    publisherId: apiData.publisherId || '',
     acceptedTeamId: apiData.acceptedTeamId || null,
-    bidderIds: apiData.acceptedTeamId ? [apiData.acceptedTeamId] : project.value.bidderIds,
+    bidderIds: apiData.acceptedTeamId ? [apiData.acceptedTeamId] : [],
     applicationCount: apiData.applicationCount || 0,
     viewCount: apiData.viewCount || 0,
-    tags: apiData.tags ? apiData.tags.split(',') : project.value.tags,
-    teamSizeMin: apiData.teamSizeMin,
-    teamSizeMax: apiData.teamSizeMax,
-    durationDays: apiData.durationDays,
-    applicationDeadline: apiData.applicationDeadline,
-    expectedStartDate: apiData.expectedStartDate,
-    expectedEndDate: apiData.expectedEndDate
+    favoriteCount: apiData.favoriteCount || 0,
+    publishedAt: apiData.publishedAt || '',
+    applicationDeadline: apiData.applicationDeadline || '',
+    expectedStartDate: apiData.expectedStartDate || '',
+    expectedEndDate: apiData.expectedEndDate || ''
   }
 }
 
