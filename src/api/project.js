@@ -140,6 +140,14 @@ export function submitReviewAPI(projectId) {
   })
 }
 
+// 直接发布草稿（跳过审核）
+export function publishDraftAPI(projectId) {
+  return request({
+    url: `/project/publish_draft/${projectId}`,
+    method: 'post'
+  })
+}
+
 // 浏览已发布项目列表
 export function getPublishedProjectsAPI() {
   return request({

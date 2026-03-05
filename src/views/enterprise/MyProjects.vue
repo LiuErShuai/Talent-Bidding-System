@@ -563,7 +563,7 @@ import {
   getMilestonesByProjectAPI,
   addOptionalMilestonesAPI,
   updateMilestoneAPI,
-  submitReviewAPI
+  publishDraftAPI
 } from '@/api/project'
 
 const router = useRouter()
@@ -693,7 +693,7 @@ const milestones = ref([])
 const formatISO = (date) => {
   if (!date) return ''
   const d = new Date(date)
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}T00:00:00`
 }
 
 // 从后端模板生成里程碑列表
@@ -831,20 +831,20 @@ const handleNextStep = async () => {
 
       // 2. 查询企业项目列表，取最新一条的 projectId
       const projRes = await getMyProjectsAPI()
-      const projList = projRes.data || []
+      const projList = projRes.data?.projects || []
       if (projList.length === 0) {
         ElMessage.error('保存草稿后未能获取到项目，请重试')
         return
       }
-      currentProjectId.value = projList[projList.length - 1].projectId
+      currentProjectId.value = projList[0].projectId
 
       // 3. 获取里程碑模板
       const [allRes, optRes] = await Promise.all([
         getAllMilestoneTemplatesAPI(),
         getOptionalMilestoneTemplatesAPI()
       ])
-      const allTemplates = allRes.data || []
-      const optionalTemplates = optRes.data || []
+      const allTemplates = allRes.data?.templates || []
+      const optionalTemplates = optRes.data?.templates || []
 
       // 4. 生成动态里程碑列表
       milestones.value = buildMilestonesFromTemplates(allTemplates, optionalTemplates)
@@ -915,7 +915,7 @@ const handleSubmitPublish = async () => {
 
     // 2. 重新获取完整里程碑列表（拿到 milestoneId）
     const msRes = await getMilestonesByProjectAPI(projectId)
-    const serverMilestones = msRes.data || []
+    const serverMilestones = msRes.data?.milestones || []
 
     // 3. 逐个更新里程碑信息（通过 milestoneCode 匹配）
     const updatePromises = enabledMilestonesList.map(frontMs => {
@@ -931,10 +931,10 @@ const handleSubmitPublish = async () => {
     })
     await Promise.all(updatePromises)
 
-    // 4. 提交审核
-    await submitReviewAPI(projectId)
+    // 4. 直接发布（跳过审核）
+    await publishDraftAPI(projectId)
 
-    ElMessage.success('项目发布成功，已提交审核！')
+    ElMessage.success('项目发布成功！')
 
     // 重置表单并返回列表
     publishFormRef.value.resetFields()
