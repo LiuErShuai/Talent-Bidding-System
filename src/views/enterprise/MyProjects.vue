@@ -17,7 +17,18 @@
               :class="{ active: activeTab === 'published' }"
               @click="activeTab = 'published'"
             >
-              我发布的 ({{ publishedProjects.length }})
+              我发布的 ({{ nonDraftProjects.length }})
+            </button>
+          </div>
+
+          <div class="sidebar-section">
+            <div class="sidebar-title">草稿箱</div>
+            <button
+              class="sidebar-item"
+              :class="{ active: activeTab === 'drafts' }"
+              @click="activeTab = 'drafts'"
+            >
+              草稿项目 ({{ draftProjects.length }})
             </button>
           </div>
         </aside>
@@ -499,47 +510,85 @@
           <!-- 我发布的项目 -->
           <div v-else-if="activeTab === 'published'">
             <div class="section-header">
-              <h2 class="section-title">
-                我发布的项目 ({{ publishedProjects.length }})
-              </h2>
+              <h2 class="section-title">我发布的项目</h2>
             </div>
 
             <div class="project-list">
               <article
-                v-for="project in publishedProjects"
+                v-for="project in nonDraftProjects"
                 :key="project.id"
                 class="project-card"
                 @click="viewDetail(project)"
               >
                 <div class="project-card-main">
-                  <div class="project-card-header">
-                    <h3 class="project-name">{{ project.name }}</h3>
-                    <span class="project-tag" :class="project.status">
-                      {{ project.statusText }}
-                    </span>
-                  </div>
-
-                  <div class="project-meta-row">
-                    <span>状态：{{ project.stageText }}</span>
-                    <span>剩余时间：{{ project.remainDays }}天</span>
-                    <span>承接方：{{ project.contractor || '待确定' }}</span>
-                  </div>
-
-                  <div class="project-content-row">
-                    <p class="project-brief">{{ project.brief }}</p>
-                    <button
-                      type="button"
-                      class="ghost-chip manage-btn"
-                      @click.stop.prevent="managePublishedProject(project)"
-                    >
-                      管理项目
-                    </button>
+                  <div class="project-card-body">
+                    <div class="project-card-left">
+                      <h3 class="project-name">{{ project.name }}</h3>
+                      <div class="project-meta-row">
+                        <span>悬赏：{{ project.budgetAmount }}{{ project.currency }}</span>
+                        <span>申请团队：{{ project.applicationCount }}个</span>
+                        <span>承接方：{{ project.contractor }}</span>
+                      </div>
+                    </div>
+                    <div class="project-card-right">
+                      <span class="project-tag" :class="project.status">{{ project.statusText }}</span>
+                      <button
+                        type="button"
+                        class="ghost-chip manage-btn"
+                        @click.stop.prevent="managePublishedProject(project)"
+                      >
+                        管理项目
+                      </button>
+                    </div>
                   </div>
                 </div>
               </article>
 
-              <div v-if="publishedProjects.length === 0" class="empty-state">
+              <div v-if="nonDraftProjects.length === 0" class="empty-state">
                 暂无发布的项目
+              </div>
+            </div>
+          </div>
+
+          <!-- 草稿项目 -->
+          <div v-else-if="activeTab === 'drafts'">
+            <div class="section-header">
+              <h2 class="section-title">草稿项目</h2>
+            </div>
+
+            <div class="project-list">
+              <article
+                v-for="project in draftProjects"
+                :key="project.id"
+                class="project-card"
+                @click="viewDetail(project)"
+              >
+                <div class="project-card-main">
+                  <div class="project-card-body">
+                    <div class="project-card-left">
+                      <h3 class="project-name">{{ project.name }}</h3>
+                      <div class="project-meta-row">
+                        <span>悬赏：{{ project.budgetAmount }}{{ project.currency }}</span>
+                        <span>申请团队：{{ project.applicationCount }}个</span>
+                        <span>承接方：{{ project.contractor }}</span>
+                      </div>
+                    </div>
+                    <div class="project-card-right">
+                      <span class="project-tag" :class="project.status">{{ project.statusText }}</span>
+                      <button
+                        type="button"
+                        class="ghost-chip manage-btn"
+                        @click.stop.prevent="handlePublishDraft(project)"
+                      >
+                        去发布
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </article>
+
+              <div v-if="draftProjects.length === 0" class="empty-state">
+                暂无草稿项目
               </div>
             </div>
           </div>
@@ -558,6 +607,7 @@ import { ElMessage, ElLoading } from 'element-plus'
 import {
   saveProjectDraftAPI,
   getMyProjectsAPI,
+  getProjectDetailAPI,
   getAllMilestoneTemplatesAPI,
   getOptionalMilestoneTemplatesAPI,
   getMilestonesByProjectAPI,
@@ -587,6 +637,10 @@ const publishLoading = ref(false)
 // 我发布的项目（企业作为发布方）
 const publishedProjects = ref([])
 const projectsLoading = ref(false)
+const showDrafts = ref(false)
+
+const draftProjects = computed(() => publishedProjects.value.filter(p => p.status === 'draft'))
+const nonDraftProjects = computed(() => publishedProjects.value.filter(p => p.status !== 'draft'))
 
 // 发布项目表单
 const publishFormRef = ref(null)
@@ -727,15 +781,19 @@ async function fetchMyProjects() {
     // 拦截器已返回 response.data，res 即 { code, data, message }
     // 后端返回的 data 是对象：{ projects: [...], total, pageNum, pageSize }
     const list = res.data?.projects || []
+    const STATUS_TEXT = {
+      draft: '草稿', pending_review: '待审核', rejected: '已拒绝',
+      published: '已发布', in_progress: '进行中', completed: '已完成', closed: '已关闭'
+    }
     publishedProjects.value = list.map(p => ({
       id: p.projectId,
       name: p.title,
-      status: p.status || 'pending',
-      statusText: p.statusText || '待审核',
-      stageText: p.currentStage || '',
-      remainDays: p.remainDays || 0,
-      contractor: p.contractor || '',
-      brief: p.description || ''
+      status: p.status || 'draft',
+      statusText: STATUS_TEXT[p.status] || p.status,
+      budgetAmount: p.budgetAmount ?? '--',
+      currency: p.currency || '',
+      applicationCount: p.applicationCount ?? 0,
+      contractor: p.acceptedTeamId ? '已选定' : '待确定'
     }))
   } catch (err) {
     console.error('获取项目列表失败:', err)
@@ -980,6 +1038,84 @@ function handlePublishProject() {
   activeTab.value = 'publish'
 }
 
+async function handlePublishDraft(project) {
+  if (!project?.id) {
+    ElMessage.error('草稿项目ID无效，无法加载')
+    return
+  }
+
+  publishLoading.value = true
+  try {
+    const [detailRes, allRes, optRes] = await Promise.all([
+      getProjectDetailAPI(project.id),
+      getAllMilestoneTemplatesAPI(),
+      getOptionalMilestoneTemplatesAPI()
+    ])
+
+    const detail = detailRes.data || {}
+
+    publishForm.value = {
+      ...publishForm.value,
+      name: detail.title || '',
+      category: detail.categoryId || '',
+      reward: Number(detail.budgetAmount ?? 5000),
+      duration: Number(detail.durationDays ?? 60),
+      deadline: detail.applicationDeadline ? new Date(detail.applicationDeadline) : '',
+      deliveryDate: detail.expectedEndDate ? new Date(detail.expectedEndDate) : '',
+      description: detail.description || '',
+      projectRequirements: detail.requirements || '',
+      minTeamSize: Number(detail.teamSizeMin ?? 2),
+      maxTeamSize: Number(detail.teamSizeMax ?? 4)
+    }
+
+    currentProjectId.value = project.id
+
+    const allTemplates = allRes.data?.templates || []
+    const optionalTemplates = optRes.data?.templates || []
+    milestones.value = buildMilestonesFromTemplates(allTemplates, optionalTemplates)
+
+    const projectMilestonesRes = await getMilestonesByProjectAPI(project.id)
+    const projectMilestones = projectMilestonesRes.data?.milestones || []
+    const enabledCodeSet = new Set(projectMilestones.map(item => item.milestoneCode))
+
+    milestones.value.forEach((milestone) => {
+      const serverMilestone = projectMilestones.find(item => item.milestoneCode === milestone.code)
+      if (!serverMilestone) {
+        if (!milestone.required) {
+          milestone.enabled = false
+        }
+        milestone.expanded = false
+        return
+      }
+
+      milestone.enabled = true
+      milestone.plannedStartDate = serverMilestone.plannedStartTime ? new Date(serverMilestone.plannedStartTime) : ''
+      milestone.plannedEndDate = serverMilestone.plannedEndTime ? new Date(serverMilestone.plannedEndTime) : ''
+      milestone.description = serverMilestone.description || milestone.description
+      milestone.expanded = false
+    })
+
+    optionalTemplates.forEach((optionalTemplate) => {
+      if (enabledCodeSet.has(optionalTemplate.milestoneCode)) return
+      const optionalMilestone = milestones.value.find(item => item.code === optionalTemplate.milestoneCode)
+      if (!optionalMilestone) return
+      optionalMilestone.enabled = false
+      optionalMilestone.expanded = false
+    })
+
+    currentStep.value = 0
+    activeTab.value = 'publish'
+    ElMessage.success('草稿已加载，可继续发布')
+  } catch (err) {
+    console.error('加载草稿失败:', err)
+    if (err?.code !== 'ERR_AUTH_003' && err?.code !== 'ERR_AUTH_001') {
+      ElMessage.error(err?.info || err?.message || '加载草稿失败，请重试')
+    }
+  } finally {
+    publishLoading.value = false
+  }
+}
+
 onMounted(() => {
   console.log('企业端"我的项目"页面加载')
   console.log('当前用户角色:', authStore.userRole)
@@ -1132,7 +1268,29 @@ onMounted(() => {
 .project-card-main {
   display: flex;
   flex-direction: column;
+  gap: 0;
+}
+
+.project-card-body {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.project-card-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.project-card-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
   gap: 12px;
+  flex-shrink: 0;
 }
 
 .project-card-header {
@@ -1173,6 +1331,77 @@ onMounted(() => {
   color: #fa8c16;
 }
 
+.project-tag.published {
+  background: #e6f7ff;
+  color: #1890ff;
+}
+
+.project-tag.in_progress {
+  background: #f0f9eb;
+  color: #67c23a;
+}
+
+.project-tag.completed {
+  background: #f6ffed;
+  color: #52c41a;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.ghost-chip.active {
+  background: #409eff;
+  color: #fff;
+  border-color: #409eff;
+}
+
+.section-title.underlined {
+  border-bottom: 2px solid #409eff;
+  padding-bottom: 4px;
+}
+
+.draft-toggle {
+  border: none;
+  color: #606266;
+}
+
+.draft-toggle:hover {
+  background: #f5f7fa;
+  color: #409eff;
+}
+
+.draft-toggle.active {
+  background: transparent;
+  color: #409eff;
+  border: none;
+  font-weight: 600;
+}
+
+.tab-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #606266;
+  cursor: pointer;
+  padding-bottom: 6px;
+  border-bottom: 2px solid transparent;
+  user-select: none;
+}
+
+.tab-title.tab-active-dark {
+  color: #303133;
+  border-bottom-color: #303133;
+}
+
+.tab-title.tab-active-blue {
+  color: #409eff;
+  border-bottom-color: #409eff;
+}
+
 .project-meta-row {
   display: flex;
   gap: 24px;
@@ -1201,7 +1430,8 @@ onMounted(() => {
 }
 
 .manage-btn {
-  padding: 8px 16px;
+  padding: 4px 10px;
+  font-size: 12px;
   background: #409eff;
   color: #fff;
   border: none;
