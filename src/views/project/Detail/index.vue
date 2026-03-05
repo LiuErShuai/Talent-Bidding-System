@@ -1630,11 +1630,23 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Star, ChatDotRound, Document, Trophy, View, User, Check, Calendar, Lock, Edit, Upload, ArrowRight, TrendCharts, Clock, EditPen, Remove, Close, Paperclip, Bell, List, Plus, UserFilled, Medal, InfoFilled, ArrowDown, ArrowUp } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/store/modules/auth'
+import {
+  getProjectDetailAPI,
+  getMilestonesByProjectAPI,
+  getProjectBidsAPI,
+  getTeamDetailAPI,
+  applyBidAPI,
+  submitMilestoneDeliverableAPI,
+  approveMilestoneAPI,
+  skipMilestoneAPI,
+  toggleFavoriteProjectAPI
+} from '@/api/project'
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const activeTab = ref('details')
+const loading = ref(false)
 
 // 可展开内容区域的状态
 const expandedSections = ref({
@@ -2131,30 +2143,19 @@ const submitMilestone = async () => {
   try {
     await milestoneFormRef.value.validate()
     submitting.value = true
-    
-    // TODO: 调用API提交数据
-    // const response = await submitMilestoneProgress(currentMilestoneDialog.value.id, milestoneForm.value)
-    
-    // 模拟API调用
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    // 更新本地里程碑状态
-    const index = milestones.value.findIndex(m => m.id === currentMilestoneDialog.value.id)
-    if (index !== -1) {
-      milestones.value[index] = {
-        ...milestones.value[index],
-        status: milestoneForm.value.progress === 100 ? 'completed' : 'in-progress',
-        actualDate: milestoneForm.value.progress === 100 ? new Date().toISOString().split('T')[0] : null,
-        progressDetail: {
-          percentage: milestoneForm.value.progress,
-          status: milestoneForm.value.progress === 100 ? 'success' : null,
-          note: milestoneForm.value.description
-        }
-      }
+
+    // 调用API提交里程碑成果
+    const response = await submitMilestoneDeliverableAPI({
+      milestoneId: currentMilestoneDialog.value.id,
+      deliverableUrl: milestoneForm.value.deliverables?.[0]?.url || ''
+    })
+
+    if (response.code === '0000') {
+      ElMessage.success('提交成功')
+      milestoneDialogVisible.value = false
+      // 刷新里程碑列表
+      await refreshMilestones()
     }
-    
-    ElMessage.success('提交成功')
-    milestoneDialogVisible.value = false
   } catch (error) {
     if (error !== false) { // 表单验证失败时不显示错误
       ElMessage.error('提交失败：' + (error.message || '未知错误'))
@@ -2387,38 +2388,18 @@ const submitReview = async () => {
     await reviewFormRef.value.validate()
     reviewSubmitting.value = true
 
-    // TODO: 调用API提交审核
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    // 调用API提交审核
+    const response = await approveMilestoneAPI({
+      milestoneId: currentReviewMilestone.value.id,
+      approved: reviewForm.value.reviewResult === '通过',
+      remark: reviewForm.value.reviewComment
+    })
 
-    ElMessage.success('审核提交成功')
-    reviewDialogVisible.value = false
-
-    // 更新里程碑状态和审核历史
-    const index = milestones.value.findIndex(m => m.id === currentReviewMilestone.value.id)
-    if (index !== -1) {
-      // 添加审核记录
-      const newReview = {
-        reviewId: 'review-new-' + Date.now(),
-        reviewerId: currentUser.value.id,
-        reviewerName: currentUser.value.name || '发布方',
-        reviewTime: new Date().toLocaleString('zh-CN'),
-        reviewResult: reviewForm.value.reviewResult,
-        reviewComment: reviewForm.value.reviewComment,
-        attachments: []
-      }
-
-      if (!milestones.value[index].reviewHistory) {
-        milestones.value[index].reviewHistory = []
-      }
-      milestones.value[index].reviewHistory.unshift(newReview)
-
-      // 更新状态
-      if (reviewForm.value.reviewResult === '通过') {
-        milestones.value[index].status = 'completed'
-        milestones.value[index].actualDate = new Date().toISOString().split('T')[0]
-      } else if (reviewForm.value.reviewResult === '驳回' || reviewForm.value.reviewResult === '拒绝') {
-        milestones.value[index].status = 'pending'
-      }
+    if (response.code === '0000') {
+      ElMessage.success('审核提交成功')
+      reviewDialogVisible.value = false
+      // 刷新里程碑列表
+      await refreshMilestones()
     }
   } catch (error) {
     if (error !== false) {
@@ -2476,30 +2457,17 @@ const confirmSkip = async () => {
 
     skipSubmitting.value = true
 
-    // TODO: 调用API跳过里程碑
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    // 调用API跳过里程碑
+    const response = await skipMilestoneAPI({
+      milestoneId: currentSkipMilestone.value.id,
+      skipReason: skipForm.value.skipReason
+    })
 
-    ElMessage.success('里程碑已跳过')
-    skipDialogVisible.value = false
-
-    // 更新里程碑状态
-    const index = milestones.value.findIndex(m => m.id === currentSkipMilestone.value.id)
-    if (index !== -1) {
-      milestones.value[index].status = 'skipped'
-      milestones.value[index].actualDate = new Date().toISOString().split('T')[0]
-      // 添加跳过记录到审核历史
-      if (!milestones.value[index].reviewHistory) {
-        milestones.value[index].reviewHistory = []
-      }
-      milestones.value[index].reviewHistory.unshift({
-        reviewId: 'skip-' + Date.now(),
-        reviewerId: currentUser.value.id,
-        reviewerName: currentUser.value.name || '发布方',
-        reviewTime: new Date().toLocaleString('zh-CN'),
-        reviewResult: '已跳过',
-        reviewComment: skipForm.value.skipReason,
-        attachments: []
-      })
+    if (response.code === '0000') {
+      ElMessage.success('里程碑已跳过')
+      skipDialogVisible.value = false
+      // 刷新里程碑列表
+      await refreshMilestones()
     }
   } catch (error) {
     if (error !== 'cancel' && error !== false) {
@@ -2646,14 +2614,17 @@ const isBiddingClosed = computed(() => {
 const isFavorited = ref(false)
 
 // 切换关注状态
-const toggleFavorite = () => {
-  isFavorited.value = !isFavorited.value
-  if (isFavorited.value) {
-    ElMessage.success('已关注项目')
-  } else {
-    ElMessage.info('已取消关注')
+const toggleFavorite = async () => {
+  try {
+    const response = await toggleFavoriteProjectAPI(route.params.id)
+    if (response.code === '0000') {
+      isFavorited.value = !isFavorited.value
+      ElMessage.success(isFavorited.value ? '已关注项目' : '已取消关注')
+    }
+  } catch (error) {
+    console.error('关注操作失败:', error)
+    ElMessage.error('操作失败，请稍后重试')
   }
-  // TODO: 调用API保存关注状态
 }
 
 // 切换内容区域展开/折叠状态
@@ -2749,17 +2720,20 @@ const submitBidding = async () => {
     await biddingFormRef.value.validate()
     biddingSubmitting.value = true
 
-    // TODO: 调用API提交申请
-    // const response = await submitBiddingApplication(route.params.id, biddingForm.value)
+    // 调用API提交竞榜申请
+    const response = await applyBidAPI({
+      projectId: route.params.id,
+      content: biddingForm.value.applicationReason,
+      attachmentUrl: biddingForm.value.attachments?.[0]?.url || ''
+    })
 
-    // 模拟API调用
-    await new Promise(resolve => setTimeout(resolve, 1000))
-
-    ElMessage.success('申请提交成功！')
-    biddingDialogVisible.value = false
-
-    // 重置表单
-    biddingFormRef.value.resetFields()
+    if (response.code === '0000') {
+      ElMessage.success('申请提交成功！')
+      biddingDialogVisible.value = false
+      biddingFormRef.value.resetFields()
+      // 刷新竞榜列表
+      await refreshBids()
+    }
   } catch (error) {
     if (error !== false) {
       ElMessage.error('提交失败：' + (error.message || '未知错误'))
@@ -2862,38 +2836,199 @@ const getExperienceLevelText = (level) => {
 }
 // ========== 结束：揭榜申请相关 (BIDDING_APPLICATION_LOGIC) ==========
 
-onMounted(() => {
+// ========== 开始：API数据映射函数 (API_DATA_MAPPING) ==========
+
+// 映射项目详情
+const mapProjectDetail = (apiData) => {
+  if (!apiData) return
+  project.value = {
+    ...project.value,
+    title: apiData.title || project.value.title,
+    description: apiData.description || project.value.description,
+    status: apiData.status || project.value.status,
+    budgetAmount: apiData.budgetAmount || project.value.budgetAmount,
+    currency: apiData.currency || project.value.currency,
+    publisherId: apiData.publisherId || project.value.publisherId,
+    acceptedTeamId: apiData.acceptedTeamId || null,
+    bidderIds: apiData.acceptedTeamId ? [apiData.acceptedTeamId] : project.value.bidderIds,
+    applicationCount: apiData.applicationCount || 0,
+    viewCount: apiData.viewCount || 0,
+    tags: apiData.tags ? apiData.tags.split(',') : project.value.tags,
+    teamSizeMin: apiData.teamSizeMin,
+    teamSizeMax: apiData.teamSizeMax,
+    durationDays: apiData.durationDays,
+    applicationDeadline: apiData.applicationDeadline,
+    expectedStartDate: apiData.expectedStartDate,
+    expectedEndDate: apiData.expectedEndDate
+  }
+}
+
+// 里程碑状态映射：后端状态 → 前端状态
+const mapMilestoneStatus = (apiStatus) => {
+  const statusMap = {
+    'planned': 'pending',
+    'in_progress': 'in-progress',
+    'delivered': 'in-progress',
+    'under_review': 'in-progress',
+    'completed': 'completed',
+    'rejected': 'delayed',
+    'expired': 'delayed',
+    'skipped': 'skipped'
+  }
+  return statusMap[apiStatus] || 'pending'
+}
+
+// 计算延迟天数
+const calculateDelayDays = (plannedEnd, actualEnd) => {
+  if (!plannedEnd) return null
+  const planned = new Date(plannedEnd)
+  const actual = actualEnd ? new Date(actualEnd) : new Date()
+  const diff = Math.ceil((actual - planned) / (1000 * 60 * 60 * 24))
+  return diff > 0 ? diff : null
+}
+
+// 计算风险等级
+const calculateRiskLevel = (milestone) => {
+  if (milestone.status === 'completed') return 'low'
+  if (milestone.status === 'expired' || milestone.approvalStatus === 'rejected') return 'high'
+  if (!milestone.plannedEndTime) return 'low'
+  const daysRemaining = Math.ceil((new Date(milestone.plannedEndTime) - new Date()) / (1000 * 60 * 60 * 24))
+  if (daysRemaining < 0) return 'high'
+  if (daysRemaining < 3) return 'medium'
+  return 'low'
+}
+
+// 映射里程碑列表
+const mapMilestones = (apiMilestones) => {
+  if (!Array.isArray(apiMilestones) || apiMilestones.length === 0) return
+  const oldMilestones = milestones.value
+  milestones.value = apiMilestones.map(m => {
+    const existing = oldMilestones.find(old => old.code === m.milestoneCode)
+    return {
+      id: m.milestoneId,
+      code: m.milestoneCode,
+      title: m.name,
+      description: m.description || existing?.description || '',
+      status: mapMilestoneStatus(m.status),
+      approvalStatus: m.approvalStatus,
+      plannedDate: m.plannedEndTime ? m.plannedEndTime.split('T')[0] : null,
+      actualDate: m.actualEndTime ? m.actualEndTime.split('T')[0] : null,
+      delayDays: calculateDelayDays(m.plannedEndTime, m.actualEndTime),
+      progressDetail: {
+        percentage: m.progressPercent || 0,
+        status: m.progressPercent >= 100 ? 'success' : 'warning',
+        note: m.remark || ''
+      },
+      riskLevel: calculateRiskLevel(m),
+      deliverables: existing?.deliverables || [],
+      communications: existing?.communications || [],
+      internalNotes: m.internalNotes || '',
+      sensitiveAttachments: [],
+      submissionSummary: m.submissionSummary || null,
+      reviewHistory: m.reviewHistory || []
+    }
+  })
+}
+
+// 映射竞榜申请列表
+const mapBiddingApplications = async (apiBids) => {
+  if (!Array.isArray(apiBids) || apiBids.length === 0) return
+  // 并发获取团队详情
+  const teamDetails = await Promise.allSettled(
+    apiBids.map(bid => getTeamDetailAPI(bid.teamId).catch(() => null))
+  )
+  biddingApplications.value = apiBids.map((bid, index) => {
+    const teamData = teamDetails[index].status === 'fulfilled'
+      ? teamDetails[index].value?.data
+      : null
+    return {
+      id: bid.bidId,
+      teamId: bid.teamId,
+      teamName: teamData?.teamName || '未知团队',
+      leaderId: teamData?.leaderId || '',
+      leaderName: teamData?.leaderName || '未知',
+      teamSize: teamData?.memberCount || 0,
+      status: bid.status,
+      applicationReason: bid.content,
+      attachmentUrl: bid.attachmentUrl,
+      remark: bid.remark,
+      submitTime: bid.createdAt,
+      updatedAt: bid.updatedAt,
+      requiredSkills: teamData?.skills || [],
+      experienceLevel: teamData?.experience || 'none',
+      otherInfo: teamData?.description || ''
+    }
+  })
+}
+
+// 刷新里程碑列表
+const refreshMilestones = async () => {
+  try {
+    const res = await getMilestonesByProjectAPI(route.params.id)
+    if (res.code === '0000') {
+      mapMilestones(res.data.milestones || [])
+    }
+  } catch (e) {
+    console.error('刷新里程碑失败:', e)
+  }
+}
+
+// 刷新竞榜列表
+const refreshBids = async () => {
+  try {
+    const res = await getProjectBidsAPI(route.params.id, { pageNum: 1, pageSize: 50 })
+    if (res.code === '0000') {
+      await mapBiddingApplications(res.data.bids || [])
+    }
+  } catch (e) {
+    console.error('刷新竞榜列表失败:', e)
+  }
+}
+// ========== 结束：API数据映射函数 (API_DATA_MAPPING) ==========
+
+onMounted(async () => {
   const projectId = route.params.id
-  if (projectId) {
-    // 根据项目ID加载数据
-    // TODO: 后续接入后端API获取真实数据
-    // loadProjectSteps(projectId)
-    // loadMilestones(projectId)
-    // loadProjectInfo(projectId) // 加载项目信息，包括发布方ID和承接方ID列表
+  if (!projectId) {
+    ElMessage.error('项目ID不存在')
+    router.push('/projects')
+    return
+  }
+
+  loading.value = true
+  try {
+    const [detailRes, milestonesRes, bidsRes] = await Promise.allSettled([
+      getProjectDetailAPI(projectId),
+      getMilestonesByProjectAPI(projectId),
+      getProjectBidsAPI(projectId, { pageNum: 1, pageSize: 50 })
+    ])
+
+    // 处理项目详情
+    if (detailRes.status === 'fulfilled' && detailRes.value?.code === '0000') {
+      mapProjectDetail(detailRes.value.data)
+    } else {
+      console.warn('项目详情加载失败，使用Mock数据')
+    }
+
+    // 处理里程碑列表
+    if (milestonesRes.status === 'fulfilled' && milestonesRes.value?.code === '0000') {
+      mapMilestones(milestonesRes.value.data.milestones || [])
+    } else {
+      console.warn('里程碑列表加载失败，使用Mock数据')
+    }
+
+    // 处理竞榜列表
+    if (bidsRes.status === 'fulfilled' && bidsRes.value?.code === '0000') {
+      await mapBiddingApplications(bidsRes.value.data.bids || [])
+    } else {
+      console.warn('竞榜列表加载失败，使用Mock数据')
+    }
+  } catch (error) {
+    console.error('数据加载异常:', error)
+    ElMessage.warning('部分数据加载失败，已使用默认数据')
+  } finally {
+    loading.value = false
   }
 })
-
-// TODO: 后续接入后端API时使用
-// 加载项目里程碑数据
-// const loadMilestones = async (projectId) => {
-//   try {
-//     // const response = await getProjectMilestones(projectId)
-//     // milestones.value = formatMilestones(response.data)
-//   } catch (error) {
-//     console.error('加载项目里程碑失败:', error)
-//     ElMessage.error('加载项目里程碑失败，请稍后重试')
-//   }
-// }
-
-// TODO: 后续接入后端API时使用
-// const loadProjectSteps = async (projectId) => {
-//   try {
-//     // const response = await getProjectSteps(projectId)
-//     // projectSteps.value = formatProjectSteps(response.data)
-//   } catch (error) {
-//     console.error('加载项目进度失败:', error)
-//   }
-// }
 
 // 计算距离目标日期的剩余/逾期信息，提供给当前里程碑卡片
 const calculateRemainingDays = (dateStr) => {

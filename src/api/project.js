@@ -206,3 +206,58 @@ export function createProjectCategoryAPI(data) {
     data
   })
 }
+
+// ========== 项目详情页相关 API ==========
+
+// 学生申请竞榜
+export function applyBidAPI(data) {
+  return request({
+    url: '/bid/apply',
+    method: 'post',
+    data
+  })
+}
+
+// 提交里程碑成果（URL方式）
+export function submitMilestoneDeliverableAPI(data) {
+  return request({
+    url: '/milestone/deliverable',
+    method: 'post',
+    data
+  })
+}
+
+// 审批里程碑
+export function approveMilestoneAPI(data) {
+  return request({
+    url: '/milestone/approve',
+    method: 'post',
+    data
+  })
+}
+
+// 更新里程碑状态
+export function updateMilestoneStatusAPI(data) {
+  return request({
+    url: '/milestone/status',
+    method: 'post',
+    data
+  })
+}
+
+// 跳过里程碑
+export function skipMilestoneAPI(data) {
+  return request({
+    url: '/milestone/skip',
+    method: 'post',
+    data
+  })
+}
+
+// 切换项目关注状态
+export function toggleFavoriteProjectAPI(projectId) {
+  return request({
+    url: `/project/favorite/${projectId}`,
+    method: 'post'
+  })
+}
