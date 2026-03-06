@@ -90,7 +90,17 @@
                 </h2>
               </div>
 
-              <div class="project-list">
+              <!-- 加载状态 -->
+              <div v-if="loading" class="loading-state">
+                <el-skeleton :rows="3" animated />
+              </div>
+
+              <!-- 错误状态 -->
+              <div v-else-if="error" class="error-state">
+                <el-alert :title="error" type="error" show-icon />
+              </div>
+
+              <div v-else class="project-list">
                 <article
                   v-for="project in projects"
                   :key="project.id"
@@ -343,16 +353,14 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useStudentProjectStore } from '@/store/modules/studentProject'
+import { useUserStore } from '@/store'
 
 const router = useRouter()
+const studentProjectStore = useStudentProjectStore()
+const userStore = useUserStore()
 
-const userInfo = ref({
-  username: '张三',
-  role: 'student', // student / enterprise
-  avatar: 'https://picsum.photos/seed/user123/40/40.jpg'
-})
-
-const userRole = computed(() => (userInfo.value.role === 'enterprise' ? 'enterprise' : 'student'))
+const userRole = computed(() => userStore.userInfo?.type === 2 ? 'enterprise' : 'student')
 
 // 侧边栏和模块切换
 const activeModule = ref('projects')
@@ -370,157 +378,17 @@ const roleTabs = computed(() => {
   return tabs
 })
 
-// 我承接的项目数据
-const projects = ref([
-  {
-    id: 1,
-    name: 'AI智能客服系统开发',
-    ownerType: 'student',
-    stage: 'ongoing',
-    stageText: '开发中',
-    status: 'ongoing',
-    statusText: '进行中',
-    progress: 60,
-    remainDays: 15,
-    reward: 15000,
-    publisher: 'XX科技有限公司',
-    brief: '为平台构建基于NLP的智能客服系统，提高服务效率。',
-    canUpload: true,
-    uploadLabel: '上传成果',
-    canCollaborate: true
-  },
-  {
-    id: 2,
-    name: '电商平台前端开发',
-    ownerType: 'student',
-    stage: 'ongoing',
-    stageText: '待提交',
-    status: 'awarded',
-    statusText: '已揭榜',
-    progress: 80,
-    remainDays: 3,
-    reward: 8000,
-    publisher: 'YY信息技术有限公司',
-    brief: '实现现代化商城前端页面，适配 PC 与移动端。',
-    canUpload: true,
-    uploadLabel: '上传成果',
-    canCollaborate: false
-  },
-  {
-    id: 3,
-    name: '数据分析与可视化项目',
-    ownerType: 'student',
-    stage: 'testing',
-    stageText: '测试中',
-    status: 'review',
-    statusText: '待评审',
-    progress: 90,
-    remainDays: 7,
-    reward: 10000,
-    publisher: 'ZZ数据科技有限公司',
-    brief: '对销售数据深度分析并制作可视化报表。',
-    canUpload: true,
-    uploadLabel: '提交成果',
-    canCollaborate: false
-  }
-])
+// 使用store中的动态数据
+const projects = computed(() => studentProjectStore.projects)
+const loading = computed(() => studentProjectStore.loading)
+const error = computed(() => studentProjectStore.error)
 
-// 团队数据：区分负责人视角与成员视角，前端 mock
-const teamData = ref({
-  owned: [
-    {
-      id: 'team-dev',
-      name: '智能开发小组',
-      isOwner: true,
-      description: '负责平台前端与移动端开发的学生团队，承担核心架构与交互体验交付。',
-      project: {
-        id: 101,
-        name: '智慧校园协同平台',
-        stage: '开发中',
-        statusText: '进行中',
-        progress: 72,
-        deadline: '2024-09-30',
-        brief: '交付多角色协同的前端与移动端界面，聚焦性能与可用性。',
-        detail: '当前迭代聚焦课堂互动、项目协同与消息模块的性能优化与体验提升。'
-      },
-      members: [
-        { name: '张三', role: '负责人', duty: '统筹 / 前端开发' },
-        { name: '李四', role: '前端', duty: 'UI 组件与样式联调' },
-        { name: '王五', role: '后端', duty: '接口联调与接口网关' },
-        { name: '赵六', role: '测试', duty: '功能回归与用例维护' }
-      ]
-    },
-    {
-      id: 'team-mobile',
-      name: '移动端共建组',
-      isOwner: true,
-      description: '移动端专项团队，负责课程与项目的移动端适配与迭代。',
-      project: {
-        id: 102,
-        name: '实训工厂移动端',
-        stage: '设计评审',
-        statusText: '待开发',
-        progress: 35,
-        deadline: '2024-10-12',
-        brief: '完成实训工厂移动端的交互设计与核心功能开发。',
-        detail: '设计稿已通过一轮评审，正补充离线场景与消息推送方案，后续进入开发。'
-      },
-      members: [
-        { name: '张三', role: '负责人', duty: '需求拆解与计划制定' },
-        { name: '周七', role: '后端', duty: '接口适配与鉴权' },
-        { name: '钱八', role: '客户端', duty: '跨端框架与性能优化' }
-      ]
-    }
-  ],
-  joined: [
-    {
-      id: 'team-ai',
-      name: 'AI创新团队',
-      isOwner: false,
-      description: '聚焦人工智能与数据分析的项目团队，负责算法与数据管道搭建。',
-      project: {
-        id: 201,
-        name: '智能问答助手',
-        stage: '联调中',
-        statusText: '进行中',
-        progress: 64,
-        deadline: '2024-09-05',
-        brief: '实现面向客服场景的智能问答与知识库检索。',
-        detail: '已完成意图识别与 FAQ 检索，正在对接知识库更新与对话流程监控。'
-      },
-      members: [
-        { name: '陈静', role: '负责人', duty: '算法方案与进度跟进' },
-        { name: '刘阳', role: '算法', duty: '意图识别与召回' },
-        { name: '张三', role: '前端', duty: '对话界面与配置面板' }
-      ]
-    },
-    {
-      id: 'team-data',
-      name: '数据先锋团队',
-      isOwner: false,
-      description: '数据可视化与报表团队，聚焦业务看板建设。',
-      project: {
-        id: 202,
-        name: '企业运营数据看板',
-        stage: '测试中',
-        statusText: '待验收',
-        progress: 88,
-        deadline: '2024-08-28',
-        brief: '搭建运营数据大屏与核心指标监控。',
-        detail: '指标定义与联调已完成，正在做跨端适配与性能压测，准备提交验收。'
-      },
-      members: [
-        { name: '周远', role: '负责人', duty: '需求对接与验收' },
-        { name: '王一', role: '数据', duty: '指标口径与 ETL' },
-        { name: '张三', role: '前端', duty: '数据大屏可视化' }
-      ]
-    }
-  ]
-})
-
+// 使用store中的团队数据
 const currentTeams = computed(() => {
   if (!activeTeamCategory.value) return []
-  return teamData.value[activeTeamCategory.value] || []
+  return activeTeamCategory.value === 'owned'
+    ? studentProjectStore.ownedTeams
+    : studentProjectStore.joinedTeams
 })
 
 // 切换模块辅助方法
@@ -583,7 +451,12 @@ const goProjectDetail = (project) => {
   router.push(`/projects/${project.id}`)
 }
 
-onMounted(() => {
+onMounted(async () => {
+  // 加载项目和团队数据
+  await Promise.all([
+    studentProjectStore.fetchMyProjects(),
+    studentProjectStore.fetchMyTeams()
+  ])
 })
 </script>
 
@@ -959,6 +832,14 @@ onMounted(() => {
   text-align: center;
   padding: 32px 0;
   color: #9aa5c2;
+}
+
+.loading-state {
+  padding: 20px;
+}
+
+.error-state {
+  margin-bottom: 16px;
 }
 
 .team-dialog-overlay {

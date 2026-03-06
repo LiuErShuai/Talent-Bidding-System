@@ -261,3 +261,22 @@ export function toggleFavoriteProjectAPI(projectId) {
     method: 'post'
   })
 }
+
+// ========== 学生端专用 API ==========
+
+// 获取已发布项目列表
+export function getPublishedProjectsAPI(params = {}) {
+  return request({
+    url: '/project/published',
+    method: 'get',
+    params
+  })
+}
+
+// 取消竞榜申请
+export function cancelBidAPI(bidId) {
+  return request({
+    url: `/bid/cancel/${bidId}`,
+    method: 'post'
+  })
+}
