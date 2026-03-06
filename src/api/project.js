@@ -148,13 +148,6 @@ export function publishDraftAPI(projectId) {
   })
 }
 
-// 浏览已发布项目列表
-export function getPublishedProjectsAPI() {
-  return request({
-    url: '/project/published_projects',
-    method: 'get'
-  })
-}
 
 // 搜索项目
 export function searchProjectAPI(data) {
