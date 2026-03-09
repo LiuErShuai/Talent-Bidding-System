@@ -43,7 +43,7 @@ export const useStudentProjectStore = defineStore('studentProject', {
       try {
         const response = await getMyAcceptedProjectsAPI(params)
         if (response.code === '0000') {
-          const projects = response.data.list || []
+          const projects = response.data.projects || []
           this.projects = projects.map(this.formatAcceptedProjectData)
         }
       } catch (error) {
@@ -80,11 +80,11 @@ export const useStudentProjectStore = defineStore('studentProject', {
         progress: project.progress || 0,
         remainDays: this.calculateRemainDays(project.applicationDeadline),
         reward: project.budgetAmount || 0,
-        publisher: project.publisherName || '未知',
-        brief: project.description || '',
+        publisher: project.publisherName || '企业方',
+        brief: project.description || '暂无描述',
         canUpload: ['executing', 'in_progress'].includes(project.status),
         uploadLabel: '上传成果',
-        canCollaborate: project.status === 'executing'
+        canCollaborate: project.status === 'in_progress'
       }
     },
 
