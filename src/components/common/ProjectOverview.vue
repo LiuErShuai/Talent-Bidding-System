@@ -29,10 +29,12 @@
           <span class="meta-item">项目团队：{{ formatTeamName(project?.teamName) }}</span>
         </div>
 
-        <!-- 项目描述 -->
+        <!-- 项目描述（后端当前版本未提供简要描述，暂时注释） -->
+        <!--
         <div class="project-description">
           <p class="brief">{{ project?.description || project?.brief }}</p>
         </div>
+        -->
       </div>
 
       <!-- 右侧操作区 -->

@@ -35,7 +35,9 @@
       "Bash(ls:*)",
       "Bash(dir:*)",
       "Bash(grep:*)",
-      "Bash(npx vite:*)"
+      "Bash(npx vite:*)",
+      "Bash(sed:*)",
+      "Bash(pkill:*)"
     ],
     "deny": [],
     "ask": []
