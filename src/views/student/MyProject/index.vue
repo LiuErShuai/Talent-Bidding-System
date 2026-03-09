@@ -298,52 +298,52 @@
         </section>
       </div>
     </div>
-  </div>
 
-  <!-- 团队详情弹窗 -->
-  <div v-if="teamDialogVisible && selectedTeam" class="team-dialog-overlay">
-    <div class="team-dialog">
-      <div class="team-dialog-header">
-        <div class="dialog-title-area">
-          <h3 class="dialog-title">{{ selectedTeam.name }}</h3>
-          <div class="dialog-project-block">
-            <div class="project-block-title">执行项目</div>
-            <div class="dialog-project-row">
-              <button class="project-link" @click="goProjectDetail(selectedTeam.project)">
-                关联项目：{{ selectedTeam.project.name }}
-              </button>
-              <span class="dialog-subtitle-inline">
-                （{{ selectedTeam.project.stage }} / {{ selectedTeam.project.statusText }}）
-              </span>
-              <span v-if="selectedTeam.project.progress !== undefined" class="dialog-subtitle-inline">
-                · 进度：{{ selectedTeam.project.progress }}%
-              </span>
-              <span v-if="selectedTeam.project.deadline" class="dialog-subtitle-inline">
-                · 截止：{{ selectedTeam.project.deadline }}
-              </span>
+    <!-- 团队详情弹窗 -->
+    <div v-if="teamDialogVisible && selectedTeam" class="team-dialog-overlay">
+      <div class="team-dialog">
+        <div class="team-dialog-header">
+          <div class="dialog-title-area">
+            <h3 class="dialog-title">{{ selectedTeam.name }}</h3>
+            <div class="dialog-project-block">
+              <div class="project-block-title">执行项目</div>
+              <div class="dialog-project-row">
+                <button class="project-link" @click="goProjectDetail(selectedTeam.project)">
+                  关联项目：{{ selectedTeam.project.name }}
+                </button>
+                <span class="dialog-subtitle-inline">
+                  （{{ selectedTeam.project.stage }} / {{ selectedTeam.project.statusText }}）
+                </span>
+                <span v-if="selectedTeam.project.progress !== undefined" class="dialog-subtitle-inline">
+                  · 进度：{{ selectedTeam.project.progress }}%
+                </span>
+                <span v-if="selectedTeam.project.deadline" class="dialog-subtitle-inline">
+                  · 截止：{{ selectedTeam.project.deadline }}
+                </span>
+              </div>
             </div>
           </div>
-        </div>
-        <button class="close-btn" @click="closeTeamDetail">×</button>
-      </div>
-
-      <div class="team-dialog-body">
-        <div class="dialog-section">
-          <h4>团队简介</h4>
-          <p class="dialog-text">{{ selectedTeam.description }}</p>
+          <button class="close-btn" @click="closeTeamDetail">×</button>
         </div>
 
-        <div class="dialog-section">
-          <h4>成员列表</h4>
-          <ul class="member-list">
-            <li v-for="member in selectedTeam.members" :key="member.name" class="member-item">
-              <div class="member-info">
-                <span class="member-name">{{ member.name }}</span>
-                <span class="member-role">{{ member.role }}</span>
-              </div>
-              <span class="member-duty">{{ member.duty }}</span>
-            </li>
-          </ul>
+        <div class="team-dialog-body">
+          <div class="dialog-section">
+            <h4>团队简介</h4>
+            <p class="dialog-text">{{ selectedTeam.description }}</p>
+          </div>
+
+          <div class="dialog-section">
+            <h4>成员列表</h4>
+            <ul class="member-list">
+              <li v-for="member in selectedTeam.members" :key="member.name" class="member-item">
+                <div class="member-info">
+                  <span class="member-name">{{ member.name }}</span>
+                  <span class="member-role">{{ member.role }}</span>
+                </div>
+                <span class="member-duty">{{ member.duty }}</span>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>

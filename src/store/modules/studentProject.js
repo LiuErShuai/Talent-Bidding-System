@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { getMyProjectsAPI, getMyAcceptedProjectsAPI, getProjectDetailAPI } from '@/api/project'
+import { getMyAcceptedProjectsAPI, getProjectDetailAPI } from '@/api/project'
 import { getMyTeamListAPI, getTeamDetailAPI } from '@/api/team'
 import { getMilestonesByProjectAPI } from '@/api/project'
 import { handleApiError, STATUS_TEXT_MAP, STAGE_TEXT_MAP } from '@/utils/errorHandler'
@@ -41,21 +41,10 @@ export const useStudentProjectStore = defineStore('studentProject', {
       this.loading = true
       this.error = null
       try {
-        // 优先使用新API获取学生承接的项目
-        let response = await getMyAcceptedProjectsAPI(params)
+        const response = await getMyAcceptedProjectsAPI(params)
         if (response.code === '0000') {
-          this.projects = response.data.list.map(this.formatAcceptedProjectData)
-          return
-        }
-      } catch (error) {
-        console.warn('新API调用失败，使用旧API降级:', error.message)
-      }
-
-      try {
-        // 降级使用旧API
-        const response = await getMyProjectsAPI(params)
-        if (response.code === '0000') {
-          this.projects = response.data.map(this.formatProjectData)
+          const projects = response.data.list || []
+          this.projects = projects.map(this.formatAcceptedProjectData)
         }
       } catch (error) {
         this.error = error.message
@@ -70,7 +59,8 @@ export const useStudentProjectStore = defineStore('studentProject', {
       try {
         const response = await getMyTeamListAPI()
         if (response.code === '0000') {
-          this.teams = response.data.map(this.formatTeamData)
+          const teams = response.data.teams || []
+          this.teams = teams.map(this.formatTeamData)
         }
       } catch (error) {
         this.error = error.message
@@ -78,7 +68,7 @@ export const useStudentProjectStore = defineStore('studentProject', {
       }
     },
 
-    // 格式化承接项目数据（新API）
+    // 格式化承接项目数据
     formatAcceptedProjectData(project) {
       return {
         id: project.projectId,
@@ -95,26 +85,6 @@ export const useStudentProjectStore = defineStore('studentProject', {
         canUpload: ['executing', 'in_progress'].includes(project.status),
         uploadLabel: '上传成果',
         canCollaborate: project.status === 'executing'
-      }
-    },
-
-    // 格式化项目数据（旧API兼容）
-    formatProjectData(project) {
-      return {
-        id: project.projectId,
-        name: project.title,
-        status: project.status,
-        statusText: this.getStatusText(project.status),
-        stage: project.stage || 'ongoing',
-        stageText: this.getStageText(project.stage),
-        progress: project.progress || 0,
-        remainDays: this.calculateRemainDays(project.expectedEndDate),
-        reward: project.budgetAmount || 0,
-        publisher: project.publisherName || '未知',
-        brief: project.description || '',
-        canUpload: ['in_progress', 'ongoing'].includes(project.status),
-        uploadLabel: '上传成果',
-        canCollaborate: project.status === 'in_progress'
       }
     },
 
