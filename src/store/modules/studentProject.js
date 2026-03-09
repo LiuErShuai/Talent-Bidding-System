@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { getMyProjectsAPI, getProjectDetailAPI } from '@/api/project'
+import { getMyProjectsAPI, getMyAcceptedProjectsAPI, getProjectDetailAPI } from '@/api/project'
 import { getMyTeamListAPI, getTeamDetailAPI } from '@/api/team'
 import { getMilestonesByProjectAPI } from '@/api/project'
 import { handleApiError, STATUS_TEXT_MAP, STAGE_TEXT_MAP } from '@/utils/errorHandler'
@@ -37,11 +37,23 @@ export const useStudentProjectStore = defineStore('studentProject', {
 
   actions: {
     // 获取我的项目列表
-    async fetchMyProjects() {
+    async fetchMyProjects(params = {}) {
       this.loading = true
       this.error = null
       try {
-        const response = await getMyProjectsAPI()
+        // 优先使用新API获取学生承接的项目
+        let response = await getMyAcceptedProjectsAPI(params)
+        if (response.code === '0000') {
+          this.projects = response.data.list.map(this.formatAcceptedProjectData)
+          return
+        }
+      } catch (error) {
+        console.warn('新API调用失败，使用旧API降级:', error.message)
+      }
+
+      try {
+        // 降级使用旧API
+        const response = await getMyProjectsAPI(params)
         if (response.code === '0000') {
           this.projects = response.data.map(this.formatProjectData)
         }
@@ -66,7 +78,27 @@ export const useStudentProjectStore = defineStore('studentProject', {
       }
     },
 
-    // 格式化项目数据
+    // 格式化承接项目数据（新API）
+    formatAcceptedProjectData(project) {
+      return {
+        id: project.projectId,
+        name: project.title,
+        status: project.status,
+        statusText: this.getStatusText(project.status),
+        stage: project.stage || 'ongoing',
+        stageText: this.getStageText(project.stage),
+        progress: project.progress || 0,
+        remainDays: this.calculateRemainDays(project.applicationDeadline),
+        reward: project.budgetAmount || 0,
+        publisher: project.publisherName || '未知',
+        brief: project.description || '',
+        canUpload: ['executing', 'in_progress'].includes(project.status),
+        uploadLabel: '上传成果',
+        canCollaborate: project.status === 'executing'
+      }
+    },
+
+    // 格式化项目数据（旧API兼容）
     formatProjectData(project) {
       return {
         id: project.projectId,

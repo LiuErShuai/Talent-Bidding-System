@@ -452,9 +452,14 @@ const goProjectDetail = (project) => {
 }
 
 onMounted(async () => {
-  // 加载项目和团队数据
+  // 加载项目和团队数据，支持分页参数
+  const params = {
+    pageNum: 1,
+    pageSize: 10
+  }
+
   await Promise.all([
-    studentProjectStore.fetchMyProjects(),
+    studentProjectStore.fetchMyProjects(params),
     studentProjectStore.fetchMyTeams()
   ])
 })

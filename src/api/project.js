@@ -273,3 +273,12 @@ export function cancelBidAPI(bidId) {
     method: 'post'
   })
 }
+
+// 学生查询承接的项目列表
+export function getMyAcceptedProjectsAPI(params = {}) {
+  return request({
+    url: '/project/my_accepted_projects',
+    method: 'get',
+    params
+  })
+}
