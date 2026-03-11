@@ -159,18 +159,20 @@ export function searchProjectAPI(data) {
 }
 
 // 获取热门项目
-export function getHotProjectsAPI() {
+export function getHotProjectsAPI(params = {}) {
   return request({
-    url: '/project/hot_projects',
-    method: 'get'
+    url: '/project/popular',
+    method: 'get',
+    params
   })
 }
 
 // 获取最新项目
-export function getLatestProjectsAPI() {
+export function getLatestProjectsAPI(params = {}) {
   return request({
-    url: '/project/latest_projects',
-    method: 'get'
+    url: '/project/latest',
+    method: 'get',
+    params
   })
 }
 
@@ -282,3 +284,126 @@ export function getMyAcceptedProjectsAPI(params = {}) {
     params
   })
 }
+
+// 公开查询项目揭榜名单
+export function getPublicProjectBidsAPI(projectId) {
+  return request({
+    url: `/bid/public/project/${projectId}`,
+    method: 'get'
+  })
+}
+
+// 学生查询我的揭榜记录
+export function getMyBidsAPI() {
+  return request({
+    url: '/bid/student/my-bids',
+    method: 'get'
+  })
+}
+
+// 查询揭榜详情
+export function getBidDetailAPI(bidId) {
+  return request({
+    url: `/bid/detail/${bidId}`,
+    method: 'get'
+  })
+}
+
+// ========== 管理员审核相关 API ==========
+
+// 管理员获取待审核项目列表
+export function getAdminPendingProjectsAPI(params = {}) {
+  return request({
+    url: '/project/admin/pending_review',
+    method: 'get',
+    params
+  })
+}
+
+// 管理员审核通过项目
+export function approveProjectAPI(projectId) {
+  return request({
+    url: `/project/admin/approve/${projectId}`,
+    method: 'post'
+  })
+}
+
+// 管理员拒绝项目
+export function rejectProjectAPI(data) {
+  return request({
+    url: '/project/admin/reject',
+    method: 'post',
+    data
+  })
+}
+
+// 管理员获取待审核企业列表(占位)
+export function getAdminPendingEnterprisesAPI(params = {}) {
+  return request({
+    url: '/user_management/admin/pending_enterprises',
+    method: 'get',
+    params
+  })
+}
+
+// 管理员审核通过企业(占位)
+export function approveEnterpriseAPI(enterpriseId) {
+  return request({
+    url: `/user_management/admin/approve_enterprise/${enterpriseId}`,
+    method: 'post'
+  })
+}
+
+// 管理员拒绝企业(占位)
+export function rejectEnterpriseAPI(data) {
+  return request({
+    url: '/user_management/admin/reject_enterprise',
+    method: 'post',
+    data
+  })
+}
+
+// ========== 项目分类管理 API ==========
+
+// 获取所有项目分类
+export function getAllCategoriesAPI() {
+  return request({
+    url: '/project/category/all',
+    method: 'get'
+  })
+}
+
+// 获取分类详情
+export function getCategoryDetailAPI(categoryId) {
+  return request({
+    url: `/project/category/${categoryId}`,
+    method: 'get'
+  })
+}
+
+// 创建项目分类
+export function createCategoryAPI(data) {
+  return request({
+    url: '/project/admin/category/create',
+    method: 'post',
+    data
+  })
+}
+
+// 更新项目分类
+export function updateCategoryAPI(data) {
+  return request({
+    url: '/project/admin/category/update',
+    method: 'post',
+    data
+  })
+}
+
+// 删除项目分类
+export function deleteCategoryAPI(categoryId) {
+  return request({
+    url: `/project/admin/category/${categoryId}`,
+    method: 'delete'
+  })
+}
+

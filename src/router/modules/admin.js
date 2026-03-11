@@ -64,6 +64,37 @@ export default [
           role: 'admin'
         }
       }
+      ,
+      {
+        path: 'project-review',
+        name: 'AdminProjectReview',
+        component: () => import('@/views/admin/ProjectReview/index.vue'),
+        meta: {
+          title: '项目审核管理',
+          requiresAuth: true,
+          roles: [3]
+        }
+      },
+      {
+        path: 'enterprise-review',
+        name: 'AdminEnterpriseReview',
+        component: () => import('@/views/admin/EnterpriseReview/index.vue'),
+        meta: {
+          title: '企业资质审核',
+          requiresAuth: true,
+          roles: [3]
+        }
+      },
+      {
+        path: 'category-management',
+        name: 'AdminCategoryManagement',
+        component: () => import('@/views/admin/CategoryManagement/index.vue'),
+        meta: {
+          title: '项目分类管理',
+          requiresAuth: true,
+          roles: [3]
+        }
+      }
     ]
   }
 ]
