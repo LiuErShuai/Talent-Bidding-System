@@ -94,7 +94,19 @@ const fetchData = async () => {
       pageNum: pagination.currentPage,
       pageSize: pagination.pageSize
     })
-    tableData.value = res.data.enterprises || []
+    // 映射 API 返回的数据结构到表格需要的格式
+    const list = res.data.list || []
+    tableData.value = list.map(item => ({
+      enterpriseId: item.userId,
+      enterpriseName: item.enterpriseName || '未填写',
+      creditCode: item.creditCode,
+      contactName: item.contactName || '未填写',
+      contactPhone: item.contactPhone || '未填写',
+      createdAt: item.submitTime,
+      qualificationFiles: item.qualificationFiles || [],
+      certificationStatus: item.certificationStatus,
+      rejectReason: item.rejectReason
+    }))
     pagination.total = res.data.total || 0
   } catch (error) {
     ElMessage.error('加载数据失败')
