@@ -6,8 +6,6 @@
         <aside class="sidebar">
           <div class="sidebar-title">企业中心</div>
           <button class="sidebar-item" :class="{ active: activeSection === 'overview' }" @click="activeSection = 'overview'">概览</button>
-          <button class="sidebar-item" :class="{ active: activeSection === 'contact' }" @click="activeSection = 'contact'">联系人</button>
-          <button class="sidebar-item" :class="{ active: activeSection === 'business' }" @click="activeSection = 'business'">业务与需求</button>
           <button class="sidebar-item" :class="{ active: activeSection === 'cert' }" @click="activeSection = 'cert'">资质文件</button>
         </aside>
 
@@ -26,11 +24,22 @@
                     <span class="role-tag">企业</span>
                     <span class="status-tag" :class="enterpriseInfo.certStatusClass">{{ enterpriseInfo.certStatusText }}</span>
                   </div>
-                  <p class="hero-desc">{{ enterpriseInfo.intro }}</p>
-                  <div class="hero-tags">
-                    <span class="tag" v-for="tag in displayTags" :key="tag">{{ tag }}</span>
-                    <span v-if="!displayTags.length" class="tag ghost">暂无标签</span>
+                  <div v-if="!editMode" class="hero-desc">{{ enterpriseInfo.companyIntro }}</div>
+                  <div v-else class="hero-desc">
+                    <el-input type="textarea" v-model="formData.companyIntro" placeholder="企业简介" rows="3"></el-input>
                   </div>
+                  <div class="hero-tags">
+                    <template v-if="!editMode">
+                      <span class="tag" v-for="tag in displayTags" :key="tag">{{ tag }}</span>
+                      <span v-if="!displayTags.length" class="tag ghost">暂无标签</span>
+                    </template>
+                    <template v-else>
+                      <el-input v-model="tagsString" placeholder="标签，使用逗号分隔"></el-input>
+                    </template>
+                  </div>
+                  <el-button type="primary" size="small" @click="toggleEdit">{{ editMode ? '取消' : '编辑' }}</el-button>
+                  <el-button v-if="editMode" type="success" size="small" @click="saveProfile">保存</el-button>
+                  <el-button v-if="!editMode && enterpriseInfo.certStatusText !== '已认证'" type="warning" size="small" @click="submitCertification">提交认证</el-button>
                 </div>
               </div>
               <div class="hero-stats">
@@ -53,15 +62,6 @@
               </div>
             </div>
 
-            <div class="card">
-              <div class="card-header">
-                <h2>企业介绍</h2>
-              </div>
-              <p class="intro-text">
-                {{ enterpriseInfo.companyBrief }}
-              </p>
-            </div>
-
             <div class="grid">
               <div class="card">
                 <div class="card-header">
@@ -73,82 +73,38 @@
                     <span class="value">{{ enterpriseInfo.creditCode }}</span>
                   </div>
                   <div class="info-item">
-                    <span class="label">行业领域</span>
-                    <span class="value">{{ enterpriseInfo.industry }}</span>
+                    <span class="label">所属行业</span>
+                    <span class="value">{{ enterpriseInfo.companyIndustry }}</span>
                   </div>
                   <div class="info-item">
                     <span class="label">企业规模</span>
-                    <span class="value">{{ enterpriseInfo.scale }}</span>
+                    <span class="value">{{ enterpriseInfo.companyScale }}</span>
                   </div>
                   <div class="info-item">
                     <span class="label">所在地区</span>
-                    <span class="value">{{ enterpriseInfo.location }}</span>
+                    <span class="value">{{ enterpriseInfo.companyRegion }}</span>
                   </div>
                   <div class="info-item">
-                    <span class="label">官方网址</span>
-                    <a v-if="enterpriseInfo.website" class="value link" :href="enterpriseInfo.website" target="_blank" rel="noreferrer">
-                      {{ enterpriseInfo.website }}
-                    </a>
+                    <span class="label">官网链接</span>
+                    <a v-if="enterpriseInfo.companyWebsite" class="value link" :href="enterpriseInfo.companyWebsite" target="_blank" rel="noreferrer">{{ enterpriseInfo.companyWebsite }}</a>
                     <span v-else class="value">未填写</span>
                   </div>
                   <div class="info-item">
-                    <span class="label">成立年份</span>
-                    <span class="value">{{ enterpriseInfo.foundedYear }}</span>
+                    <span class="label">主要联系人</span>
+                    <span class="value">{{ enterpriseInfo.contactPerson || '未填写' }}</span>
                   </div>
                   <div class="info-item">
-                    <span class="label">注册资本</span>
-                    <span class="value">{{ enterpriseInfo.registeredCapital }}</span>
+                    <span class="label">联系人职务</span>
+                    <span class="value">{{ enterpriseInfo.contactPosition || '未填写' }}</span>
                   </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <!-- 联系人 -->
-          <section v-else-if="activeSection === 'contact'" class="section">
-            <div class="card">
-              <div class="card-header">
-                <h2>联系人与对接信息</h2>
-              </div>
-              <div class="info-list">
-                <div class="info-item">
-                  <span class="label">主要联系人</span>
-                  <span class="value">{{ enterpriseInfo.contactName }}</span>
-                </div>
-                <div class="info-item">
-                  <span class="label">联系人职务</span>
-                  <span class="value">{{ enterpriseInfo.contactTitle }}</span>
-                </div>
-                <div class="info-item">
-                  <span class="label">联系电话</span>
-                  <span class="value">{{ enterpriseInfo.contactPhone }}</span>
-                </div>
-                <div class="info-item">
-                  <span class="label">联系邮箱</span>
-                  <span class="value">{{ enterpriseInfo.contactEmail }}</span>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <!-- 业务与需求 -->
-          <section v-else-if="activeSection === 'business'" class="section">
-            <div class="card">
-              <div class="card-header">
-                <h2>业务与合作信息</h2>
-              </div>
-              <div class="info-list">
-                <div class="info-item">
-                  <span class="label">主营方向</span>
-                  <span class="value">{{ enterpriseInfo.businessFocus }}</span>
-                </div>
-                <div class="info-item">
-                  <span class="label">近期需求</span>
-                  <span class="value">{{ enterpriseInfo.recentNeeds }}</span>
-                </div>
-                <div class="info-item">
-                  <span class="label">合作偏好</span>
-                  <span class="value">{{ enterpriseInfo.cooperationPreference }}</span>
+                  <div class="info-item">
+                    <span class="label">联系电话</span>
+                    <span class="value">{{ enterpriseInfo.contactPhone || '未填写' }}</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="label">联系邮箱</span>
+                    <span class="value">{{ enterpriseInfo.contactEmail || '未填写' }}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -159,9 +115,12 @@
             <div class="card">
               <div class="card-header">
                 <h2>资质与文件</h2>
+                <el-upload :http-request="customUpload" multiple :show-file-list="false" accept=".pdf,.jpg,.jpeg,.png">
+                  <el-button type="primary" size="small">上传资质文件</el-button>
+                </el-upload>
               </div>
               <div class="cert-list">
-                <div v-if="enterpriseInfo.certifications.length" class="cert-chip" v-for="cert in enterpriseInfo.certifications" :key="cert">
+                <div v-if="enterpriseInfo.certifications && enterpriseInfo.certifications.length" class="cert-chip" v-for="(cert, index) in enterpriseInfo.certifications" :key="index">
                   {{ cert }}
                 </div>
                 <p v-else class="empty">暂未上传资质信息</p>
@@ -178,41 +137,37 @@
 import { computed, onMounted, ref } from 'vue'
 import { useAuthStore } from '@store/modules/auth'
 import { useUserStore } from '@store/modules/user'
+import { useEnterpriseStore } from '@store/modules/enterprise'
 
 const authStore = useAuthStore()
 const userStore = useUserStore()
+const enterpriseStore = useEnterpriseStore()
 
 // 左侧导航选中状态
 const activeSection = ref('overview')
 
-// 从 store 读取企业资料并提供兜底文案（填入演示用的完整假数据）
-const enterpriseInfo = computed(() => {
-  const profile = userStore.profile || {}
-  const info = authStore.userInfo || {}
+// 编辑模式
+const editMode = ref(false)
+const formData = ref({})
+const tagsString = ref('')
 
-  return {
-    name: profile.companyName || profile.enterpriseName || info.companyName || '星河数智科技有限公司',
-    creditCode: profile.creditCode || '1235456677',
-    industry: profile.industry || '人工智能 / 智慧城市 / 计算机软件',
-    scale: profile.scale || '500-1000人',
-    location: profile.location || '广西桂林电子科技大学',
-    website: profile.website || 'https://demo-enterprise.example.com',
-    contactName: profile.contactName || info.contactName || '李若晴',
-    contactTitle: profile.contactTitle || '产教融合负责人',
-    contactPhone: profile.contactPhone || info.phone || '138-0013-8000',
-    contactEmail: profile.contactEmail || info.email || 'partner@demo-enterprise.com',
-    intro: profile.companyIntro || profile.bio || '星河数智专注AI+教育与智慧城市，提供从大模型落地、数据中台到教学数字化的端到端解决方案，累计服务200+ 政企与高校场景。',
-    tags: profile.tags || profile.businessTags || ['AI大模型','智慧校园','城市物联','数据中台','SaaS交付','安全合规'],
-    businessFocus: profile.businessFocus || 'AI 应用落地、教育数字化平台、智慧城市物联平台研发',
-    recentNeeds: profile.recentNeeds || '面向高校共建“智能实训工厂”示范项目，寻求计算机视觉与数据治理方向团队合作；同步招聘算法实习生与前端实习生。',
-    cooperationPreference: profile.cooperationPreference || '优先长期共建与校企联合实验室，鼓励成果转化与联合申报课题。',
-    certifications: profile.certifications || ['CMMI3 研发体系','ISO27001 信息安全','高新技术企业','专精特新小巨人'],
-    certStatusText: profile.certStatusText || '认证通过',
-    certStatusClass: profile.certStatusClass || 'status-pass',
-    foundedYear: profile.foundedYear || '2017年',
-    registeredCapital: profile.registeredCapital || '5000万人民币',
-    companyBrief: profile.companyBrief || '星河数智是一家专注计算机软件与人工智能的技术公司，核心团队来自头部互联网与科研机构，提供从AI中台、数据治理到行业SaaS的全栈产品与交付服务，累计落地教育、城市物联、政企办公等200+场景，具备快速定制与安全合规的行业化能力。'
-  }
+// 从 store 读取企业资料
+const enterpriseInfo = computed(() => enterpriseStore.enterpriseInfo || {
+  name: '企业名称',
+  creditCode: '-',
+  companyIndustry: '-',
+  companyScale: '-',
+  companyRegion: '-',
+  companyWebsite: '-',
+  companyIntro: '企业简介',
+  tags: [],
+  contactPerson: '-',
+  contactPosition: '-',
+  contactPhone: '-',
+  contactEmail: '-',
+  certifications: [],
+  certStatusText: '未认证',
+  certStatusClass: 'status-pending'
 })
 
 // 展示标签
@@ -235,9 +190,64 @@ const enterpriseAvatar = computed(() => {
   return profile.logo || info.avatar || 'https://picsum.photos/seed/enterprise-logo/120/120'
 })
 
+// 切换编辑模式
+const toggleEdit = () => {
+  if (editMode.value) {
+    editMode.value = false
+  } else {
+    editMode.value = true
+    formData.value = {
+      companyIntro: enterpriseInfo.value.companyIntro || '',
+      companyTags: enterpriseInfo.value.tags || []
+    }
+    tagsString.value = (enterpriseInfo.value.tags || []).join(',')
+  }
+}
+
+// 保存企业资料
+const saveProfile = async () => {
+  const tags = tagsString.value.split(',').map(t => t.trim()).filter(Boolean)
+  await enterpriseStore.updateProfile({
+    companyIntro: formData.value.companyIntro,
+    companyTags: tags
+  })
+  editMode.value = false
+}
+
+// 提交认证
+const submitCertification = async () => {
+  const data = {
+    creditCode: enterpriseInfo.value.creditCode,
+    companyIndustry: enterpriseInfo.value.companyIndustry,
+    companyScale: enterpriseInfo.value.companyScale,
+    contactPerson: enterpriseInfo.value.contactPerson,
+    contactPosition: enterpriseInfo.value.contactPosition,
+    contactPhone: enterpriseInfo.value.contactPhone,
+    contactEmail: enterpriseInfo.value.contactEmail,
+    fileUrls: enterpriseInfo.value.certifications || []
+  }
+  await enterpriseStore.submitQualification(data)
+}
+
+// 自定义上传方法
+const customUpload = async ({ file }) => {
+  const url = await enterpriseStore.uploadFile(file)
+  if (url) {
+    // 将上传成功的文件 URL 添加到列表
+    if (!enterpriseStore.profile.certifications) {
+      enterpriseStore.profile.certifications = []
+    }
+    enterpriseStore.profile.certifications.push(url)
+  }
+}
+
 // 初次加载时拉取企业资料
-onMounted(() => {
-  userStore.fetchUserProfile()
+onMounted(async () => {
+  const userId = authStore.userInfo?.userId
+  if (userId) {
+    await enterpriseStore.fetchEnterpriseProfile(userId)
+  }
+  await userStore.fetchUserProfile()
 })
 </script>
 
