@@ -10,11 +10,25 @@
       stripe
       style="width: 100%"
     >
-      <el-table-column prop="enterpriseId" label="企业ID" width="100" />
+      <el-table-column label="企业ID" width="180">
+        <template #default="{ row }">
+          <div class="id-cell" @mouseenter="row.showCopy = true" @mouseleave="row.showCopy = false">
+            <span>{{ formatId(row.enterpriseId) }}</span>
+            <el-icon v-show="row.showCopy" class="copy-icon" @click="copyId(row.enterpriseId)">
+              <DocumentCopy />
+            </el-icon>
+          </div>
+        </template>
+      </el-table-column>
       <el-table-column prop="enterpriseName" label="企业名称" min-width="200" />
       <el-table-column prop="creditCode" label="统一社会信用代码" width="180" />
-      <el-table-column prop="contactName" label="联系人" width="120" />
-      <el-table-column prop="contactPhone" label="联系电话" width="130" />
+      <el-table-column label="认证状态" width="120">
+        <template #default="{ row }">
+          <el-tag :type="getStatusType(row.certificationStatus)">
+            {{ getStatusText(row.certificationStatus) }}
+          </el-tag>
+        </template>
+      </el-table-column>
       <el-table-column prop="createdAt" label="申请时间" width="180" />
       <el-table-column label="操作" width="280" fixed="right">
         <template #default="{ row }">
@@ -71,6 +85,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { DocumentCopy } from '@element-plus/icons-vue'
 import { getAdminPendingEnterprisesAPI, approveEnterpriseAPI, rejectEnterpriseAPI } from '@/api/project'
 
 const loading = ref(false)
@@ -163,6 +178,42 @@ const submitReject = async () => {
   }
 }
 
+// 格式化企业ID显示
+const formatId = (id) => {
+  if (!id || id.length <= 10) return id
+  return `${id.slice(0, 6)}...${id.slice(-4)}`
+}
+
+// 复制企业ID
+const copyId = async (id) => {
+  try {
+    await navigator.clipboard.writeText(id)
+    ElMessage.success('ID已复制')
+  } catch (error) {
+    ElMessage.error('复制失败')
+  }
+}
+
+// 获取状态标签类型
+const getStatusType = (status) => {
+  const typeMap = {
+    pending_review: 'warning',
+    uncertified: 'info',
+    certified: 'success'
+  }
+  return typeMap[status] || 'info'
+}
+
+// 获取状态文本
+const getStatusText = (status) => {
+  const textMap = {
+    pending_review: '待审核',
+    uncertified: '未认证',
+    certified: '已认证'
+  }
+  return textMap[status] || '未知'
+}
+
 onMounted(() => {
   fetchData()
 })
@@ -181,5 +232,21 @@ onMounted(() => {
   margin: 0;
   font-size: 24px;
   color: #303133;
+}
+
+.id-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.copy-icon {
+  cursor: pointer;
+  color: #409eff;
+  font-size: 16px;
+}
+
+.copy-icon:hover {
+  color: #66b1ff;
 }
 </style>
