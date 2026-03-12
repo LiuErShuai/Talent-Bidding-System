@@ -69,7 +69,7 @@ export function setupGuards(router) {
             next('/projects')
             break
           case 'admin':
-            next('/statistics')
+            next('/admin/dashboard')
             break
           default:
             next('/home')

@@ -1,99 +1,44 @@
 /**
- * 管理员模块路由
- * 包含管理员专属功能：项目初审、终审、中期答辩、数据中心、协议处理
+ * 管理员后台路由
+ * 使用独立的 AdminBackendLayout 布局，父级路径 /admin
  */
 
 export default [
-  // 使用 AdminLayout 的管理员页面
   {
-    path: '/',
-    component: () => import('@/layouts/AdminLayout.vue'),
+    path: '/admin',
+    component: () => import('@/layouts/AdminBackendLayout.vue'),
+    redirect: '/admin/dashboard',
+    meta: { requiresAuth: true, role: 'admin', transition: 'none' },
     children: [
       {
-        path: 'pre-review',
-        name: 'AdminPreReview',
-        component: () => import('@/views/admin/PreReview/index.vue'),
-        meta: {
-          title: '项目初审',
-          transition: 'fade',
-          requiresAuth: true,
-          role: 'admin'
-        }
+        path: 'dashboard',
+        name: 'AdminDashboard',
+        component: () => import('@/views/admin/Dashboard/index.vue'),
+        meta: { title: '仪表盘', requiresAuth: true, role: 'admin' }
       },
-      {
-        path: 'final-review',
-        name: 'AdminFinalReview',
-        component: () => import('@/views/admin/FinalReview/index.vue'),
-        meta: {
-          title: '项目终审',
-          transition: 'fade',
-          requiresAuth: true,
-          role: 'admin'
-        }
-      },
-      {
-        path: 'midterm-defense',
-        name: 'AdminMidtermDefense',
-        component: () => import('@/views/admin/MidtermDefense/index.vue'),
-        meta: {
-          title: '中期答辩',
-          transition: 'fade',
-          requiresAuth: true,
-          role: 'admin'
-        }
-      },
-      {
-        path: 'statistics',
-        name: 'AdminDataCenter',
-        component: () => import('@/views/admin/DataCenter/index.vue'),
-        meta: {
-          title: '数据中心',
-          transition: 'fade',
-          requiresAuth: true,
-          role: 'admin'
-        }
-      },
-      {
-        path: 'agreement-processing',
-        name: 'AdminAgreementProcessing',
-        component: () => import('@/views/admin/AgreementProcessing/index.vue'),
-        meta: {
-          title: '协议处理',
-          transition: 'fade',
-          requiresAuth: true,
-          role: 'admin'
-        }
-      }
-      ,
       {
         path: 'project-review',
         name: 'AdminProjectReview',
         component: () => import('@/views/admin/ProjectReview/index.vue'),
-        meta: {
-          title: '项目审核管理',
-          requiresAuth: true,
-          roles: [3]
-        }
+        meta: { title: '项目审核', requiresAuth: true, role: 'admin' }
       },
       {
         path: 'enterprise-review',
         name: 'AdminEnterpriseReview',
         component: () => import('@/views/admin/EnterpriseReview/index.vue'),
-        meta: {
-          title: '企业资质审核',
-          requiresAuth: true,
-          roles: [3]
-        }
+        meta: { title: '企业资质审核', requiresAuth: true, role: 'admin' }
       },
       {
         path: 'category-management',
         name: 'AdminCategoryManagement',
         component: () => import('@/views/admin/CategoryManagement/index.vue'),
-        meta: {
-          title: '项目分类管理',
-          requiresAuth: true,
-          roles: [3]
-        }
+        meta: { title: '分类管理', requiresAuth: true, role: 'admin' }
+      },
+      {
+        path: 'statistics',
+        name: 'AdminDataCenter',
+        component: () => import('@/views/admin/DataCenter/index.vue'),
+        meta: { title: '数据中心', requiresAuth: true, role: 'admin' }
       }
     ]
   }

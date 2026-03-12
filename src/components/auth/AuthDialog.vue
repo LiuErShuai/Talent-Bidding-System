@@ -62,13 +62,16 @@
               <span class="muted">还没有账号？</span>
               <el-link type="primary" @click="switchToRegister" title="去注册" aria-label="去注册">去注册</el-link>
             </div>
+            <div class="below-link" style="margin-top: 4px;">
+              <el-link type="info" @click="switchToAdminLogin">管理员登录</el-link>
+            </div>
           </el-form>
         </div>
       </div>
     </div>
 
     <!-- 注册表单 -->
-    <div v-else class="auth-content">
+    <div v-else-if="currentMode === 'register'" class="auth-content">
       <div class="auth-card register-card">
         <div class="auth-left">
           <img class="auth-illustration" src="@/assets/Register.jpg" alt="注册插画" />
@@ -156,6 +159,63 @@
         </div>
       </div>
     </div>
+
+    <!-- 管理员登录表单 -->
+    <div v-else-if="currentMode === 'admin-login'" class="auth-content">
+      <div class="auth-card admin-login-card">
+        <div class="auth-right" style="padding: 36px 40px;">
+          <button class="inline-close" @click="closeDialog" aria-label="关闭登录弹窗">✕</button>
+          <div class="auth-header" style="text-align: center;">
+            <h2 class="auth-title">管理员登录</h2>
+            <p class="auth-subtitle">揭榜挂帅系统 · 后台管理</p>
+          </div>
+
+          <el-form
+            ref="adminLoginForm"
+            :model="adminFormData"
+            :rules="adminLoginRules"
+            label-width="0"
+            label-position="top"
+            size="large"
+            class="auth-form"
+          >
+            <el-form-item label="用户名" prop="identifier">
+              <el-input
+                v-model="adminFormData.identifier"
+                placeholder="请输入管理员用户名"
+                clearable
+                prefix-icon="User"
+              />
+            </el-form-item>
+
+            <el-form-item label="密码" prop="credential">
+              <el-input
+                v-model="adminFormData.credential"
+                type="password"
+                show-password
+                placeholder="请输入密码"
+                clearable
+                prefix-icon="Lock"
+                @keyup.enter="handleAdminLogin"
+              />
+            </el-form-item>
+
+            <el-button
+              type="primary"
+              :loading="adminLoginLoading"
+              class="auth-submit"
+              @click="handleAdminLogin"
+            >
+              登录
+            </el-button>
+
+            <div class="below-link">
+              <el-link type="primary" @click="switchToLogin">返回普通登录</el-link>
+            </div>
+          </el-form>
+        </div>
+      </div>
+    </div>
   </el-dialog>
 </template>
 
@@ -199,7 +259,7 @@ const props = defineProps({
   defaultMode: {
     type: String,
     default: 'login',
-    validator: (value) => ['login', 'register'].includes(value)
+    validator: (value) => ['login', 'register', 'admin-login'].includes(value)
   }
 })
 
@@ -315,6 +375,63 @@ const switchToRegister = () => {
 const switchToLogin = () => {
   currentMode.value = 'login'
 }
+const switchToAdminLogin = () => {
+  currentMode.value = 'admin-login'
+}
+
+// 管理员登录
+const adminLoginLoading = ref(false)
+const adminLoginForm = ref(null)
+const adminFormData = ref({
+  identifier: '',
+  credential: ''
+})
+const adminLoginRules = {
+  identifier: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
+  credential: [{ required: true, message: '请输入密码', trigger: 'blur' }]
+}
+
+const handleAdminLogin = () => {
+  adminLoginForm.value.validate(async (valid) => {
+    if (!valid) return
+    adminLoginLoading.value = true
+    try {
+      const res = await loginAPI({
+        identityType: 'USERNAME',
+        identifier: adminFormData.value.identifier,
+        credential: adminFormData.value.credential
+      })
+
+      // 验证是否为管理员角色
+      const userType = res.data.type
+      if (userType !== '管理员' && String(userType) !== '3') {
+        ElMessage.error('该账号不是管理员，请使用普通登录')
+        return
+      }
+
+      const userData = {
+        userId: res.data.userId,
+        username: res.data.nickname,
+        nickname: res.data.nickname,
+        role: 'admin',
+        type: res.data.type,
+        avatar: res.data.avatarUrl || '',
+        avatarUrl: res.data.avatarUrl || ''
+      }
+      const token = res.data.authentication
+
+      ElMessage.success('管理员登录成功')
+      authStore.login(userData, token)
+      visible.value = false
+      emit('login-success', userData)
+    } catch (err) {
+      console.error('管理员登录错误:', err)
+      ElMessage.error(err?.info || err?.message || '登录失败')
+    } finally {
+      adminLoginLoading.value = false
+    }
+  })
+}
 
 // 登录
 const handleLogin = () => {
@@ -420,6 +537,7 @@ watch(visible, (newVal) => {
     currentMode.value = props.defaultMode
     if (loginForm.value) loginForm.value.resetFields()
     if (registerForm.value) registerForm.value.resetFields()
+    if (adminLoginForm.value) adminLoginForm.value.resetFields()
   }
 })
 </script>
@@ -622,6 +740,31 @@ watch(visible, (newVal) => {
 
 .below-link .muted {
   margin-right: 4px;
+}
+
+.admin-login-card {
+  width: 400px;
+  display: block;
+}
+
+.admin-login-card .auth-right {
+  background: #fff;
+  border-radius: 12px;
+}
+
+.admin-login-card .auth-title {
+  font-size: 22px;
+}
+
+.admin-login-card .auth-subtitle {
+  font-size: 13px;
+  margin: 6px 0 0 0;
+}
+
+.admin-login-card .auth-submit {
+  font-size: 15px;
+  border-radius: 8px;
+  margin-top: 8px;
 }
 </style>
 

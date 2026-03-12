@@ -337,29 +337,29 @@ export function rejectProjectAPI(data) {
   })
 }
 
-// 管理员获取待审核企业列表(占位)
+// 管理员获取待审核企业列表
 export function getAdminPendingEnterprisesAPI(params = {}) {
   return request({
-    url: '/user_management/admin/pending_enterprises',
+    url: '/user_management/admin/company/pending_review',
     method: 'get',
     params
   })
 }
 
-// 管理员审核通过企业(占位)
-export function approveEnterpriseAPI(enterpriseId) {
+// 管理员审核通过企业
+export function approveEnterpriseAPI(userId) {
   return request({
-    url: `/user_management/admin/approve_enterprise/${enterpriseId}`,
+    url: `/user_management/admin/company/approve/${userId}`,
     method: 'post'
   })
 }
 
-// 管理员拒绝企业(占位)
-export function rejectEnterpriseAPI(data) {
+// 管理员拒绝企业
+export function rejectEnterpriseAPI(userId, reason) {
   return request({
-    url: '/user_management/admin/reject_enterprise',
+    url: `/user_management/admin/company/reject/${userId}`,
     method: 'post',
-    data
+    data: { reason }
   })
 }
 

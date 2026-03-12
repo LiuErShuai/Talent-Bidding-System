@@ -170,12 +170,16 @@ const openAuthDialog = (mode = 'login') => {
   authDialogVisible.value = true
 }
 
-const handleLoginSuccess = () => {
-  if (pendingRedirect.value) {
+const handleLoginSuccess = (userData) => {
+  // 管理员登录优先跳转到管理后台，忽略 pendingRedirect
+  if (userData?.role === 'admin') {
+    router.push('/admin/dashboard')
+    pendingRedirect.value = ''
+  } else if (pendingRedirect.value) {
     router.push(pendingRedirect.value)
     pendingRedirect.value = ''
   } else {
-    // 登录成功后默认跳转到校内首页
+    // 普通用户登录后跳转到校内首页
     router.push('/campus-home')
   }
 }
