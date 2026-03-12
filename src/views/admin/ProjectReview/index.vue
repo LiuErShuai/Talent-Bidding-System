@@ -10,9 +10,25 @@
       stripe
       style="width: 100%"
     >
-      <el-table-column prop="projectId" label="项目编号" width="100" />
+      <el-table-column label="项目编号" width="180">
+        <template #default="{ row }">
+          <div class="id-cell" @mouseenter="row.showCopy = true" @mouseleave="row.showCopy = false">
+            <span>{{ formatId(row.projectId) }}</span>
+            <el-icon v-show="row.showCopy" class="copy-icon" @click="copyId(row.projectId)">
+              <DocumentCopy />
+            </el-icon>
+          </div>
+        </template>
+      </el-table-column>
       <el-table-column prop="title" label="项目标题" min-width="200" />
       <el-table-column prop="enterpriseName" label="发布企业" width="150" />
+      <el-table-column label="项目状态" width="120">
+        <template #default="{ row }">
+          <el-tag :type="getStatusType(row.status)">
+            {{ getStatusText(row.status) }}
+          </el-tag>
+        </template>
+      </el-table-column>
       <el-table-column prop="budget" label="预算(元)" width="120" />
       <el-table-column prop="createdAt" label="申请时间" width="180" />
       <el-table-column label="操作" width="280" fixed="right">
@@ -70,6 +86,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { DocumentCopy } from '@element-plus/icons-vue'
 import { getAdminPendingProjectsAPI, approveProjectAPI, rejectProjectAPI } from '@/api/project'
 
 const loading = ref(false)
@@ -150,6 +167,44 @@ const submitReject = async () => {
   }
 }
 
+// 格式化项目ID显示
+const formatId = (id) => {
+  if (!id || id.length <= 10) return id
+  return `${id.slice(0, 6)}...${id.slice(-4)}`
+}
+
+// 复制项目ID
+const copyId = async (id) => {
+  try {
+    await navigator.clipboard.writeText(id)
+    ElMessage.success('ID已复制')
+  } catch (error) {
+    ElMessage.error('复制失败')
+  }
+}
+
+// 获取状态标签类型
+const getStatusType = (status) => {
+  const typeMap = {
+    pending_review: 'warning',
+    approved: 'success',
+    rejected: 'danger',
+    draft: 'info'
+  }
+  return typeMap[status] || 'info'
+}
+
+// 获取状态文本
+const getStatusText = (status) => {
+  const textMap = {
+    pending_review: '待审核',
+    approved: '已通过',
+    rejected: '已拒绝',
+    draft: '草稿'
+  }
+  return textMap[status] || '未知'
+}
+
 onMounted(() => {
   fetchData()
 })
@@ -168,5 +223,21 @@ onMounted(() => {
   margin: 0;
   font-size: 24px;
   color: #303133;
+}
+
+.id-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.copy-icon {
+  cursor: pointer;
+  color: #409eff;
+  font-size: 16px;
+}
+
+.copy-icon:hover {
+  color: #66b1ff;
 }
 </style>
