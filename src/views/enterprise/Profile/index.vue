@@ -37,29 +37,13 @@
                       <el-input v-model="tagsString" placeholder="标签，使用逗号分隔"></el-input>
                     </template>
                   </div>
-                  <el-button type="primary" size="small" @click="toggleEdit">{{ editMode ? '取消' : '编辑' }}</el-button>
-                  <el-button v-if="editMode" type="success" size="small" @click="saveProfile">保存</el-button>
-                  <el-button v-if="!editMode && enterpriseInfo.certStatusText !== '已认证'" type="warning" size="small" @click="submitCertification">提交认证</el-button>
                 </div>
               </div>
-              <div class="hero-stats">
-                <div class="stat">
-                  <div class="num">{{ stats.published }}</div>
-                  <div class="label">已发布</div>
-                </div>
-                <div class="stat">
-                  <div class="num">{{ stats.running }}</div>
-                  <div class="label">进行中</div>
-                </div>
-                <div class="stat">
-                  <div class="num">{{ stats.completed }}</div>
-                  <div class="label">已完成</div>
-                </div>
-                <div class="stat">
-                  <div class="num">{{ stats.satisfaction }}%</div>
-                  <div class="label">满意度</div>
-                </div>
-              </div>
+                  <div class="hero-actions" style="display:flex; flex-direction:column; gap:8px;">
+      <el-button type="primary" size="small" @click="toggleEdit">{{ editMode ? '取消' : '编辑' }}</el-button>
+      <el-button v-if="editMode" type="success" size="small" @click="saveProfile">保存</el-button>
+      <el-button v-if="!editMode" type="warning" size="small" @click="submitCertification">{{ enterpriseInfo.certStatusText !== '已认证' ? '提交认证' : '重新认证' }}</el-button>
+    </div>
             </div>
 
             <div class="grid">
@@ -115,9 +99,6 @@
             <div class="card">
               <div class="card-header">
                 <h2>资质与文件</h2>
-                <el-upload :http-request="customUpload" multiple :show-file-list="false" accept=".pdf,.jpg,.jpeg,.png">
-                  <el-button type="primary" size="small">上传资质文件</el-button>
-                </el-upload>
               </div>
               <div class="cert-list">
                 <div v-if="enterpriseInfo.certifications && enterpriseInfo.certifications.length" class="cert-chip" v-for="(cert, index) in enterpriseInfo.certifications" :key="index">
