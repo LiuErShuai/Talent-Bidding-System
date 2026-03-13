@@ -37,7 +37,12 @@
       "Bash(grep:*)",
       "Bash(npx vite:*)",
       "Bash(sed:*)",
-      "Bash(pkill:*)"
+      "Bash(pkill:*)",
+      "Bash(cd \"E:\\\\Code\\\\产教融合项目\\\\揭榜挂帅前端\\\\Talent-Bidding-System-master\" && sed -i '488s/500 \\\\* 1024 \\\\* 1024/10 * 1024 * 1024/' src/components/common/MilestoneDetailPanel.vue)",
+      "Bash(cd \"E:\\\\Code\\\\产教融合项目\\\\揭榜挂帅前端\\\\Talent-Bidding-System-master\" && sed -i '490s/500 MB/10 MB/' src/components/common/MilestoneDetailPanel.vue)",
+      "Bash(cd \"E:\\\\Code\\\\产教融合项目\\\\揭榜挂帅前端\\\\Talent-Bidding-System-master\" && sed -i '491s/return$/return false/' src/components/common/MilestoneDetailPanel.vue)",
+      "Bash(cd \"E:\\\\Code\\\\产教融合项目\\\\揭榜挂帅前端\\\\Talent-Bidding-System-master\" && sed -i '493,494d' src/components/common/MilestoneDetailPanel.vue)",
+      "Bash(cd \"E:\\\\Code\\\\产教融合项目\\\\揭榜挂帅前端\\\\Talent-Bidding-System-master\" && sed -i '493a\\\\\\\\nfunction handleFileRemove\\(file\\) {\\\\n  const index = fileList.value.findIndex\\(f => f.uid === file.uid\\)\\\\n  if \\(index > -1\\) {\\\\n    fileList.value.splice\\(index, 1\\)\\\\n  }\\\\n}' src/components/common/MilestoneDetailPanel.vue)"
     ],
     "deny": [],
     "ask": []

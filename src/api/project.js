@@ -257,6 +257,18 @@ export function skipMilestoneAPI(data) {
   })
 }
 
+// 上传里程碑交付物文件
+export function uploadMilestoneDeliverableFileAPI(formData) {
+  return request({
+    url: '/milestone/deliverable/files/upload',
+    method: 'post',
+    data: formData,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
+
 // 切换项目关注状态
 export function toggleFavoriteProjectAPI(projectId) {
   return request({

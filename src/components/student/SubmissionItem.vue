@@ -4,8 +4,8 @@
       <el-icon class="file-icon"><Document /></el-icon>
       <span class="submission-name">{{ submission.fileName }}</span>
       <span class="submission-meta-inline">
-        <span>{{ submission.uploadTime }}</span>
-        <span>{{ submission.fileSize }}</span>
+        <span>{{ formatDate(submission.uploadTime) }}</span>
+        <span>{{ formatFileSize(submission.fileSize) }}</span>
       </span>
       <el-icon class="download-icon" @click="$emit('download', submission)"><Download /></el-icon>
     </div>
@@ -26,6 +26,22 @@ const props = defineProps({
 })
 
 defineEmits(['view', 'download'])
+
+// 格式化日期：YYYY-MM-DD
+const formatDate = (dateStr) => {
+  if (!dateStr) return ''
+  const date = new Date(dateStr)
+  return date.toISOString().split('T')[0]
+}
+
+// 格式化文件大小：B/KB/MB
+const formatFileSize = (bytes) => {
+  if (!bytes || bytes === 0) return '0 B'
+  const k = 1024
+  if (bytes < k) return bytes + ' B'
+  if (bytes < k * k) return (bytes / k).toFixed(2) + ' KB'
+  return (bytes / (k * k)).toFixed(2) + ' MB'
+}
 </script>
 
 <style scoped>

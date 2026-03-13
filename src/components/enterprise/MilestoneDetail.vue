@@ -436,20 +436,49 @@ const canEdit = computed(() => {
   return props.milestone.status !== 'completed'
 })
 
+// 解析并获取所有提交文件（去重并按时间倒序）
+const allSubmissions = computed(() => {
+  // 优先使用 submissions 字段
+  if (props.milestone.submissions && props.milestone.submissions.length > 0) {
+    return props.milestone.submissions
+  }
+
+  // 解析 deliverableFiles JSON字符串
+  if (props.milestone.deliverableFiles) {
+    try {
+      const files = JSON.parse(props.milestone.deliverableFiles)
+      if (!Array.isArray(files)) return []
+
+      // 去重：使用 Map 以文件名+上传时间为key
+      const uniqueMap = new Map()
+      files.forEach(file => {
+        const key = `${file.fileName}_${file.uploadTime}`
+        if (!uniqueMap.has(key)) {
+          uniqueMap.set(key, file)
+        }
+      })
+
+      // 转为数组并按时间倒序排列
+      return Array.from(uniqueMap.values()).sort((a, b) => {
+        return new Date(b.uploadTime) - new Date(a.uploadTime)
+      })
+    } catch (e) {
+      console.error('解析 deliverableFiles 失败:', e)
+      return []
+    }
+  }
+
+  return []
+})
+
 // 最新提交
 const latestSubmission = computed(() => {
-  if (!props.milestone.submissions || props.milestone.submissions.length === 0) {
-    return null
-  }
-  return props.milestone.submissions[0]
+  return allSubmissions.value[0] || null
 })
 
 // 历史提交
 const historySubmissions = computed(() => {
-  if (!props.milestone.submissions || props.milestone.submissions.length <= 1) {
-    return []
-  }
-  return props.milestone.submissions.slice(1)
+  return allSubmissions.value.slice(1)
 })
 
 // 【V2.0功能】意见反馈相关逻辑 - 当前版本暂不实现

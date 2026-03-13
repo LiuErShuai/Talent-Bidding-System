@@ -202,7 +202,7 @@
                 v-if="milestone?.status === 'pending' || milestone?.status === 'in-progress'"
                 type="primary"
                 size="small"
-                @click="handleUpload"
+                @click="openUploadDialog(milestone)"
               >
                 <el-icon><Upload /></el-icon>
                 上传交付物
@@ -210,40 +210,73 @@
             </div>
           </div>
 
-          <!-- 最新提交 -->
-          <div v-if="latestSubmission" class="latest-submission">
+          <!-- 所有提交（按时间倒序） -->
+          <div v-if="allSubmissions.length > 0" class="all-submissions">
             <submission-item
-              :submission="latestSubmission"
-              @download="handleDownload"
-              @view="handleViewSubmission"
-            />
-          </div>
-
-          <el-empty v-if="!latestSubmission" description="暂未提交文件" :image-size="40" />
-
-          <!-- 历史提交 -->
-          <div v-if="historySubmissions.length > 0" class="history-submissions">
-            <div class="section-header">
-              <h4 class="section-title">历史提交</h4>
-            </div>
-            <submission-item
-              v-for="sub in historySubmissions"
+              v-for="sub in allSubmissions"
               :key="sub.id"
               :submission="sub"
               @download="handleDownload"
               @view="handleViewSubmission"
             />
           </div>
+
+          <el-empty v-else description="暂未提交文件" :image-size="40" />
         </div>
       </div>
     </div>
 
   </div>
+<el-dialog
+  v-model="uploadDialogVisible"
+  :title="`上传交付物 - ${props.milestone?.title || ''}`"
+  width="600px"
+  :close-on-click-modal="false"
+>
+  <el-form :model="uploadForm" label-width="80px">
+    <!-- 选择文件 -->
+    <el-form-item label="选择文件" required>
+      <el-upload
+        class="upload-demo"
+        drag
+        :auto-upload="false"
+        :on-change="handleFileChange"
+        :on-remove="handleFileRemove"
+        :file-list="fileList"
+        multiple
+      >
+        <i class="el-icon el-icon--upload"><Upload /></i>
+        <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+        <template #tip>
+          <div class="el-upload__tip">支持上传 PDF、Word、Excel、压缩包等文件，单个文件不超过 500 MB</div>
+        </template>
+      </el-upload>
+    </el-form-item>
+    <!-- 版本说明 -->
+    <!--
+    <el-form-item label="版本说明" required>
+      <el-input
+        v-model="uploadForm.versionNote"
+        type="textarea"
+        :rows="3"
+        placeholder="请说明本次提交的主要修改内容或特点..."
+        maxlength="500"
+        show-word-limit
+      />
+    </el-form-item>
+    -->
+  </el-form>
+  <template #footer>
+    <el-button @click="uploadDialogVisible = false">取消</el-button>
+    <el-button type="primary" @click="handleConfirmUpload">确认上传</el-button>
+  </template>
+</el-dialog>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
+import { useMilestoneUploadStore } from '@/store/modules/milestoneUpload'
 import {
   ArrowRight,
   Document,
@@ -253,6 +286,7 @@ import {
   Download
 } from '@element-plus/icons-vue'
 import SubmissionItem from '@/components/student/SubmissionItem.vue'
+import { uploadMilestoneDeliverableFileAPI, submitMilestoneDeliverableAPI } from '@/api/project'
 
 const props = defineProps({
   milestone: {
@@ -269,7 +303,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['prev', 'next', 'upload', 'viewSubmission'])
+const emit = defineEmits(['prev', 'next', 'upload', 'viewSubmission', 'refresh'])
 
 // 任务文件展开/收起状态 - 默认折叠
 const taskFilesExpanded = ref(false)
@@ -377,20 +411,35 @@ const remainingTimeClass = computed(() => {
   }
 })
 
-// 最新提交
-const latestSubmission = computed(() => {
+// 所有提交（去重并按时间倒序）
+const allSubmissions = computed(() => {
   if (!props.milestone?.submissions || props.milestone.submissions.length === 0) {
-    return null
-  }
-  return props.milestone.submissions[0]
-})
-
-// 历史提交
-const historySubmissions = computed(() => {
-  if (!props.milestone?.submissions || props.milestone.submissions.length <= 1) {
     return []
   }
-  return props.milestone.submissions.slice(1)
+
+  // 去重：使用 Map 以文件名+上传时间为key
+  const uniqueMap = new Map()
+  props.milestone.submissions.forEach(sub => {
+    const key = `${sub.fileName}_${sub.uploadTime}`
+    if (!uniqueMap.has(key)) {
+      uniqueMap.set(key, sub)
+    }
+  })
+
+  // 转为数组并按时间倒序排列
+  return Array.from(uniqueMap.values()).sort((a, b) => {
+    return new Date(b.uploadTime) - new Date(a.uploadTime)
+  })
+})
+
+// 最新提交（已废弃，保留兼容性）
+const latestSubmission = computed(() => {
+  return allSubmissions.value[0] || null
+})
+
+// 历史提交（已废弃，保留兼容性）
+const historySubmissions = computed(() => {
+  return []
 })
 
 // 排序后的反馈（新到旧）
@@ -417,14 +466,119 @@ const handleViewSubmission = (submission) => emit('viewSubmission', submission)
 
 // 下载文件
 function handleDownload(submission) {
+  const fileUrl = submission.fileUrl || submission.deliverableUrl
+  if (!fileUrl) {
+    ElMessage.error('文件地址不存在')
+    return
+  }
+
+  const fullUrl = `http://localhost:8091${fileUrl}`
+  const link = document.createElement('a')
+  link.href = fullUrl
+  link.download = submission.fileName
+  link.style.display = 'none'
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+
   ElMessage.success(`开始下载：${submission.fileName}`)
-  console.log('下载文件：', submission)
 }
 
 // 下载任务文件
 function handleDownloadTaskFile(file) {
   ElMessage.success(`开始下载：${file.name}`)
   console.log('下载任务文件：', file)
+}
+
+// ---------- 上传交付物相关 ----------
+const uploadDialogVisible = ref(false)
+const currentMilestoneId = ref(null)
+const uploadForm = ref({ file: null, versionNote: '' })
+const fileList = ref([])
+const isUploading = ref(false)
+
+function openUploadDialog(milestone) {
+  currentMilestoneId.value = milestone.id
+  uploadForm.value = { file: null, versionNote: '' }
+  fileList.value = []
+  uploadDialogVisible.value = true
+}
+
+function handleFileChange(file, uploadFiles) {
+  const maxSize = 500 * 1024 * 1024
+  if (file.size > maxSize) {
+    ElMessage.warning(`文件 ${file.name} 超过 500 MB 限制`)
+    return false
+  }
+  fileList.value = uploadFiles
+}
+
+function handleFileRemove(file) {
+  const index = fileList.value.findIndex(f => f.uid === file.uid)
+  if (index > -1) {
+    fileList.value.splice(index, 1)
+  }
+}
+
+const uploadStore = useMilestoneUploadStore()
+
+async function handleConfirmUpload() {
+  if (isUploading.value) {
+    return
+  }
+
+  if (!fileList.value || fileList.value.length === 0) {
+    ElMessage.warning('请选择要上传的文件')
+    return
+  }
+  // if (!uploadForm.value.versionNote) {
+  //   ElMessage.warning('请填写版本说明')
+  //   return
+  // }
+
+  isUploading.value = true
+  const loading = ElMessage.info({ message: '正在上传文件...', duration: 0 })
+
+  try {
+    // 循环上传所有文件并提交
+    for (const file of fileList.value) {
+      // 1. 上传文件获取 URL
+      const formData = new FormData()
+      formData.append('milestoneId', currentMilestoneId.value)
+      formData.append('file', file.raw)
+
+      const uploadResp = await uploadMilestoneDeliverableFileAPI(formData)
+      if (uploadResp.code !== '0000') throw new Error(uploadResp.info || `文件 ${file.name} 上传失败`)
+
+      // 2. 提交交付物（传递完整文件信息）
+      const submitResp = await submitMilestoneDeliverableAPI({
+        milestoneId: currentMilestoneId.value,
+        fileName: file.name,
+        deliverableUrl: uploadResp.data,
+        fileSize: file.size,
+        remark: uploadForm.value.versionNote
+      })
+
+      if (submitResp.code !== '0000') throw new Error(submitResp.info || `文件 ${file.name} 提交失败`)
+    }
+
+    // 3. 更新本地状态
+    const milestone = props.milestone
+    milestone.status = 'delivered'
+
+    loading.close()
+    ElMessage.success(`成功提交 ${fileList.value.length} 个文件`)
+    uploadDialogVisible.value = false
+
+    // 刷新页面数据
+    emit('refresh')
+  } catch (e) {
+    loading.close()
+    console.error('提交里程碑交付物失败', e)
+    ElMessage.error(e.message || '提交失败，请稍后重试')
+  } finally {
+    isUploading.value = false
+  }
 }
 </script>
 

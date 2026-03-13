@@ -233,6 +233,7 @@ import { mockProjectManageData, formatFileSize } from '@/mock/projectManage'
 
 // API 导入
 import { getProjectDetailAPI, getMilestonesByProjectAPI, getMilestoneDetailAPI } from '@/api/project'
+import { useMilestoneUploadStore } from '@/store/modules/milestoneUpload'
 
 // 数据映射工具导入
 import { mapProjectData, mapMilestoneData } from '@/utils/projectMapper'

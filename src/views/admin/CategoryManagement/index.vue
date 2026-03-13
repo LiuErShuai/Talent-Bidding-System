@@ -64,3 +64,139 @@
             />
           </el-select>
         </el-form-item>
+        <el-form-item label="描述" prop="description">
+          <el-input v-model="formData.description" type="textarea" :rows="3" placeholder="请输入分类描述" />
+        </el-form-item>
+        <el-form-item label="图标" prop="icon">
+          <el-input v-model="formData.icon" placeholder="请输入图标名称" />
+        </el-form-item>
+        <el-form-item label="排序" prop="sortOrder">
+          <el-input-number v-model="formData.sortOrder" :min="0" />
+        </el-form-item>
+        <el-form-item label="可见性" prop="isVisible">
+          <el-switch v-model="formData.isVisible" />
+        </el-form-item>
+        <el-form-item label="状态" prop="isActive">
+          <el-switch v-model="formData.isActive" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleSubmit">确定</el-button>
+      </template>
+    </el-dialog>
+  </div>
+</template>
+
+<script setup>
+import { ref, reactive, onMounted } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+
+const loading = ref(false)
+const tableData = ref([])
+const dialogVisible = ref(false)
+const isEdit = ref(false)
+const formRef = ref(null)
+
+const formData = reactive({
+  categoryId: null,
+  name: '',
+  parentId: null,
+  description: '',
+  icon: '',
+  sortOrder: 0,
+  isVisible: true,
+  isActive: true
+})
+
+const formRules = {
+  name: [{ required: true, message: '请输入分类名称', trigger: 'blur' }]
+}
+
+const fetchData = async () => {
+  loading.value = true
+  try {
+    // TODO: 调用API获取分类列表
+    tableData.value = []
+  } catch (error) {
+    ElMessage.error('获取数据失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+const handleCreate = () => {
+  isEdit.value = false
+  Object.assign(formData, {
+    categoryId: null,
+    name: '',
+    parentId: null,
+    description: '',
+    icon: '',
+    sortOrder: 0,
+    isVisible: true,
+    isActive: true
+  })
+  dialogVisible.value = true
+}
+
+const handleEdit = (row) => {
+  isEdit.value = true
+  Object.assign(formData, row)
+  dialogVisible.value = true
+}
+
+const handleSubmit = async () => {
+  if (!formRef.value) return
+  await formRef.value.validate(async (valid) => {
+    if (valid) {
+      try {
+        // TODO: 调用API保存数据
+        ElMessage.success(isEdit.value ? '编辑成功' : '创建成功')
+        dialogVisible.value = false
+        fetchData()
+      } catch (error) {
+        ElMessage.error('操作失败')
+      }
+    }
+  })
+}
+
+const handleDelete = async (row) => {
+  try {
+    await ElMessageBox.confirm('确定要删除该分类吗？', '提示', {
+      type: 'warning'
+    })
+    // TODO: 调用API删除数据
+    ElMessage.success('删除成功')
+    fetchData()
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error('删除失败')
+    }
+  }
+}
+
+onMounted(() => {
+  fetchData()
+})
+</script>
+
+<style scoped>
+.category-management {
+  padding: 20px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.page-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 500;
+}
+</style>
