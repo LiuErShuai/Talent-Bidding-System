@@ -21,7 +21,7 @@
         </template>
       </el-table-column>
       <el-table-column prop="title" label="项目标题" min-width="200" />
-      <el-table-column prop="enterpriseName" label="发布企业" width="150" />
+      <el-table-column prop="publisherName" label="发布企业" width="150" />
       <el-table-column label="项目状态" width="120">
         <template #default="{ row }">
           <el-tag :type="getStatusType(row.status)">
@@ -29,8 +29,8 @@
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="budget" label="预算(元)" width="120" />
-      <el-table-column prop="createdAt" label="申请时间" width="180" />
+      <el-table-column prop="budgetAmount" label="预算(元)" width="120" />
+      <el-table-column prop="createTime" label="申请时间" width="180" />
       <el-table-column label="操作" width="280" fixed="right">
         <template #default="{ row }">
           <el-button size="small" @click="handleViewDetail(row)">查看详情</el-button>
@@ -52,14 +52,37 @@
     />
 
     <!-- 详情对话框 -->
-    <el-dialog v-model="detailVisible" title="项目详情" width="60%">
+    <el-dialog v-model="detailVisible" title="项目详情" width="70%">
       <el-descriptions :column="2" border>
         <el-descriptions-item label="项目编号">{{ currentProject.projectId }}</el-descriptions-item>
-        <el-descriptions-item label="项目标题">{{ currentProject.title }}</el-descriptions-item>
-        <el-descriptions-item label="发布企业">{{ currentProject.enterpriseName }}</el-descriptions-item>
-        <el-descriptions-item label="预算">{{ currentProject.budget }} 元</el-descriptions-item>
-        <el-descriptions-item label="申请时间" :span="2">{{ currentProject.createdAt }}</el-descriptions-item>
+        <el-descriptions-item label="项目状态">
+          <el-tag :type="getStatusType(currentProject.status)">
+            {{ getStatusText(currentProject.status) }}
+          </el-tag>
+        </el-descriptions-item>
+        <el-descriptions-item label="项目标题" :span="2">{{ currentProject.title }}</el-descriptions-item>
+        <el-descriptions-item label="发布企业">{{ currentProject.publisherName }}</el-descriptions-item>
+        <el-descriptions-item label="企业ID">{{ currentProject.publisherId }}</el-descriptions-item>
+        <el-descriptions-item label="项目分类">{{ currentProject.categoryId || '未分类' }}</el-descriptions-item>
+        <el-descriptions-item label="技能等级">{{ currentProject.skillLevel || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="团队规模">{{ currentProject.teamSizeMin }}-{{ currentProject.teamSizeMax }}人</el-descriptions-item>
+        <el-descriptions-item label="项目周期">{{ currentProject.durationDays }}天</el-descriptions-item>
+        <el-descriptions-item label="预算类型">{{ currentProject.budgetType || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="预算金额">{{ currentProject.budgetAmount }} {{ currentProject.currency }}</el-descriptions-item>
+        <el-descriptions-item label="申请截止时间" :span="2">{{ currentProject.applicationDeadline }}</el-descriptions-item>
+        <el-descriptions-item label="预计开始日期">{{ currentProject.expectedStartDate }}</el-descriptions-item>
+        <el-descriptions-item label="预计结束日期">{{ currentProject.expectedEndDate }}</el-descriptions-item>
+        <el-descriptions-item label="创建时间">{{ currentProject.createTime }}</el-descriptions-item>
+        <el-descriptions-item label="更新时间">{{ currentProject.updateTime }}</el-descriptions-item>
+        <el-descriptions-item label="项目标签" :span="2">
+          <el-tag v-for="tag in (currentProject.tags || [])" :key="tag" style="margin-right: 8px">{{ tag }}</el-tag>
+          <span v-if="!currentProject.tags || currentProject.tags.length === 0">暂无标签</span>
+        </el-descriptions-item>
         <el-descriptions-item label="项目描述" :span="2">{{ currentProject.description }}</el-descriptions-item>
+        <el-descriptions-item label="项目要求" :span="2">{{ currentProject.requirements || '无特殊要求' }}</el-descriptions-item>
+        <el-descriptions-item v-if="currentProject.rejectReason" label="拒绝原因" :span="2">
+          <span style="color: #f56c6c">{{ currentProject.rejectReason }}</span>
+        </el-descriptions-item>
       </el-descriptions>
     </el-dialog>
 
@@ -87,7 +110,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { DocumentCopy } from '@element-plus/icons-vue'
-import { getAdminPendingProjectsAPI, approveProjectAPI, rejectProjectAPI } from '@/api/project'
+import { getAdminPendingProjectsAPI, approveProjectAPI, rejectProjectAPI, getAdminProjectDetailAPI } from '@/api/project'
 
 const loading = ref(false)
 const tableData = ref([])
@@ -110,7 +133,15 @@ const fetchData = async () => {
       pageNum: pagination.currentPage,
       pageSize: pagination.pageSize
     })
-    tableData.value = res.data.projects || []
+    const list = res.data.projects || []
+    tableData.value = list.map(item => ({
+      projectId: item.projectId,
+      title: item.title,
+      publisherName: item.publisherName,
+      status: item.status,
+      budgetAmount: item.budgetAmount,
+      createTime: item.createTime
+    }))
     pagination.total = res.data.total || 0
   } catch (error) {
     ElMessage.error('加载数据失败')
@@ -120,9 +151,14 @@ const fetchData = async () => {
 }
 
 // 查看详情
-const handleViewDetail = (row) => {
-  currentProject.value = row
-  detailVisible.value = true
+const handleViewDetail = async (row) => {
+  try {
+    const res = await getAdminProjectDetailAPI(row.projectId)
+    currentProject.value = res.data
+    detailVisible.value = true
+  } catch (error) {
+    ElMessage.error('加载项目详情失败')
+  }
 }
 
 // 审核通过

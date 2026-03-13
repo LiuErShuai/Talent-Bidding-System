@@ -413,6 +413,7 @@ import {
   ArrowRight
 } from '@element-plus/icons-vue'
 import SubmissionItem from './SubmissionItem.vue'
+import { approveMilestoneAPI } from '@/api/project'
 
 const props = defineProps({
   milestone: {
@@ -492,19 +493,33 @@ function handleSubmitFeedback() {
 */
 
 // 历史提交记录对话框
-function handleApprove() {
-  ElMessageBox.confirm(
-    '确认通过该里程碑节点吗？通过后将自动开启下一个里程碑。',
-    '确认通过',
-    {
-      confirmButtonText: '确认',
-      cancelButtonText: '取消',
-      type: 'success'
-    }
-  ).then(() => {
+async function handleApprove() {
+  try {
+    await ElMessageBox.confirm(
+      '确认通过该里程碑节点吗？通过后将自动开启下一个里程碑。',
+      '确认通过',
+      {
+        confirmButtonText: '确认',
+        cancelButtonText: '取消',
+        type: 'success'
+      }
+    )
+
+    // 调用审批 API
+    await approveMilestoneAPI({
+      milestoneId: props.milestone.id,
+      approved: true,
+      remark: '审批通过'
+    })
+
     ElMessage.success('里程碑已通过')
     emit('refresh')
-  }).catch(() => {})
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('审批里程碑失败', error)
+      ElMessage.error('审批失败，请重试')
+    }
+  }
 }
 
 // 获取状态类型

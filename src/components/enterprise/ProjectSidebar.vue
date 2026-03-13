@@ -121,6 +121,10 @@ function getBiddingStatusType() {
   if (props.project?.biddingStats?.selectedTeam) {
     return 'success'
   }
+  // 如果项目已发布且未超过截止时间，则进行中
+  if (isInBiddingPeriod()) {
+    return 'primary'
+  }
   // 如果有申请团队，则揭榜阶段进行中
   if (props.project?.biddingStats?.totalApplications > 0) {
     return 'primary'
@@ -134,10 +138,28 @@ function getBiddingStatusText() {
   if (props.project?.biddingStats?.selectedTeam) {
     return '已完成'
   }
+  // 如果项目已发布且未超过截止时间，显示进行中
+  if (isInBiddingPeriod()) {
+    return '进行中'
+  }
   if (props.project?.biddingStats?.totalApplications > 0) {
     return '进行中'
   }
   return '未开始'
+}
+
+// 判断是否在揭榜期内
+function isInBiddingPeriod() {
+  if (!props.project) return false
+  // 项目状态必须是已发布
+  const isPublished = props.project.status === 'bidding' || props.project.statusText === '已发布'
+  if (!isPublished) return false
+  // 检查是否未超过截止时间
+  const deadline = props.project.applicationDeadline
+  if (!deadline) return false
+  const now = new Date()
+  const deadlineDate = new Date(deadline)
+  return now < deadlineDate
 }
 </script>
 

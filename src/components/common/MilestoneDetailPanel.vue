@@ -199,7 +199,7 @@
             <h4 class="section-title">我的提交</h4>
             <div class="header-actions">
               <el-button
-                v-if="milestone?.status === 'in-progress'"
+                v-if="milestone?.status === 'pending' || milestone?.status === 'in-progress'"
                 type="primary"
                 size="small"
                 @click="handleUpload"

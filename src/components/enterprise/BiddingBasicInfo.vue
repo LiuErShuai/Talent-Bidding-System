@@ -121,6 +121,21 @@
         </div>
       </div>
     </div>
+
+    <!-- 项目详细信息 -->
+    <div class="detail-content">
+      <!-- 项目描述 -->
+      <div class="section">
+        <h3>■ 项目描述</h3>
+        <div class="description-text" style="white-space: pre-wrap;">{{ project.description || '暂无项目描述' }}</div>
+      </div>
+
+      <!-- 揭榜要求 -->
+      <div class="section">
+        <h3>■ 揭榜要求</h3>
+        <div class="description-text" style="white-space: pre-wrap;">{{ project.requirements || '暂无揭榜要求' }}</div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -491,5 +506,38 @@ function handleViewMilestone() {
   .status-card {
     grid-template-columns: 1fr;
   }
+}
+
+/* 项目详细信息 */
+.detail-content {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  margin-top: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.detail-content .section {
+  margin-bottom: 32px;
+}
+
+.detail-content .section:last-child {
+  margin-bottom: 0;
+}
+
+.detail-content .section h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #303133;
+  margin: 0 0 16px 0;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #e4e7ed;
+}
+
+.detail-content .description-text {
+  font-size: 14px;
+  line-height: 1.8;
+  color: #606266;
+  text-align: justify;
 }
 </style>

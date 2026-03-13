@@ -43,6 +43,21 @@
           @viewSubmission="handleViewSubmission"
         />
 
+        <!-- 项目详细信息 -->
+        <div v-if="project" class="detail-content">
+          <!-- 项目描述 -->
+          <div class="section">
+            <h3>■ 项目描述</h3>
+            <div class="description-text" style="white-space: pre-wrap;">{{ project.description || '暂无项目描述' }}</div>
+          </div>
+
+          <!-- 揭榜要求 -->
+          <div class="section">
+            <h3>■ 揭榜要求</h3>
+            <div class="description-text" style="white-space: pre-wrap;">{{ project.requirements || '暂无揭榜要求' }}</div>
+          </div>
+        </div>
+
         <!-- 里程碑时间线（保留原有组件作为备用） -->
         <milestone-timeline
           v-if="false"
@@ -213,8 +228,14 @@ import ProjectOverview from '@/components/common/ProjectOverview.vue'
 import MilestoneProgressBar from '@/components/common/MilestoneProgressBar.vue'
 import MilestoneDetailPanel from '@/components/common/MilestoneDetailPanel.vue'
 
-// Mock 数据导入
+// Mock 数据导入（降级使用）
 import { mockProjectManageData, formatFileSize } from '@/mock/projectManage'
+
+// API 导入
+import { getProjectDetailAPI, getMilestonesByProjectAPI, getMilestoneDetailAPI } from '@/api/project'
+
+// 数据映射工具导入
+import { mapProjectData, mapMilestoneData } from '@/utils/projectMapper'
 
 const route = useRoute()
 const projectId = route.params.id
@@ -261,17 +282,69 @@ const currentMilestone = computed(() => {
 async function fetchManageData() {
   loading.value = true
   try {
-    // 模拟API延迟
-    await new Promise(resolve => setTimeout(resolve, 800))
+    // 并发请求项目详情和里程碑列表
+    const [projectResult, milestonesResult] = await Promise.allSettled([
+      getProjectDetailAPI(projectId),
+      getMilestonesByProjectAPI(projectId)
+    ])
 
-    // 使用 Mock 数据
+    // 处理项目详情
+    if (projectResult.status === 'fulfilled') {
+      project.value = mapProjectData(projectResult.value.data)
+    } else {
+      throw new Error('加载项目详情失败')
+    }
+
+    // 处理里程碑列表
+    if (milestonesResult.status === 'fulfilled') {
+      const milestonesData = milestonesResult.value.data.milestones || []
+      milestones.value = milestonesData.map(mapMilestoneData)
+    } else {
+      milestones.value = []
+    }
+
+    // 自动选中当前进行中的里程碑，如果没有则选中第一个
+    const currentMilestone = milestones.value.find(m => m.status === 'in-progress')
+    if (currentMilestone) {
+      const index = milestones.value.findIndex(m => m.id === currentMilestone.id)
+      selectedMilestoneIndex.value = index
+      // 加载里程碑详情
+      try {
+        const detailRes = await getMilestoneDetailAPI(currentMilestone.id)
+        selectedMilestone.value = mapMilestoneData(detailRes.data)
+      } catch (error) {
+        console.error('加载里程碑详情失败', error)
+        selectedMilestone.value = currentMilestone
+      }
+    } else if (milestones.value.length > 0) {
+      selectedMilestoneIndex.value = 0
+      // 加载第一个里程碑详情
+      try {
+        const detailRes = await getMilestoneDetailAPI(milestones.value[0].id)
+        selectedMilestone.value = mapMilestoneData(detailRes.data)
+      } catch (error) {
+        console.error('加载里程碑详情失败', error)
+        selectedMilestone.value = milestones.value[0]
+      }
+    }
+
+    console.log('项目数据加载成功：', {
+      项目名称: project.value.name,
+      里程碑数量: milestones.value.length,
+      当前里程碑: currentMilestone?.title || '无'
+    })
+  } catch (error) {
+    ElMessage.error('加载项目数据失败，已切换为默认数据')
+    console.error(error)
+
+    // 降级到Mock数据
     const data = mockProjectManageData
     project.value = data.project
     milestones.value = data.milestones
     timelineEvents.value = data.timelineEvents
     reviewHistory.value = data.reviewHistory
 
-    // 自动选中当前进行中的里程碑，如果没有则选中第一个
+    // 自动选中当前进行中的里程碑
     const currentMilestone = milestones.value.find(m => m.status === 'in-progress')
     if (currentMilestone) {
       const index = milestones.value.findIndex(m => m.id === currentMilestone.id)
@@ -281,15 +354,6 @@ async function fetchManageData() {
       selectedMilestone.value = milestones.value[0]
       selectedMilestoneIndex.value = 0
     }
-
-    console.log('项目数据加载成功：', {
-      项目名称: project.value.name,
-      里程碑数量: milestones.value.length,
-      当前里程碑: currentMilestone?.title || '无'
-    })
-  } catch (error) {
-    ElMessage.error('加载项目数据失败')
-    console.error(error)
   } finally {
     loading.value = false
   }
@@ -395,16 +459,24 @@ function handleDownload(submission) {
 }
 
 // ========== 里程碑进度条交互 ==========
-function handleNodeClick(milestone) {
+async function handleNodeClick(milestone) {
   const index = milestones.value.findIndex(m => m.id === milestone.id)
-  selectedMilestone.value = milestone
   selectedMilestoneIndex.value = index
 
-  // 滚动到详情面板头部，考虑固定导航栏的高度
+  // 加载里程碑详情（获取文件列表）
+  try {
+    const res = await getMilestoneDetailAPI(milestone.id)
+    selectedMilestone.value = mapMilestoneData(res.data)
+  } catch (error) {
+    console.error('加载里程碑详情失败', error)
+    selectedMilestone.value = milestone
+  }
+
+  // 滚动到详情面板
   setTimeout(() => {
     const element = document.querySelector('.milestone-detail-panel')
     if (element) {
-      const headerOffset = 100 // 固定导航栏高度 + 额外间距
+      const headerOffset = 100
       const elementPosition = element.getBoundingClientRect().top
       const offsetPosition = elementPosition + window.pageYOffset - headerOffset
 
@@ -579,6 +651,39 @@ function handleNextMilestone() {
   align-items: center;
   gap: 8px;
   margin-top: 12px;
+}
+
+/* 项目详细信息 */
+.detail-content {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  margin-top: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.detail-content .section {
+  margin-bottom: 32px;
+}
+
+.detail-content .section:last-child {
+  margin-bottom: 0;
+}
+
+.detail-content .section h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #303133;
+  margin: 0 0 16px 0;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #e4e7ed;
+}
+
+.detail-content .description-text {
+  font-size: 14px;
+  line-height: 1.8;
+  color: #606266;
+  text-align: justify;
 }
 
 /* 响应式 */

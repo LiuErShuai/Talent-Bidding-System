@@ -185,6 +185,9 @@ function buildProjectModel(detailData, myProjectItem, bids) {
     statusText: mapProjectStatusText(detailData?.status),
     startDate: detailData?.expectedStartDate || detailData?.startDate || '',
     endDate: detailData?.expectedEndDate || detailData?.endDate || '',
+    applicationDeadline: detailData?.applicationDeadline || '',
+    description: detailData?.description || '',
+    requirements: detailData?.requirements || '',
     publisher: detailData?.publisherName || detailData?.enterpriseName || '--',
     publisherId: detailData?.publisherId || '',
     biddingStats: {

@@ -20,9 +20,16 @@
                 </div>
                 <div class="hero-info">
                   <div class="hero-title">
-                    <h1>{{ enterpriseInfo.name }}</h1>
-                    <span class="role-tag">企业</span>
-                    <span class="status-tag" :class="enterpriseInfo.certStatusClass">{{ enterpriseInfo.certStatusText }}</span>
+                    <div class="title-left">
+                      <h1>{{ enterpriseInfo.name }}</h1>
+                      <span class="role-tag">企业</span>
+                      <span class="status-tag" :class="enterpriseInfo.certStatusClass">{{ enterpriseInfo.certStatusText }}</span>
+                    </div>
+                    <div class="hero-actions">
+                      <el-button type="primary" size="small" @click="toggleEdit">{{ editMode ? '取消' : '编辑资料' }}</el-button>
+                      <el-button v-if="editMode" type="success" size="small" @click="saveProfile">保存</el-button>
+                      <el-button v-if="!editMode" type="warning" size="small" @click="submitCertification">{{ enterpriseInfo.certStatusText !== '已认证' ? '提交认证' : '重新认证' }}</el-button>
+                    </div>
                   </div>
                   <div v-if="!editMode" class="hero-desc">{{ enterpriseInfo.companyIntro }}</div>
                   <div v-else class="hero-desc">
@@ -39,17 +46,18 @@
                   </div>
                 </div>
               </div>
-                  <div class="hero-actions" style="display:flex; flex-direction:column; gap:8px;">
-      <el-button type="primary" size="small" @click="toggleEdit">{{ editMode ? '取消' : '编辑' }}</el-button>
-      <el-button v-if="editMode" type="success" size="small" @click="saveProfile">保存</el-button>
-      <el-button v-if="!editMode" type="warning" size="small" @click="submitCertification">{{ enterpriseInfo.certStatusText !== '已认证' ? '提交认证' : '重新认证' }}</el-button>
-    </div>
             </div>
 
             <div class="grid">
+              <!-- 认证信息（不可随意修改） -->
               <div class="card">
                 <div class="card-header">
-                  <h2>企业基础资料</h2>
+                  <h2>
+                    认证信息
+                    <el-icon v-if="enterpriseInfo.certStatusText === '已认证'" style="color: #52c41a; margin-left: 8px; font-size: 18px;">
+                      <SuccessFilled />
+                    </el-icon>
+                  </h2>
                 </div>
                 <div class="info-list">
                   <div class="info-item">
@@ -63,15 +71,6 @@
                   <div class="info-item">
                     <span class="label">企业规模</span>
                     <span class="value">{{ enterpriseInfo.companyScale }}</span>
-                  </div>
-                  <div class="info-item">
-                    <span class="label">所在地区</span>
-                    <span class="value">{{ enterpriseInfo.companyRegion }}</span>
-                  </div>
-                  <div class="info-item">
-                    <span class="label">官网链接</span>
-                    <a v-if="enterpriseInfo.companyWebsite" class="value link" :href="enterpriseInfo.companyWebsite" target="_blank" rel="noreferrer">{{ enterpriseInfo.companyWebsite }}</a>
-                    <span v-else class="value">未填写</span>
                   </div>
                   <div class="info-item">
                     <span class="label">主要联系人</span>
@@ -91,6 +90,34 @@
                   </div>
                 </div>
               </div>
+
+              <!-- 基本资料（可随意修改） -->
+              <div class="card">
+                <div class="card-header">
+                  <h2>基本资料</h2>
+                </div>
+                <div class="info-list">
+                  <div class="info-item">
+                    <span class="label">所在地区</span>
+                    <template v-if="!editMode">
+                      <span class="value">{{ enterpriseInfo.companyRegion }}</span>
+                    </template>
+                    <template v-else>
+                      <el-input v-model="formData.companyRegion" placeholder="企业所在地区" size="small" style="flex: 1"></el-input>
+                    </template>
+                  </div>
+                  <div class="info-item">
+                    <span class="label">官网链接</span>
+                    <template v-if="!editMode">
+                      <a v-if="enterpriseInfo.companyWebsite" class="value link" :href="enterpriseInfo.companyWebsite" target="_blank" rel="noreferrer">{{ enterpriseInfo.companyWebsite }}</a>
+                      <span v-else class="value">未填写</span>
+                    </template>
+                    <template v-else>
+                      <el-input v-model="formData.companyWebsite" placeholder="企业官网" size="small" style="flex: 1"></el-input>
+                    </template>
+                  </div>
+                </div>
+              </div>
             </div>
           </section>
 
@@ -100,9 +127,23 @@
               <div class="card-header">
                 <h2>资质与文件</h2>
               </div>
-              <div class="cert-list">
-                <div v-if="enterpriseInfo.certifications && enterpriseInfo.certifications.length" class="cert-chip" v-for="(cert, index) in enterpriseInfo.certifications" :key="index">
-                  {{ cert }}
+              <div class="file-grid">
+                <div v-if="enterpriseInfo.certifications && enterpriseInfo.certifications.length"
+                     class="file-card"
+                     v-for="(fileUrl, index) in enterpriseInfo.certifications"
+                     :key="index">
+                  <div class="file-icon">
+                    <el-icon :size="40" :color="getFileIconColor(fileUrl)">
+                      <component :is="getFileIcon(fileUrl)" />
+                    </el-icon>
+                  </div>
+                  <div class="file-info">
+                    <div class="file-name">{{ getFileName(fileUrl) }}</div>
+                    <div class="file-actions">
+                      <el-button link type="primary" size="small" @click="previewFile(fileUrl)">预览</el-button>
+                      <el-button link type="primary" size="small" @click="downloadFile(fileUrl)">下载</el-button>
+                    </div>
+                  </div>
                 </div>
                 <p v-else class="empty">暂未上传资质信息</p>
               </div>
@@ -132,23 +173,36 @@ const editMode = ref(false)
 const formData = ref({})
 const tagsString = ref('')
 
-// 从 store 读取企业资料
-const enterpriseInfo = computed(() => enterpriseStore.enterpriseInfo || {
-  name: '企业名称',
-  creditCode: '-',
-  companyIndustry: '-',
-  companyScale: '-',
-  companyRegion: '-',
-  companyWebsite: '-',
-  companyIntro: '企业简介',
-  tags: [],
-  contactPerson: '-',
-  contactPosition: '-',
-  contactPhone: '-',
-  contactEmail: '-',
-  certifications: [],
-  certStatusText: '未认证',
-  certStatusClass: 'status-pending'
+// 从 store 读取企业资料并映射字段
+const enterpriseInfo = computed(() => {
+  const raw = enterpriseStore.enterpriseInfo || {}
+
+  // 认证状态映射
+  const statusMap = {
+    'uncertified': { text: '未认证', class: 'status-pending' },
+    'pending_review': { text: '待审核', class: 'status-pending' },
+    'certified': { text: '已认证', class: 'status-pass' },
+    'rejected': { text: '已拒绝', class: 'status-pending' }
+  }
+  const status = statusMap[raw.certificationStatus] || { text: '未认证', class: 'status-pending' }
+
+  return {
+    name: raw.nickname || '企业名称',
+    creditCode: raw.creditCode || '-',
+    companyIndustry: raw.companyIndustry || '-',
+    companyScale: raw.companyScale || '-',
+    companyRegion: raw.companyRegion || '-',
+    companyWebsite: raw.companyWebsite || '-',
+    companyIntro: raw.companyIntro || '企业简介',
+    tags: raw.companyTags || [],
+    contactPerson: raw.contactPerson || '-',
+    contactPosition: raw.contactPosition || '-',
+    contactPhone: raw.contactPhone || '-',
+    contactEmail: raw.contactEmail || '-',
+    certifications: raw.qualificationFiles || [],
+    certStatusText: status.text,
+    certStatusClass: status.class
+  }
 })
 
 // 展示标签
@@ -179,7 +233,9 @@ const toggleEdit = () => {
     editMode.value = true
     formData.value = {
       companyIntro: enterpriseInfo.value.companyIntro || '',
-      companyTags: enterpriseInfo.value.tags || []
+      companyTags: enterpriseInfo.value.tags || [],
+      companyRegion: enterpriseInfo.value.companyRegion || '',
+      companyWebsite: enterpriseInfo.value.companyWebsite || ''
     }
     tagsString.value = (enterpriseInfo.value.tags || []).join(',')
   }
@@ -190,7 +246,9 @@ const saveProfile = async () => {
   const tags = tagsString.value.split(',').map(t => t.trim()).filter(Boolean)
   await enterpriseStore.updateProfile({
     companyIntro: formData.value.companyIntro,
-    companyTags: tags
+    companyTags: tags,
+    companyRegion: formData.value.companyRegion,
+    companyWebsite: formData.value.companyWebsite
   })
   editMode.value = false
 }
@@ -230,6 +288,40 @@ onMounted(async () => {
   }
   await userStore.fetchUserProfile()
 })
+
+// 获取文件图标
+const getFileIcon = (url) => {
+  const ext = url.split('.').pop().toLowerCase()
+  if (['pdf'].includes(ext)) return 'Document'
+  if (['jpg', 'jpeg', 'png', 'gif'].includes(ext)) return 'Picture'
+  return 'Document'
+}
+
+// 获取文件图标颜色
+const getFileIconColor = (url) => {
+  const ext = url.split('.').pop().toLowerCase()
+  if (['pdf'].includes(ext)) return '#f56c6c'
+  if (['jpg', 'jpeg', 'png', 'gif'].includes(ext)) return '#67c23a'
+  return '#909399'
+}
+
+// 获取文件名
+const getFileName = (url) => {
+  return url.split('/').pop()
+}
+
+// 预览文件
+const previewFile = (url) => {
+  window.open(url, '_blank')
+}
+
+// 下载文件
+const downloadFile = (url) => {
+  const link = document.createElement('a')
+  link.href = url
+  link.download = getFileName(url)
+  link.click()
+}
 </script>
 
 <style scoped>
@@ -347,6 +439,14 @@ onMounted(async () => {
 .hero-title {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.title-left {
+  display: flex;
+  align-items: center;
   gap: 10px;
   flex-wrap: wrap;
 }
@@ -355,6 +455,15 @@ onMounted(async () => {
   margin: 0;
   font-size: 22px;
   font-weight: 700;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.hero-actions .el-button {
+  min-width: 90px;
 }
 
 .role-tag {
@@ -438,7 +547,7 @@ onMounted(async () => {
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: 1fr;
   gap: 16px;
 }
 
@@ -515,6 +624,61 @@ onMounted(async () => {
   border: 1px solid #e5e9f2;
   color: #1f274b;
   font-weight: 600;
+}
+
+.file-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.file-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: #f9fbff;
+  border: 1px solid #e6eaf5;
+  border-radius: 12px;
+  transition: all 0.3s;
+}
+
+.file-card:hover {
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.file-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  background: #fff;
+  border-radius: 10px;
+  border: 1px solid #e5e9f2;
+}
+
+.file-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.file-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f274b;
+  margin-bottom: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-actions {
+  display: flex;
+  gap: 12px;
 }
 
 .empty {

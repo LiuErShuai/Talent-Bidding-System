@@ -15,6 +15,13 @@
               >
                 我承接的项目 ({{ projects.length }})
               </button>
+              <button
+                class="sidebar-item"
+                :class="{ active: activeModule === 'bids' }"
+                @click="activeModule = 'bids'"
+              >
+                我的揭榜 ({{ bids.length }})
+              </button>
             </div>
 
             <div class="sidebar-section">
@@ -136,6 +143,63 @@
 
                 <div v-if="projects.length === 0" class="empty-state">
                   暂无承接的项目
+                </div>
+              </div>
+            </div>
+
+            <!-- 我的揭榜模块 -->
+            <div v-else-if="activeModule === 'bids'">
+              <div class="section-header">
+                <h2 class="section-title">
+                  我的揭榜 ({{ bids.length }})
+                </h2>
+              </div>
+
+              <!-- 加载状态 -->
+              <div v-if="bidsLoading" class="loading-state">
+                <el-skeleton :rows="3" animated />
+              </div>
+
+              <!-- 错误状态 -->
+              <div v-else-if="bidsError" class="error-state">
+                <el-alert :title="bidsError" type="error" show-icon />
+              </div>
+
+              <div v-else class="project-list">
+                <article
+                  v-for="bid in bids"
+                  :key="bid.bidId"
+                  class="project-card"
+                  @click="viewBidDetail(bid)"
+                >
+                  <div class="project-card-main">
+                    <div class="project-card-header">
+                      <h3 class="project-name">{{ bid.projectTitle }}</h3>
+                      <span class="project-tag" :class="getBidStatusClass(bid.status)">
+                        {{ getBidStatusText(bid.status) }}
+                      </span>
+                    </div>
+
+                    <div class="project-meta-row">
+                      <span>发布方：{{ bid.publisherName }}</span>
+                      <span>团队：{{ bid.teamName }}</span>
+                      <span>申请时间：{{ formatDate(bid.createdAt) }}</span>
+                    </div>
+
+                    <div class="project-content-row">
+                      <button
+                        type="button"
+                        class="ghost-chip manage-btn"
+                        @click.stop.prevent="viewBidDetail(bid)"
+                      >
+                        查看详情
+                      </button>
+                    </div>
+                  </div>
+                </article>
+
+                <div v-if="bids.length === 0" class="empty-state">
+                  暂无揭榜记录
                 </div>
               </div>
             </div>
@@ -347,6 +411,62 @@
         </div>
       </div>
     </div>
+
+    <!-- 揭榜详情弹窗 -->
+    <div v-if="bidDialogVisible && selectedBid" class="team-dialog-overlay">
+      <div class="team-dialog">
+        <div class="team-dialog-header">
+          <div class="dialog-title-area">
+            <h3 class="dialog-title">{{ selectedBid.projectTitle }}</h3>
+            <span class="project-tag" :class="getBidStatusClass(selectedBid.status)">
+              {{ getBidStatusText(selectedBid.status) }}
+            </span>
+          </div>
+          <button class="close-btn" @click="closeBidDetail">×</button>
+        </div>
+
+        <div class="team-dialog-body">
+          <div class="dialog-section">
+            <h4>揭榜信息</h4>
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="info-label">团队名称</span>
+                <span class="info-value">{{ selectedBid.teamName }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">我的角色</span>
+                <span class="info-value">{{ getRoleText(selectedBid.currentUserRole) }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">申请时间</span>
+                <span class="info-value">{{ formatDate(selectedBid.createdAt) }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">更新时间</span>
+                <span class="info-value">{{ formatDate(selectedBid.updatedAt) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="dialog-section" v-if="selectedBid.content">
+            <h4>申请内容</h4>
+            <p class="dialog-text">{{ selectedBid.content }}</p>
+          </div>
+
+          <div class="dialog-section" v-if="selectedBid.attachmentUrl">
+            <h4>附件</h4>
+            <a :href="selectedBid.attachmentUrl" target="_blank" class="attachment-link">
+              查看附件
+            </a>
+          </div>
+
+          <div class="dialog-section" v-if="selectedBid.remark">
+            <h4>备注</h4>
+            <p class="dialog-text">{{ selectedBid.remark }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -355,6 +475,8 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStudentProjectStore } from '@/store/modules/studentProject'
 import { useUserStore } from '@/store'
+import { getMyBidsAPI, getBidDetailAPI } from '@/api/project'
+import { ElMessage } from 'element-plus'
 
 const router = useRouter()
 const studentProjectStore = useStudentProjectStore()
@@ -390,6 +512,13 @@ const currentTeams = computed(() => {
     ? studentProjectStore.ownedTeams
     : studentProjectStore.joinedTeams
 })
+
+// 揭榜相关状态
+const bids = ref([])
+const bidsLoading = ref(false)
+const bidsError = ref(null)
+const bidDialogVisible = ref(false)
+const selectedBid = ref(null)
 
 // 切换模块辅助方法
 const setTeamModule = (category) => {
@@ -451,6 +580,78 @@ const goProjectDetail = (project) => {
   router.push(`/projects/${project.id}`)
 }
 
+// 加载揭榜列表
+const fetchBids = async () => {
+  bidsLoading.value = true
+  bidsError.value = null
+  try {
+    const res = await getMyBidsAPI()
+    bids.value = res.data || []
+  } catch (error) {
+    console.error('加载揭榜列表失败', error)
+    bidsError.value = '加载揭榜列表失败'
+  } finally {
+    bidsLoading.value = false
+  }
+}
+
+// 查看揭榜详情
+const viewBidDetail = async (bid) => {
+  try {
+    const res = await getBidDetailAPI(bid.bidId)
+    selectedBid.value = res.data
+    bidDialogVisible.value = true
+  } catch (error) {
+    console.error('加载揭榜详情失败', error)
+    ElMessage.error('加载揭榜详情失败')
+  }
+}
+
+// 关闭揭榜详情弹窗
+const closeBidDetail = () => {
+  bidDialogVisible.value = false
+}
+
+// 揭榜状态文本映射
+const getBidStatusText = (status) => {
+  const map = {
+    applied: '已申请',
+    shortlisted: '已入围',
+    confirmed: '已中标',
+    rejected: '已拒绝',
+    cancelled: '已取消'
+  }
+  return map[status] || status
+}
+
+// 揭榜状态样式类映射
+const getBidStatusClass = (status) => {
+  const map = {
+    applied: 'pending',
+    shortlisted: 'ongoing',
+    confirmed: 'completed',
+    rejected: 'cancelled',
+    cancelled: 'cancelled'
+  }
+  return map[status] || 'pending'
+}
+
+// 角色文本映射
+const getRoleText = (role) => {
+  const map = {
+    leader: '负责人',
+    member: '成员',
+    none: '无'
+  }
+  return map[role] || role
+}
+
+// 日期格式化
+const formatDate = (dateStr) => {
+  if (!dateStr) return '--'
+  return dateStr.split('T')[0]
+}
+
 onMounted(async () => {
   // 加载项目和团队数据，支持分页参数
   const params = {
@@ -460,7 +661,8 @@ onMounted(async () => {
 
   await Promise.all([
     studentProjectStore.fetchMyProjects(params),
-    studentProjectStore.fetchMyTeams()
+    studentProjectStore.fetchMyTeams(),
+    fetchBids()
   ])
 })
 </script>
@@ -1052,6 +1254,45 @@ onMounted(async () => {
   border-color: #ffa39e;
   color: #cf1322;
   background: #fff1f0;
+}
+
+/* 揭榜详情弹窗样式 */
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.info-label {
+  font-size: 12px;
+  color: #7b859f;
+}
+
+.info-value {
+  font-size: 14px;
+  color: #1f274b;
+  font-weight: 500;
+}
+
+.attachment-link {
+  display: inline-block;
+  padding: 8px 16px;
+  background: #e6f4ff;
+  color: #1890ff;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 14px;
+  transition: all 0.3s;
+}
+
+.attachment-link:hover {
+  background: #bae0ff;
 }
 
 @media (max-width: 960px) {

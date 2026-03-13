@@ -114,6 +114,14 @@ export function getMilestonesByProjectAPI(projectId) {
   })
 }
 
+// 获取里程碑详情
+export function getMilestoneDetailAPI(milestoneId) {
+  return request({
+    url: `/milestone/${milestoneId}`,
+    method: 'get'
+  })
+}
+
 // 添加可选里程碑
 export function addOptionalMilestonesAPI(data) {
   return request({
@@ -334,6 +342,14 @@ export function rejectProjectAPI(data) {
     url: '/project/admin/reject',
     method: 'post',
     data
+  })
+}
+
+// 管理员查看项目详情
+export function getAdminProjectDetailAPI(projectId) {
+  return request({
+    url: `/project/admin/detail/${projectId}`,
+    method: 'get'
   })
 }
 
