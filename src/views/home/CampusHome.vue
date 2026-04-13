@@ -41,8 +41,8 @@ async function fetchData() {
     hotProjects.value = [
       {
         id: 1,
-        title: 'AI智能助手开发',
-        company: 'XX科技有限公司',
+        title: '工业视觉质检系统开发',
+        company: '杭州云启智能科技有限公司',
         field: '人工智能',
         deadlineDays: 7,
         reward: 5000,
@@ -51,8 +51,8 @@ async function fetchData() {
       },
       {
         id: 2,
-        title: 'Web前端开发',
-        company: 'YY网络公司',
+        title: '企业运营后台前端重构',
+        company: '南京星河数联科技股份有限公司',
         field: '前端开发',
         deadlineDays: 5,
         reward: 8000,
@@ -61,8 +61,8 @@ async function fetchData() {
       },
       {
         id: 3,
-        title: '数据分析平台',
-        company: 'ZZ数据公司',
+        title: '供应链数据分析平台',
+        company: '苏州智澜数据科技有限公司',
         field: '大数据',
         deadlineDays: 10,
         reward: 6000,
@@ -75,8 +75,8 @@ async function fetchData() {
     myProjects.value = [
       {
         id: 1,
-        title: 'AI智能助手开发',
-        publisher: 'XX科技有限公司',
+        title: '工业视觉质检系统开发',
+        publisher: '杭州云启智能科技有限公司',
         field: '人工智能',
         deadlineDays: 25,
         currentMilestone: '方案提交',
@@ -85,8 +85,8 @@ async function fetchData() {
       },
       {
         id: 2,
-        title: 'Web前端开发',
-        publisher: 'YY网络公司',
+        title: '企业运营后台前端重构',
+        publisher: '南京星河数联科技股份有限公司',
         field: '前端开发',
         deadlineDays: 15,
         currentMilestone: '协议签订',
@@ -105,10 +105,10 @@ async function fetchData() {
 
     // Mock 最新动态数据
     latestActivities.value = [
-      { id: 1, teamName: '创新科技团队', milestone: '方案提交', time: '15小时前' },
-      { id: 2, teamName: '智能开发小组', milestone: '协议签订', time: '16小时前' },
-      { id: 3, teamName: '先进技术组', milestone: '中期答辩', time: '20小时前' },
-      { id: 4, teamName: '精英开发者', milestone: '成果提交', time: '23小时前' }
+      { id: 1, teamName: '智联协同研发团队', milestone: '方案提交', time: '15小时前' },
+      { id: 2, teamName: '云枢前端工程组', milestone: '协议签订', time: '16小时前' },
+      { id: 3, teamName: '工业数据建模小组', milestone: '中期答辩', time: '20小时前' },
+      { id: 4, teamName: '系统交付与验收组', milestone: '成果提交', time: '23小时前' }
     ]
   } catch (error) {
     console.error('获取数据失败:', error)
