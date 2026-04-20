@@ -434,4 +434,3 @@ export function deleteCategoryAPI(categoryId) {
     method: 'delete'
   })
 }
-

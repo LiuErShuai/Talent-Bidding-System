@@ -12,23 +12,23 @@
       :key="milestone.id"
       class="milestone-node"
       :class="[
-        `node-${milestone.status}`,
-        { 'node-current': milestone.status === 'in-progress' }
+        `node-${normalizeMilestoneStatus(milestone.status)}`,
+        { 'node-current': isMilestoneCurrent(milestone.status) }
       ]"
       :style="{ left: getNodePosition(index) }"
       @click="handleNodeClick(milestone)"
     >
       <!-- 状态标签（在圆点上方） -->
-      <div class="node-status-tag" :class="`status-${milestone.status}`">
+      <div class="node-status-tag" :class="`status-${normalizeMilestoneStatus(milestone.status)}`">
         {{ getStatusText(milestone.status) }}
       </div>
 
       <!-- 节点圆点 -->
       <div class="node-dot">
-        <el-icon v-if="milestone.status === 'completed'" class="node-icon">
+        <el-icon v-if="isMilestoneCompleted(milestone.status)" class="node-icon">
           <Check />
         </el-icon>
-        <span v-else-if="milestone.status === 'in-progress'" class="node-number">
+        <span v-else-if="isMilestoneCurrent(milestone.status)" class="node-number">
           {{ index + 1 }}
         </span>
         <span v-else class="node-number">{{ index + 1 }}</span>
@@ -43,7 +43,7 @@
       </div>
 
       <!-- 当前进行中的脉动效果 -->
-      <div v-if="milestone.status === 'in-progress'" class="node-pulse"></div>
+      <div v-if="normalizeMilestoneStatus(milestone.status) === 'in_progress'" class="node-pulse"></div>
     </div>
   </div>
 </template>
@@ -51,6 +51,12 @@
 <script setup>
 import { computed } from 'vue'
 import { Check } from '@element-plus/icons-vue'
+import {
+  normalizeMilestoneStatus,
+  getMilestoneStatusText,
+  isMilestoneCompleted,
+  isMilestoneCurrent
+} from '@/utils/status'
 
 const props = defineProps({
   milestones: {
@@ -66,11 +72,11 @@ const emit = defineEmits(['nodeClick'])
 const progressWidth = computed(() => {
   if (!props.milestones || props.milestones.length === 0) return '0%'
 
-  const completedCount = props.milestones.filter(m => m.status === 'completed').length
+  const completedCount = props.milestones.filter(m => isMilestoneCompleted(m.status)).length
   const totalCount = props.milestones.length
 
   // 如果有进行中的，进度到该节点的一半
-  const inProgressIndex = props.milestones.findIndex(m => m.status === 'in-progress')
+  const inProgressIndex = props.milestones.findIndex(m => isMilestoneCurrent(m.status))
   if (inProgressIndex !== -1) {
     const percentage = ((completedCount + 0.5) / totalCount) * 100
     return `${percentage}%`
@@ -112,18 +118,13 @@ const formatDate = (dateStr) => {
 
 // 获取状态文本
 const getStatusText = (status) => {
-  const statusMap = {
-    'completed': '已完成',
-    'in-progress': '进行中',
-    'pending': '待开始'
-  }
-  return statusMap[status] || ''
+  return getMilestoneStatusText(status)
 }
 
 // 计算剩余时间
 const getRemainingTime = (milestone) => {
   if (!milestone.endDate) return '--'
-  if (milestone.status === 'completed') return '已完成'
+  if (isMilestoneCompleted(milestone.status)) return '已完成'
 
   try {
     const endDate = new Date(milestone.endDate)
@@ -148,7 +149,7 @@ const getRemainingTime = (milestone) => {
 // 获取剩余时间样式类
 const getRemainingTimeClass = (milestone) => {
   if (!milestone.endDate) return ''
-  if (milestone.status === 'completed') return 'time-success'
+  if (isMilestoneCompleted(milestone.status)) return 'time-success'
 
   try {
     const endDate = new Date(milestone.endDate)
@@ -242,10 +243,37 @@ const handleNodeClick = (milestone) => {
   border: 1px solid #91caff;
 }
 
+.status-in_progress {
+  background: #e6f4ff;
+  color: #1890ff;
+  border: 1px solid #91caff;
+}
+
+.status-delivered,
+.status-under_review {
+  background: #fdf6ec;
+  color: #e6a23c;
+  border: 1px solid #f5dab1;
+}
+
 .status-pending {
   background: #f5f5f5;
   color: #8c8c8c;
   border: 1px solid #d9d9d9;
+}
+
+.status-planned,
+.status-skipped {
+  background: #f5f5f5;
+  color: #8c8c8c;
+  border: 1px solid #d9d9d9;
+}
+
+.status-rejected,
+.status-expired {
+  background: #fef0f0;
+  color: #f56c6c;
+  border: 1px solid #fbc4c4;
 }
 
 /* 节点圆点 */
@@ -270,7 +298,20 @@ const handleNodeClick = (milestone) => {
   color: #9ca3af;
 }
 
+.node-planned .node-dot,
+.node-skipped .node-dot {
+  background: #fff;
+  border: 3px solid #d1d5db;
+  color: #9ca3af;
+}
+
 .node-pending:hover .node-dot {
+  border-color: #9ca3af;
+  box-shadow: 0 0 0 4px rgba(156, 163, 175, 0.1);
+}
+
+.node-planned:hover .node-dot,
+.node-skipped:hover .node-dot {
   border-color: #9ca3af;
   box-shadow: 0 0 0 4px rgba(156, 163, 175, 0.1);
 }
@@ -283,8 +324,32 @@ const handleNodeClick = (milestone) => {
   box-shadow: 0 0 0 4px rgba(24, 144, 255, 0.2);
 }
 
+.node-in_progress .node-dot {
+  background: #1890ff;
+  border: 3px solid #1890ff;
+  color: #fff;
+  box-shadow: 0 0 0 4px rgba(24, 144, 255, 0.2);
+}
+
+.node-delivered .node-dot,
+.node-under_review .node-dot {
+  background: #e6a23c;
+  border: 3px solid #e6a23c;
+  color: #fff;
+  box-shadow: 0 0 0 4px rgba(230, 162, 60, 0.2);
+}
+
 .node-in-progress:hover .node-dot {
   box-shadow: 0 0 0 6px rgba(24, 144, 255, 0.3);
+}
+
+.node-in_progress:hover .node-dot {
+  box-shadow: 0 0 0 6px rgba(24, 144, 255, 0.3);
+}
+
+.node-delivered:hover .node-dot,
+.node-under_review:hover .node-dot {
+  box-shadow: 0 0 0 6px rgba(230, 162, 60, 0.3);
 }
 
 /* 已完成状态 */
@@ -296,6 +361,13 @@ const handleNodeClick = (milestone) => {
 
 .node-completed:hover .node-dot {
   box-shadow: 0 0 0 4px rgba(82, 196, 26, 0.2);
+}
+
+.node-rejected .node-dot,
+.node-expired .node-dot {
+  background: #f56c6c;
+  border: 3px solid #f56c6c;
+  color: #fff;
 }
 
 /* 节点图标 */

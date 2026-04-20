@@ -42,6 +42,7 @@
               </button>
             </div>
 
+            <!--
             <div class="sidebar-section">
               <div class="sidebar-title">我的数据</div>
               <button
@@ -66,6 +67,7 @@
                 收入明细
               </button>
             </div>
+            -->
           </template>
 
           <!-- 企业端侧边栏：使用角色标签 -->
@@ -111,32 +113,32 @@
                 <article
                   v-for="project in projects"
                   :key="project.id"
-                  class="project-card"
+                  class="project-card accepted-project-card"
                   @click="viewDetail(project)"
                 >
                   <div class="project-card-main">
-                    <div class="project-card-header">
-                      <h3 class="project-name">{{ project.name }}</h3>
-                      <span class="project-tag" :class="project.status">
-                        {{ project.statusText }}
-                      </span>
-                    </div>
+                    <div class="project-card-body">
+                      <div class="project-card-left">
+                        <h3 class="project-name">{{ project.name }}</h3>
+                        <div class="project-meta-row">
+                          <span>阶段：{{ project.currentMilestone || '--' }}</span>
+                          <span>团队：{{ project.teamName || '--' }}</span>
+                          <span>发布方：{{ project.publisherName || '--' }}</span>
+                        </div>
+                      </div>
 
-                    <div class="project-meta-row">
-                      <span>状态：{{ project.stageText }}</span>
-                      <span>剩余时间：{{ project.remainDays }}天</span>
-                      <span>发布方：{{ project.publisher }}</span>
-                    </div>
-
-                    <div class="project-content-row">
-                      <p class="project-brief">{{ project.brief }}</p>
-                      <button
-                        type="button"
-                        class="ghost-chip manage-btn"
-                        @click.stop.prevent="manageProject(project)"
-                      >
-                        管理项目
-                      </button>
+                      <div class="project-card-right">
+                        <span class="project-tag" :class="project.status">
+                          {{ project.statusText }}
+                        </span>
+                        <button
+                          type="button"
+                          class="ghost-chip manage-btn"
+                          @click.stop.prevent="manageProject(project)"
+                        >
+                          管理项目
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </article>
@@ -169,31 +171,33 @@
                 <article
                   v-for="bid in bids"
                   :key="bid.bidId"
-                  class="project-card"
+                  class="project-card bid-project-card"
                   @click="viewBidDetail(bid)"
                 >
                   <div class="project-card-main">
-                    <div class="project-card-header">
-                      <h3 class="project-name">{{ bid.projectTitle }}</h3>
-                      <span class="project-tag" :class="getBidStatusClass(bid.status)">
-                        {{ getBidStatusText(bid.status) }}
-                      </span>
-                    </div>
+                    <div class="project-card-body">
+                      <div class="project-card-left">
+                        <h3 class="project-name">{{ bid.projectTitle }}</h3>
+                        <div class="project-meta-row">
+                          <span>发布方：{{ bid.publisherName }}</span>
+                          <span>团队：{{ bid.teamName }}</span>
+                          <span>当前里程碑：{{ bid.currentMilestone || '--' }}</span>
+                          <span>申请时间：{{ formatDate(bid.createdAt) }}</span>
+                        </div>
+                      </div>
 
-                    <div class="project-meta-row">
-                      <span>发布方：{{ bid.publisherName }}</span>
-                      <span>团队：{{ bid.teamName }}</span>
-                      <span>申请时间：{{ formatDate(bid.createdAt) }}</span>
-                    </div>
-
-                    <div class="project-content-row">
-                      <button
-                        type="button"
-                        class="ghost-chip manage-btn"
-                        @click.stop.prevent="viewBidDetail(bid)"
-                      >
-                        查看详情
-                      </button>
+                      <div class="project-card-right">
+                        <span class="project-tag" :class="getBidStatusClass(bid.status)">
+                          {{ getBidStatusText(bid.status) }}
+                        </span>
+                        <button
+                          type="button"
+                          class="ghost-chip manage-btn"
+                          @click.stop.prevent="viewBidDetail(bid)"
+                        >
+                          查看详情
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </article>
@@ -316,7 +320,7 @@
                   </div>
 
                   <div class="project-meta-row">
-                    <span>状态：{{ project.stageText }}</span>
+                    <span>阶段：{{ project.stageText }}</span>
                     <span>进度：{{ project.progress }}%</span>
                     <span>剩余时间：{{ project.remainDays }}天</span>
                     <span>奖金：￥{{ project.reward.toLocaleString() }}</span>
@@ -500,14 +504,175 @@ const roleTabs = computed(() => {
   return tabs
 })
 
-// 使用store中的动态数据
+// 临时演示开关：true 使用静态展示数据，false 恢复接口数据
+const USE_STATIC_DEMO_DATA = false
+
+/*
+// 临时静态项目数据（用于汇报展示）
+const staticProjects = ref([
+  {
+    id: 301,
+    name: '工业视觉质检系统（一期）',
+    status: 'ongoing',
+    statusText: '进行中',
+    stageText: '项目执行',
+    remainDays: 18,
+    publisher: '杭州云启智能科技有限公司',
+    brief: '已完成缺陷样本标注与初版模型训练，当前进入产线相机适配与误检率优化阶段。'
+  },
+  {
+    id: 302,
+    name: '智慧仓储调度看板',
+    status: 'review',
+    statusText: '评审中',
+    stageText: '中期答辩',
+    remainDays: 9,
+    publisher: '苏州智澜数据科技有限公司',
+    brief: '中期材料已提交，包含任务排程算法说明、看板原型与调度仿真报告。'
+  },
+  {
+    id: 303,
+    name: '企业运营后台前端重构',
+    status: 'awarded',
+    statusText: '已中标',
+    stageText: '协议签订',
+    remainDays: 26,
+    publisher: '南京星河数联科技股份有限公司',
+    brief: '完成需求澄清与模块拆分，准备进入权限系统和数据驾驶舱页面开发。'
+  },
+  {
+    id: 304,
+    name: '供应链异常预警平台',
+    status: 'finished',
+    statusText: '已完成',
+    stageText: '成果评审',
+    remainDays: 0,
+    publisher: '广东维拓供应链科技有限公司',
+    brief: '项目验收通过，形成异常预警规则库与可视化分析报表，进入成果归档阶段。'
+  }
+])
+
+// 临时静态团队数据（用于汇报展示）
+const staticOwnedTeams = ref([
+  {
+    id: 901,
+    name: '智联协同研发团队',
+    isOwner: true,
+    description: '面向工业场景的算法与前端联合团队，负责从需求拆解到交付验收的全流程协同。',
+    project: {
+      id: 301,
+      name: '工业视觉质检系统（一期）',
+      stage: '项目执行',
+      progress: 62,
+      statusText: '进行中',
+      brief: '聚焦缺陷识别精度提升与现场部署稳定性优化。',
+      deadline: '2026-05-12'
+    },
+    members: [
+      { name: '李明轩', role: '负责人', duty: '进度统筹与企业沟通' },
+      { name: '周雨桐', role: '算法工程师', duty: '目标检测模型训练' },
+      { name: '陈子昂', role: '前端工程师', duty: '质检看板开发' },
+      { name: '孙佳怡', role: '测试工程师', duty: '测试用例与回归验证' }
+    ]
+  }
+])
+
+const staticJoinedTeams = ref([
+  {
+    id: 902,
+    name: '云枢前端工程组',
+    isOwner: false,
+    description: '负责企业运营后台的交互实现与组件体系建设，支撑多角色场景快速交付。',
+    project: {
+      id: 303,
+      name: '企业运营后台前端重构',
+      stage: '协议签订',
+      progress: 28,
+      statusText: '已中标',
+      brief: '已完成信息架构评审，正在推进页面骨架与权限路由设计。',
+      deadline: '2026-06-03'
+    },
+    members: [
+      { name: '林书航', role: '负责人', duty: '技术方案评审' },
+      { name: '王可欣', role: '前端工程师', duty: '组件封装与页面实现' },
+      { name: '赵文博', role: '产品助理', duty: '需求跟踪与验收文档' }
+    ]
+  },
+  {
+    id: 903,
+    name: '工业数据建模小组',
+    isOwner: false,
+    description: '围绕仓储与供应链场景进行指标建模与可视化分析，提供决策支持能力。',
+    project: {
+      id: 302,
+      name: '智慧仓储调度看板',
+      stage: '中期答辩',
+      progress: 74,
+      statusText: '评审中',
+      brief: '关键里程碑已完成，正在整理答辩材料与优化体验细节。',
+      deadline: '2026-04-25'
+    },
+    members: [
+      { name: '许嘉禾', role: '负责人', duty: '方案设计与答辩把控' },
+      { name: '高思远', role: '数据工程师', duty: '数据清洗与指标建模' },
+      { name: '刘若彤', role: '可视化工程师', duty: '图表看板实现' }
+    ]
+  }
+])
+
+// 临时静态揭榜数据（用于汇报展示）
+const staticBids = ref([
+  {
+    bidId: 6001,
+    projectTitle: '智慧能源管理驾驶舱',
+    status: 'shortlisted',
+    publisherName: '上海澄智能源科技有限公司',
+    teamName: '能效优化联合小组',
+    createdAt: '2026-03-18T10:20:00',
+    updatedAt: '2026-04-10T15:30:00',
+    currentUserRole: 'leader',
+    content: '围绕园区能耗监测、告警闭环和多维报表进行交付，计划在6周内完成可上线版本。',
+    attachmentUrl: 'https://example.com/bid/6001/proposal.pdf',
+    remark: '企业建议补充峰谷电价策略说明。'
+  },
+  {
+    bidId: 6002,
+    projectTitle: '跨境电商智能选品分析',
+    status: 'applied',
+    publisherName: '深圳海岳数字贸易有限公司',
+    teamName: '数据洞察实践队',
+    createdAt: '2026-04-02T09:40:00',
+    updatedAt: '2026-04-02T09:40:00',
+    currentUserRole: 'member',
+    content: '已提交选品指标体系、竞品画像分析方案和阶段性交付计划。',
+    attachmentUrl: '',
+    remark: ''
+  },
+  {
+    bidId: 6003,
+    projectTitle: '城市应急信息可视化平台',
+    status: 'confirmed',
+    publisherName: '武汉数安应急技术有限公司',
+    teamName: '应急协同开发团队',
+    createdAt: '2026-02-26T14:10:00',
+    updatedAt: '2026-03-05T11:00:00',
+    currentUserRole: 'leader',
+    content: '方案已通过并确认中标，当前已进入实施排期与接口联调准备。',
+    attachmentUrl: 'https://example.com/bid/6003/technical-plan.pdf',
+    remark: '已中标，等待项目启动会。'
+  }
+])
+
+// 使用 store/静态数据双模式
+*/
+
 const projects = computed(() => studentProjectStore.projects)
 const loading = computed(() => studentProjectStore.loading)
 const error = computed(() => studentProjectStore.error)
 
-// 使用store中的团队数据
 const currentTeams = computed(() => {
   if (!activeTeamCategory.value) return []
+
   return activeTeamCategory.value === 'owned'
     ? studentProjectStore.ownedTeams
     : studentProjectStore.joinedTeams
@@ -586,7 +751,12 @@ const fetchBids = async () => {
   bidsError.value = null
   try {
     const res = await getMyBidsAPI()
-    bids.value = res.data || []
+    if (res.code === '0000') {
+      bids.value = res.data || []
+    } else {
+      bids.value = []
+      bidsError.value = res.info || '加载揭榜列表失败'
+    }
   } catch (error) {
     console.error('加载揭榜列表失败', error)
     bidsError.value = '加载揭榜列表失败'
@@ -653,7 +823,6 @@ const formatDate = (dateStr) => {
 }
 
 onMounted(async () => {
-  // 加载项目和团队数据，支持分页参数
   const params = {
     pageNum: 1,
     pageSize: 10
@@ -889,8 +1058,25 @@ onMounted(async () => {
   margin-right: 13px; 
 }
 
+.project-tag.draft {
+  background: #909399;
+}
+
+.project-tag.pending_review {
+  background: #e6a23c;
+}
+
+.project-tag.published {
+  background: #409eff;
+}
+
+.project-tag.in_progress,
 .project-tag.ongoing {
   background: #1890ff;
+}
+
+.project-tag.rejected {
+  background: #f56c6c;
 }
 
 .project-tag.awarded {
@@ -901,7 +1087,12 @@ onMounted(async () => {
   background: #faad14;
 }
 
+.project-tag.completed,
 .project-tag.finished {
+  background: #67c23a;
+}
+
+.project-tag.closed {
   background: #8c8c8c;
 }
 
@@ -948,6 +1139,225 @@ onMounted(async () => {
 .project-content-row .manage-btn:focus {
   outline: none;
   box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.accepted-project-card .project-card-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.accepted-project-card .project-card-body {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.accepted-project-card .project-card-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.accepted-project-card .project-card-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.accepted-project-card .project-name {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #303133;
+  flex: 1;
+}
+
+.accepted-project-card .project-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  font-size: 14px;
+  color: #606266;
+}
+
+.accepted-project-card .project-tag {
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  margin-right: 0;
+  color: inherit;
+}
+
+.accepted-project-card .project-tag.draft {
+  background: #f4f4f5;
+  color: #909399;
+}
+
+.accepted-project-card .project-tag.pending_review {
+  background: #fff7e6;
+  color: #fa8c16;
+}
+
+.accepted-project-card .project-tag.published {
+  background: #e6f7ff;
+  color: #1890ff;
+}
+
+.accepted-project-card .project-tag.in_progress,
+.accepted-project-card .project-tag.ongoing {
+  background: #f0f9eb;
+  color: #67c23a;
+}
+
+.accepted-project-card .project-tag.rejected {
+  background: #fef0f0;
+  color: #f56c6c;
+}
+
+.accepted-project-card .project-tag.awarded {
+  background: #f0f9eb;
+  color: #67c23a;
+}
+
+.accepted-project-card .project-tag.review {
+  background: #fff7e6;
+  color: #fa8c16;
+}
+
+.accepted-project-card .project-tag.completed,
+.accepted-project-card .project-tag.finished {
+  background: #f6ffed;
+  color: #52c41a;
+}
+
+.accepted-project-card .project-tag.closed {
+  background: #f4f4f5;
+  color: #909399;
+}
+
+.accepted-project-card .manage-btn {
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 14px;
+  background: #409eff;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.accepted-project-card .manage-btn:hover {
+  background: #66b1ff;
+  border-color: #66b1ff;
+}
+
+.accepted-project-card .manage-btn:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.bid-project-card .project-card-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.bid-project-card .project-card-body {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.bid-project-card .project-card-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.bid-project-card .project-card-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.bid-project-card .project-name {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #303133;
+  flex: 1;
+}
+
+.bid-project-card .project-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  font-size: 14px;
+  color: #606266;
+}
+
+.bid-project-card .project-tag {
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  margin-right: 0;
+  color: inherit;
+}
+
+.bid-project-card .project-tag.pending {
+  background: #fff7e6;
+  color: #fa8c16;
+}
+
+.bid-project-card .project-tag.ongoing {
+  background: #e6f7ff;
+  color: #1890ff;
+}
+
+.bid-project-card .project-tag.completed {
+  background: #f0f9eb;
+  color: #67c23a;
+}
+
+.bid-project-card .project-tag.cancelled {
+  background: #fef0f0;
+  color: #f56c6c;
+}
+
+.bid-project-card .manage-btn {
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 14px;
+  background: #409eff;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.bid-project-card .manage-btn:hover {
+  background: #66b1ff;
+  border-color: #66b1ff;
+}
+
+.bid-project-card .manage-btn:focus {
+  outline: none;
+  box-shadow: none;
 }
 
 .team-card .project-card-header {

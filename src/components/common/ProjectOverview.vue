@@ -7,7 +7,7 @@
         <!-- 标题行：标题 + 状态标签 -->
         <div class="title-row">
           <h2 class="project-title">{{ project?.name || '项目名称' }}</h2>
-          <div v-if="project?.status" class="status-indicator" :class="`status-${project.status}`">
+          <div v-if="project?.status" class="status-indicator" :class="`status-${normalizedStatus}`">
             <span class="status-dot"></span>
             <span class="status-text">{{ statusText }}</span>
           </div>
@@ -50,6 +50,10 @@
 <script setup>
 import { defineProps, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import {
+  normalizeProjectStatus,
+  getProjectStatusText
+} from '@/utils/status'
 
 const props = defineProps({
   project: { type: Object, default: () => ({}) },
@@ -58,14 +62,10 @@ const props = defineProps({
 
 const router = useRouter()
 
-// 计算项目状态文本
+const normalizedStatus = computed(() => normalizeProjectStatus(props.project?.status))
+
 const statusText = computed(() => {
-  const statusMap = {
-    'pending': '待开始',
-    'in-progress': '进行中',
-    'completed': '已完成'
-  }
-  return statusMap[props.project?.status] || '未知'
+  return getProjectStatusText(props.project?.status)
 })
 
 // 格式化截止日期
@@ -190,6 +190,26 @@ const handlePublisherClick = () => {
   box-shadow: 0 0 0 3px rgba(156, 163, 175, 0.2);
 }
 
+.status-draft {
+  background: #f4f4f5;
+  color: #606266;
+}
+
+.status-draft .status-dot {
+  background: #909399;
+  box-shadow: 0 0 0 3px rgba(144, 147, 153, 0.2);
+}
+
+.status-pending_review {
+  background: #fdf6ec;
+  color: #e6a23c;
+}
+
+.status-pending_review .status-dot {
+  background: #e6a23c;
+  box-shadow: 0 0 0 3px rgba(230, 162, 60, 0.2);
+}
+
 /* 进行中状态 */
 .status-in-progress {
   background: #eff6ff;
@@ -201,6 +221,26 @@ const handlePublisherClick = () => {
   box-shadow: 0 0 0 3px rgba(24, 144, 255, 0.2);
 }
 
+.status-published {
+  background: #ecf5ff;
+  color: #409eff;
+}
+
+.status-published .status-dot {
+  background: #409eff;
+  box-shadow: 0 0 0 3px rgba(64, 158, 255, 0.2);
+}
+
+.status-in_progress {
+  background: #f0f9eb;
+  color: #67c23a;
+}
+
+.status-in_progress .status-dot {
+  background: #67c23a;
+  box-shadow: 0 0 0 3px rgba(103, 194, 58, 0.2);
+}
+
 /* 已完成状态 */
 .status-completed {
   background: #f0fdf4;
@@ -210,6 +250,26 @@ const handlePublisherClick = () => {
 .status-completed .status-dot {
   background: #52c41a;
   box-shadow: 0 0 0 3px rgba(82, 196, 26, 0.2);
+}
+
+.status-rejected {
+  background: #fef0f0;
+  color: #f56c6c;
+}
+
+.status-rejected .status-dot {
+  background: #f56c6c;
+  box-shadow: 0 0 0 3px rgba(245, 108, 108, 0.2);
+}
+
+.status-closed {
+  background: #f4f4f5;
+  color: #909399;
+}
+
+.status-closed .status-dot {
+  background: #909399;
+  box-shadow: 0 0 0 3px rgba(144, 147, 153, 0.2);
 }
 
 /* 脉动动画 */
@@ -317,6 +377,4 @@ const handlePublisherClick = () => {
   }
 }
 </style>
-
-
 

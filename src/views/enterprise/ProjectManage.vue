@@ -176,7 +176,7 @@ function buildProjectModel(detailData, myProjectItem, bids) {
   const approvedApplications = bids.filter(item => ['shortlisted', 'confirmed'].includes(item.status)).length
   const pendingApplications = bids.filter(item => item.status === 'applied').length
   const confirmedBid = bids.find(item => item.status === 'confirmed')
-  const selectedTeam = confirmedBid?.teamName || (myProjectItem?.acceptedTeamId ? '已选定团队' : '')
+  const selectedTeam = myProjectItem?.acceptedTeamName || confirmedBid?.teamName || (myProjectItem?.acceptedTeamId ? '已选定团队' : '')
 
   return {
     id: detailData?.projectId || detailData?.id || projectId,
@@ -190,6 +190,7 @@ function buildProjectModel(detailData, myProjectItem, bids) {
     requirements: detailData?.requirements || '',
     publisher: detailData?.publisherName || detailData?.enterpriseName || '--',
     publisherId: detailData?.publisherId || '',
+    currentMilestone: myProjectItem?.currentMilestone || '',
     biddingStats: {
       totalApplications,
       approvedApplications,

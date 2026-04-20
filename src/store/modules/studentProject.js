@@ -3,6 +3,7 @@ import { getMyAcceptedProjectsAPI, getProjectDetailAPI } from '@/api/project'
 import { getMyTeamListAPI, getTeamDetailAPI } from '@/api/team'
 import { getMilestonesByProjectAPI } from '@/api/project'
 import { handleApiError, STATUS_TEXT_MAP, STAGE_TEXT_MAP } from '@/utils/errorHandler'
+import { normalizeProjectStatus, isProjectActionable } from '@/utils/status'
 
 export const useStudentProjectStore = defineStore('studentProject', {
   state: () => ({
@@ -59,7 +60,7 @@ export const useStudentProjectStore = defineStore('studentProject', {
       try {
         const response = await getMyTeamListAPI()
         if (response.code === '0000') {
-          const teams = response.data.teams || []
+          const teams = response.data?.teams || []
           this.teams = teams.map(this.formatTeamData)
         }
       } catch (error) {
@@ -70,21 +71,27 @@ export const useStudentProjectStore = defineStore('studentProject', {
 
     // 格式化承接项目数据
     formatAcceptedProjectData(project) {
+      const normalizedStatus = normalizeProjectStatus(project.status)
+      const currentMilestone = project.currentMilestone || ''
+      const acceptedTeamName = project.acceptedTeamName || ''
+
       return {
         id: project.projectId,
         name: project.title,
-        status: project.status,
+        status: normalizedStatus,
         statusText: this.getStatusText(project.status),
         stage: project.stage || 'ongoing',
-        stageText: this.getStageText(project.stage),
+        stageText: currentMilestone || this.getStageText(project.stage),
+        currentMilestone,
         progress: project.progress || 0,
         remainDays: this.calculateRemainDays(project.applicationDeadline),
         reward: project.budgetAmount || 0,
-        publisher: project.publisherName || '企业方',
+        publisherName: project.publisherName || '企业方',
+        teamName: acceptedTeamName,
         brief: project.description || '暂无描述',
-        canUpload: ['executing', 'in_progress'].includes(project.status),
+        canUpload: isProjectActionable(project.status) || project.status === 'executing',
         uploadLabel: '上传成果',
-        canCollaborate: project.status === 'in_progress'
+        canCollaborate: isProjectActionable(project.status)
       }
     },
 

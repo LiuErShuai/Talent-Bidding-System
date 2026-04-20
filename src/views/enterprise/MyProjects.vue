@@ -527,7 +527,8 @@
                       <div class="project-meta-row">
                         <span>悬赏：{{ project.budgetAmount }}{{ project.currency }}</span>
                         <span>申请团队：{{ project.applicationCount }}个</span>
-                        <span>承接方：{{ project.contractor }}</span>
+                        <span>承接团队：{{ project.contractor }}</span>
+                        <span>当前里程碑：{{ project.currentMilestone || '--' }}</span>
                       </div>
                     </div>
                     <div class="project-card-right">
@@ -570,7 +571,8 @@
                       <div class="project-meta-row">
                         <span>悬赏：{{ project.budgetAmount }}{{ project.currency }}</span>
                         <span>申请团队：{{ project.applicationCount }}个</span>
-                        <span>承接方：{{ project.contractor }}</span>
+                        <span>承接团队：{{ project.contractor }}</span>
+                        <span>当前里程碑：{{ project.currentMilestone || '--' }}</span>
                       </div>
                     </div>
                     <div class="project-card-right">
@@ -793,7 +795,8 @@ async function fetchMyProjects() {
       budgetAmount: p.budgetAmount ?? '--',
       currency: p.currency || '',
       applicationCount: p.applicationCount ?? 0,
-      contractor: p.acceptedTeamId ? '已选定' : '待确定'
+      contractor: p.acceptedTeamName || (p.acceptedTeamId ? '已选定' : '待确定'),
+      currentMilestone: p.currentMilestone || ''
     }))
   } catch (err) {
     console.error('获取项目列表失败:', err)

@@ -237,6 +237,7 @@ import { useMilestoneUploadStore } from '@/store/modules/milestoneUpload'
 
 // 数据映射工具导入
 import { mapProjectData, mapMilestoneData } from '@/utils/projectMapper'
+import { findCurrentMilestone } from '@/utils/status'
 
 const route = useRoute()
 const projectId = route.params.id
@@ -305,7 +306,7 @@ async function fetchManageData() {
     }
 
     // 自动选中当前进行中的里程碑，如果没有则选中第一个
-    const currentMilestone = milestones.value.find(m => m.status === 'in-progress')
+    const currentMilestone = findCurrentMilestone(milestones.value)
     if (currentMilestone) {
       const index = milestones.value.findIndex(m => m.id === currentMilestone.id)
       selectedMilestoneIndex.value = index
@@ -346,7 +347,7 @@ async function fetchManageData() {
     reviewHistory.value = data.reviewHistory
 
     // 自动选中当前进行中的里程碑
-    const currentMilestone = milestones.value.find(m => m.status === 'in-progress')
+    const currentMilestone = findCurrentMilestone(milestones.value)
     if (currentMilestone) {
       const index = milestones.value.findIndex(m => m.id === currentMilestone.id)
       selectedMilestone.value = currentMilestone

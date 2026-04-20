@@ -199,7 +199,7 @@
             <h4 class="section-title">我的提交</h4>
             <div class="header-actions">
               <el-button
-                v-if="milestone?.status === 'pending' || milestone?.status === 'in-progress'"
+                v-if="isMilestonePending(milestone?.status) || isMilestoneCurrent(milestone?.status)"
                 type="primary"
                 size="small"
                 @click="openUploadDialog(milestone)"
@@ -287,6 +287,14 @@ import {
 } from '@element-plus/icons-vue'
 import SubmissionItem from '@/components/student/SubmissionItem.vue'
 import { uploadMilestoneDeliverableFileAPI, submitMilestoneDeliverableAPI } from '@/api/project'
+import {
+  normalizeMilestoneStatus,
+  getMilestoneStatusText,
+  getMilestoneStatusTagType,
+  isMilestoneCompleted,
+  isMilestoneCurrent,
+  isMilestonePending
+} from '@/utils/status'
 
 const props = defineProps({
   milestone: {
@@ -320,22 +328,12 @@ const navTabs = [
 
 // 状态文本映射
 const statusText = computed(() => {
-  const statusMap = {
-    'pending': '待开始',
-    'in-progress': '进行中',
-    'completed': '已完成'
-  }
-  return statusMap[props.milestone?.status] || '未知'
+  return getMilestoneStatusText(props.milestone?.status)
 })
 
 // 状态标签类型
 const statusTagType = computed(() => {
-  const typeMap = {
-    'pending': 'info',
-    'in-progress': 'warning',
-    'completed': 'success'
-  }
-  return typeMap[props.milestone?.status] || 'info'
+  return getMilestoneStatusTagType(props.milestone?.status)
 })
 
 // 是否显示上一个按钮
@@ -364,13 +362,13 @@ const isOverdue = computed(() => {
   if (!props.milestone?.endDate) return false
   const endDate = new Date(props.milestone.endDate)
   const now = new Date()
-  return now > endDate && props.milestone.status !== 'completed'
+  return now > endDate && !isMilestoneCompleted(props.milestone.status)
 })
 
 // 剩余时间
 const remainingTime = computed(() => {
   if (!props.milestone?.endDate) return '--'
-  if (props.milestone.status === 'completed') return '已完成'
+  if (isMilestoneCompleted(props.milestone.status)) return '已完成'
 
   try {
     const endDate = new Date(props.milestone.endDate)
@@ -395,7 +393,7 @@ const remainingTime = computed(() => {
 // 剩余时间样式类
 const remainingTimeClass = computed(() => {
   if (!props.milestone?.endDate) return ''
-  if (props.milestone.status === 'completed') return 'text-success'
+  if (isMilestoneCompleted(props.milestone.status)) return 'text-success'
 
   try {
     const endDate = new Date(props.milestone.endDate)
