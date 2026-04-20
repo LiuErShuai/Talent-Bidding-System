@@ -1272,158 +1272,46 @@
       :close-on-click-modal="false"
       destroy-on-close
     >
-      <el-form
-        ref="biddingFormRef"
-        :model="biddingForm"
-        :rules="biddingRules"
-        label-width="120px"
-      >
-        <!-- 团队信息 -->
-        <div class="form-section">
-          <h4 class="form-section-title">团队信息</h4>
+        <el-form
+          ref="biddingFormRef"
+          :model="biddingForm"
+          :rules="biddingRules"
+          label-width="120px"
+        >
+          <div class="form-section">
+            <h4 class="form-section-title">申请信息</h4>
 
-          <el-form-item label="团队名称" prop="teamName">
-            <el-input
-              v-model="biddingForm.teamName"
-              placeholder="请输入团队名称"
-              maxlength="50"
-              show-word-limit
+            <el-alert
+              title="后端只接收申请说明和附件链接，项目 ID 会随当前页面自动提交。"
+              type="info"
+              :closable="false"
+              show-icon
+              class="form-alert"
             />
-          </el-form-item>
 
-          <el-form-item label="团队规模" prop="teamSize">
-            <el-input-number
-              v-model="biddingForm.teamSize"
-              :min="2"
-              :max="20"
-              :step="1"
-              controls-position="right"
-              style="width: 200px"
-            />
-            <span class="form-tip" style="margin-left: 12px;">
-              建议：2-4人
-            </span>
-          </el-form-item>
-        </div>
+            <el-form-item label="申请说明" prop="content">
+              <el-input
+                v-model="biddingForm.content"
+                type="textarea"
+                :rows="6"
+                placeholder="请说明团队或个人优势、实施计划和相关经验"
+                maxlength="1000"
+                show-word-limit
+              />
+            </el-form-item>
 
-        <!-- 技能要求 -->
-        <div class="form-section">
-          <h4 class="form-section-title">技能与经验</h4>
-
-          <el-form-item label="必备技能" prop="requiredSkills">
-            <el-select
-              v-model="biddingForm.requiredSkills"
-              multiple
-              filterable
-              allow-create
-              default-first-option
-              :reserve-keyword="false"
-              placeholder="请选择或输入团队掌握的必备技能"
-              style="width: 100%"
-            >
-              <el-option label="Vue.js" value="Vue.js" />
-              <el-option label="React" value="React" />
-              <el-option label="Angular" value="Angular" />
-              <el-option label="Spring Boot" value="Spring Boot" />
-              <el-option label="Node.js" value="Node.js" />
-              <el-option label="Python" value="Python" />
-              <el-option label="Java" value="Java" />
-              <el-option label="MySQL" value="MySQL" />
-              <el-option label="Redis" value="Redis" />
-              <el-option label="MongoDB" value="MongoDB" />
-              <el-option label="Docker" value="Docker" />
-              <el-option label="Kubernetes" value="Kubernetes" />
-              <el-option label="微信小程序" value="微信小程序" />
-              <el-option label="Android" value="Android" />
-              <el-option label="iOS" value="iOS" />
-              <el-option label="人工智能" value="人工智能" />
-              <el-option label="机器学习" value="机器学习" />
-              <el-option label="数据分析" value="数据分析" />
-            </el-select>
-          </el-form-item>
-
-          <el-form-item label="加分技能" prop="bonusSkills">
-            <el-select
-              v-model="biddingForm.bonusSkills"
-              multiple
-              filterable
-              allow-create
-              default-first-option
-              :reserve-keyword="false"
-              placeholder="请选择或输入团队掌握的加分技能（可选）"
-              style="width: 100%"
-            >
-              <el-option label="UI/UX设计" value="UI/UX设计" />
-              <el-option label="软件测试" value="软件测试" />
-              <el-option label="项目管理" value="项目管理" />
-              <el-option label="敏捷开发" value="敏捷开发" />
-              <el-option label="DevOps" value="DevOps" />
-              <el-option label="云计算" value="云计算" />
-              <el-option label="大数据" value="大数据" />
-              <el-option label="区块链" value="区块链" />
-              <el-option label="网络安全" value="网络安全" />
-              <el-option label="英语能力" value="英语能力" />
-            </el-select>
-          </el-form-item>
-
-          <el-form-item label="项目经验" prop="experienceLevel">
-            <el-radio-group v-model="biddingForm.experienceLevel">
-              <el-radio value="none">无项目经验</el-radio>
-              <el-radio value="basic">有基础项目经验</el-radio>
-              <el-radio value="intermediate">有中级项目经验（1-2个项目）</el-radio>
-              <el-radio value="advanced">有高级项目经验（3个以上项目）</el-radio>
-            </el-radio-group>
-          </el-form-item>
-        </div>
-
-        <!-- 申请说明 -->
-        <div class="form-section">
-          <h4 class="form-section-title">申请说明</h4>
-
-          <el-form-item label="申请理由" prop="applicationReason">
-            <el-input
-              v-model="biddingForm.applicationReason"
-              type="textarea"
-              :rows="6"
-              placeholder="请详细说明：&#10;1. 团队优势和成员分工&#10;2. 项目实施计划和时间安排&#10;3. 相关经验和成功案例&#10;4. 为什么你们适合这个项目"
-              maxlength="1000"
-              show-word-limit
-            />
-          </el-form-item>
-
-          <el-form-item label="其他说明">
-            <el-input
-              v-model="biddingForm.otherInfo"
-              type="textarea"
-              :rows="3"
-              placeholder="如有其他需要说明的信息，请在此填写（可选）"
-              maxlength="500"
-              show-word-limit
-            />
-          </el-form-item>
-
-          <el-form-item label="附件资料">
-            <el-upload
-              v-model:file-list="biddingForm.attachments"
-              action="#"
-              :auto-upload="false"
-              :before-upload="beforeBiddingFileUpload"
-              :on-exceed="handleBiddingFileExceed"
-              :limit="5"
-              multiple
-            >
-              <el-button type="primary" plain>
-                <el-icon><Upload /></el-icon>
-                上传文件
-              </el-button>
-              <template #tip>
-                <div class="el-upload__tip">
-                  支持上传团队简介、项目作品、获奖证书等文件，单个文件不超过50MB，最多5个文件
-                </div>
-              </template>
-            </el-upload>
-          </el-form-item>
-        </div>
+            <el-form-item label="附件链接">
+              <el-input
+                v-model="biddingForm.attachmentUrl"
+                placeholder="如有附件，请填写可访问的文件链接（可选）"
+                maxlength="500"
+                clearable
+              />
+              <div class="form-tip form-tip-block">
+                当前前端没有独立上传接口，如需附加材料，请先上传到可访问位置后粘贴链接。
+              </div>
+            </el-form-item>
+          </div>
       </el-form>
 
       <template #footer>
@@ -2526,35 +2414,34 @@ const biddingDialogVisible = ref(false)
 const biddingFormRef = ref(null)
 const biddingSubmitting = ref(false)
 
-// 申请表单数据
-const biddingForm = ref({
-  teamName: '',
-  teamSize: 2,
-  requiredSkills: [],
-  bonusSkills: [],
-  experienceLevel: 'none',
-  applicationReason: '',
-  otherInfo: '',
-  attachments: []
+const createInitialBiddingForm = () => ({
+  content: '',
+  attachmentUrl: ''
 })
+
+// 申请表单数据
+const biddingForm = ref(createInitialBiddingForm())
+
+const validateBiddingContent = (rule, value, callback) => {
+  if (!value || !value.trim()) {
+    callback(new Error('请填写申请说明'))
+    return
+  }
+  callback()
+}
 
 // 表单验证规则
 const biddingRules = {
-  teamName: [
-    { required: true, message: '请输入团队名称', trigger: 'blur' },
-    { min: 2, max: 50, message: '团队名称长度在 2 到 50 个字符', trigger: 'blur' }
-  ],
-  teamSize: [
-    { required: true, message: '请选择团队规模', trigger: 'change' },
-    { type: 'number', min: 2, max: 20, message: '团队规模在 2 到 20 人之间', trigger: 'change' }
-  ],
-  requiredSkills: [
-    { type: 'array', required: true, message: '请至少选择一项必备技能', trigger: 'change' }
-  ],
-  applicationReason: [
-    { required: true, message: '请填写申请理由', trigger: 'blur' },
-    { min: 50, message: '申请理由至少50个字符，请详细说明团队优势和项目规划', trigger: 'blur' }
+  content: [
+    { validator: validateBiddingContent, trigger: 'blur' }
   ]
+}
+
+const resetBiddingForm = () => {
+  if (biddingFormRef.value) {
+    biddingFormRef.value.clearValidate()
+  }
+  biddingForm.value = createInitialBiddingForm()
 }
 
 // 打开申请弹窗
@@ -2584,20 +2471,7 @@ const goApply = () => {
 // 取消申请
 const cancelBidding = () => {
   biddingDialogVisible.value = false
-  // 重置表单
-  if (biddingFormRef.value) {
-    biddingFormRef.value.resetFields()
-  }
-  biddingForm.value = {
-    teamName: '',
-    teamSize: 2,
-    requiredSkills: [],
-    bonusSkills: [],
-    experienceLevel: 'none',
-    applicationReason: '',
-    otherInfo: '',
-    attachments: []
-  }
+  resetBiddingForm()
 }
 
 // 提交申请
@@ -2611,17 +2485,19 @@ const submitBidding = async () => {
     // 调用API提交竞榜申请
     const response = await applyBidAPI({
       projectId: route.params.id,
-      content: biddingForm.value.applicationReason,
-      attachmentUrl: biddingForm.value.attachments?.[0]?.url || ''
+      content: biddingForm.value.content.trim(),
+      attachmentUrl: biddingForm.value.attachmentUrl.trim()
     })
 
-    if (response.code === '0000') {
-      ElMessage.success('申请提交成功！')
-      biddingDialogVisible.value = false
-      biddingFormRef.value.resetFields()
-      // 刷新竞榜列表
-      await refreshBids()
+    if (response.code !== '0000') {
+      throw new Error(response.info || '申请提交失败')
     }
+
+    ElMessage.success('申请提交成功！')
+    biddingDialogVisible.value = false
+    resetBiddingForm()
+    // 刷新竞榜列表
+    await refreshBids()
   } catch (error) {
     if (error !== false) {
       ElMessage.error('提交失败：' + (error.message || '未知错误'))
@@ -2629,20 +2505,6 @@ const submitBidding = async () => {
   } finally {
     biddingSubmitting.value = false
   }
-}
-
-// 文件上传前检查
-const beforeBiddingFileUpload = (file) => {
-  const isLt50M = file.size / 1024 / 1024 < 50
-  if (!isLt50M) {
-    ElMessage.error('上传文件大小不能超过 50MB!')
-  }
-  return isLt50M
-}
-
-// 文件超出限制
-const handleBiddingFileExceed = (files, fileList) => {
-  ElMessage.warning(`最多只能上传 5 个文件，当前已选择 ${files.length + fileList.length} 个文件`)
 }
 
 // 揭榜名单数据（模拟）
@@ -4834,9 +4696,18 @@ const calculateRemainingDays = (dateStr) => {
   border-left: 4px solid #409eff;
 }
 
+.form-alert {
+  margin-bottom: 16px;
+}
+
 .form-tip {
   color: #909399;
   font-size: 13px;
+}
+
+.form-tip-block {
+  margin-top: 8px;
+  line-height: 1.6;
 }
 
 /* 揭榜名单样式 */

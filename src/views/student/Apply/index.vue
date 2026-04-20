@@ -10,7 +10,6 @@
         <button class="close-btn" @click="goBack">返回</button>
       </header>
 
-      <!-- 表单主体 -->
       <section class="apply-body">
         <el-form
           ref="applyFormRef"
@@ -19,117 +18,37 @@
           label-width="120px"
           class="apply-form"
         >
-          <!-- 揭榜方式 -->
-          <el-form-item label="揭榜方式" prop="mode">
-            <el-radio-group v-model="applyForm.mode">
-              <el-radio label="personal">个人揭榜</el-radio>
-              <el-radio label="team">团队揭榜</el-radio>
-            </el-radio-group>
-          </el-form-item>
+          <el-alert
+            title="已按后端接口精简为申请说明和附件链接，项目 ID 会根据当前页面自动提交。"
+            type="info"
+            :closable="false"
+            show-icon
+            class="form-note"
+          />
 
-          <!-- 团队选择：仅团队揭榜时必选 -->
-          <template v-if="applyForm.mode === 'team'">
-            <el-divider />
-            <el-form-item label="团队选择" prop="teamId">
-              <div class="team-select-block">
-                <el-select
-                  v-model="applyForm.teamId"
-                  placeholder="选择已有团队"
-                  class="team-select"
-                >
-                  <el-option
-                    v-for="team in teamOptions"
-                    :key="team.id"
-                    :label="`${team.name}（${team.memberCount}人）`"
-                    :value="team.id"
-                  />
-                  <el-option label="+ 创建新团队" value="new" />
-                </el-select>
-
-                <div class="team-radio-list">
-                  <el-radio-group v-model="applyForm.teamId">
-                    <el-radio
-                      v-for="team in teamOptions"
-                      :key="team.id"
-                      :label="team.id"
-                    >
-                      {{ team.name }}（{{ team.memberCount }}人）
-                    </el-radio>
-                    <el-radio label="new">+ 创建新团队</el-radio>
-                  </el-radio-group>
-                </div>
-              </div>
-            </el-form-item>
-          </template>
-
-          <el-divider />
-
-          <!-- 项目实施方案：必填，至少500字 -->
-          <el-form-item label="项目实施方案" prop="plan">
+          <el-form-item label="申请说明" prop="content">
             <el-input
-              v-model="applyForm.plan"
+              v-model="applyForm.content"
               type="textarea"
-              autosize
+              :rows="8"
+              maxlength="1000"
               show-word-limit
-              placeholder="请详细描述你/你的团队的实施方案，包括：&#10;1. 技术选型&#10;2. 实施步骤&#10;3. 时间安排&#10;4. 预期成果&#10;（至少500字）"
+              placeholder="请说明团队或个人优势、实施计划和相关经验"
             />
           </el-form-item>
 
-          <!-- 团队优势说明：必填，至少200字 -->
-          <el-form-item label="团队优势说明" prop="advantages">
+          <el-form-item label="附件链接">
             <el-input
-              v-model="applyForm.advantages"
-              type="textarea"
-              autosize
-              show-word-limit
-              placeholder="请说明你的团队的优势，包括：&#10;- 成员技能&#10;- 往期项目经验&#10;- 分工计划&#10;（至少200字）"
+              v-model="applyForm.attachmentUrl"
+              placeholder="如有附件，请填写可访问的文件链接（可选）"
+              maxlength="500"
+              clearable
             />
+            <div class="form-note-text">
+              当前前端没有独立上传接口，如需附加材料，请先上传到可访问位置后粘贴链接。
+            </div>
           </el-form-item>
 
-          <!-- 成员分工计划：可编辑 -->
-          <el-form-item label="成员分工计划">
-            <el-input
-              v-model="applyForm.division"
-              type="textarea"
-              autosize
-              show-word-limit
-              placeholder="请描述每位成员的具体分工（如负责模块、任务等）"
-            />
-          </el-form-item>
-
-          <!-- 附件上传 -->
-          <el-form-item label="附件上传">
-            <el-upload
-              v-model:file-list="applyForm.attachments"
-              action="#"
-              multiple
-              :limit="5"
-              :auto-upload="false"
-              :on-exceed="handleExceed"
-              :before-upload="handleBeforeUpload"
-            >
-              <el-button type="primary">选择文件</el-button>
-              <template #tip>
-                <div class="el-upload__tip">
-                  支持 pdf / doc / ppt / zip，单个文件不超过 20MB，最多 5 个。
-                </div>
-              </template>
-            </el-upload>
-          </el-form-item>
-
-          <el-divider />
-
-          <!-- 协议勾选 -->
-          <el-form-item prop="agree" label-width="0">
-            <el-checkbox v-model="applyForm.agree">
-              我已阅读并同意
-              <a href="javascript:void(0)">《揭榜协议》</a>
-              和
-              <a href="javascript:void(0)">《平台使用条款》</a>
-            </el-checkbox>
-          </el-form-item>
-
-          <!-- 底部按钮 -->
           <div class="form-actions">
             <el-button @click="goBack">取消</el-button>
             <el-button type="primary" :loading="loading" @click="submitApply">
@@ -146,6 +65,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { applyBidAPI, getProjectDetailAPI } from '@/api/project'
 
 const route = useRoute()
 const router = useRouter()
@@ -154,100 +74,30 @@ const projectTitle = ref('项目名称')
 const loading = ref(false)
 const applyFormRef = ref()
 
-const teamOptions = ref([
-  { id: 'team-dev', name: '智能开发小组', memberCount: 4 },
-  { id: 'team-ai', name: 'AI创新团队', memberCount: 3 }
-])
-
-const applyForm = ref({
-  mode: 'team', // personal | team
-  teamId: '',
-  plan: '',
-  advantages: '',
-  division: '',
-  attachments: [],
-  agree: false
+const createInitialApplyForm = () => ({
+  content: '',
+  attachmentUrl: ''
 })
 
-// 校验：项目实施方案 >= 500 字
-const validatePlan = (rule, value, callback) => {
-  const len = (value || '').trim().length
-  if (!len) {
-    callback(new Error('请填写项目实施方案'))
-  } else if (len < 500) {
-    callback(new Error('项目实施方案至少 500 字'))
-  } else {
-    callback()
-  }
-}
+const applyForm = ref(createInitialApplyForm())
 
-// 校验：团队优势说明 >= 200 字
-const validateAdvantages = (rule, value, callback) => {
-  const len = (value || '').trim().length
-  if (!len) {
-    callback(new Error('请填写团队优势说明'))
-  } else if (len < 200) {
-    callback(new Error('团队优势说明至少 200 字'))
-  } else {
-    callback()
+const validateContent = (rule, value, callback) => {
+  if (!value || !value.trim()) {
+    callback(new Error('请填写申请说明'))
+    return
   }
-}
-
-// 校验：团队选择（仅团队模式必选）
-const validateTeam = (rule, value, callback) => {
-  if (applyForm.value.mode === 'team' && !value) {
-    callback(new Error('团队揭榜时，请选择一个团队或创建新团队'))
-  } else {
-    callback()
-  }
-}
-
-// 校验：必须勾选协议
-const validateAgree = (rule, value, callback) => {
-  if (!value) {
-    callback(new Error('请先阅读并同意相关协议'))
-  } else {
-    callback()
-  }
+  callback()
 }
 
 const rules = {
-  mode: [{ required: true, message: '请选择揭榜方式', trigger: 'change' }],
-  teamId: [{ validator: validateTeam, trigger: 'change' }],
-  plan: [{ validator: validatePlan, trigger: 'blur' }],
-  advantages: [{ validator: validateAdvantages, trigger: 'blur' }],
-  agree: [{ validator: validateAgree, trigger: 'change' }]
+  content: [{ validator: validateContent, trigger: 'blur' }]
 }
 
-const handleExceed = () => {
-  ElMessage.warning('最多只能上传 5 个附件')
-}
-
-const handleBeforeUpload = (file) => {
-  const allowedTypes = [
-    'application/pdf',
-    'application/msword',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'application/vnd.ms-powerpoint',
-    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-    'application/zip',
-    'application/x-zip-compressed'
-  ]
-
-  const isAllowedType = allowedTypes.includes(file.type)
-  const isLt20M = file.size / 1024 / 1024 < 20
-
-  if (!isAllowedType) {
-    ElMessage.error('仅支持 pdf / doc / ppt / zip 类型的文件')
-    return false
+const resetApplyForm = () => {
+  if (applyFormRef.value) {
+    applyFormRef.value.clearValidate()
   }
-
-  if (!isLt20M) {
-    ElMessage.error('单个文件大小不能超过 20MB')
-    return false
-  }
-
-  return true
+  applyForm.value = createInitialApplyForm()
 }
 
 const submitApply = async () => {
@@ -257,13 +107,28 @@ const submitApply = async () => {
     await applyFormRef.value.validate()
     loading.value = true
 
-    // 这里应调用后端 API 提交数据
-    setTimeout(() => {
-      ElMessage.success('揭榜申请提交成功！')
-      router.push('/projects')
-    }, 1000)
+    const projectId = route.params.projectId
+    if (!projectId) {
+      throw new Error('缺少项目 ID')
+    }
+
+    const response = await applyBidAPI({
+      projectId,
+      content: applyForm.value.content.trim(),
+      attachmentUrl: applyForm.value.attachmentUrl.trim()
+    })
+
+    if (response.code !== '0000') {
+      throw new Error(response.info || '揭榜申请提交失败')
+    }
+
+    ElMessage.success('揭榜申请提交成功！')
+    resetApplyForm()
+    router.push(`/projects/${projectId}`)
   } catch (error) {
-    // 校验不通过时不做处理，错误提示由规则给出
+    if (error !== false) {
+      ElMessage.error(error.message || '提交失败，请稍后重试')
+    }
   } finally {
     loading.value = false
   }
@@ -273,11 +138,29 @@ const goBack = () => {
   router.back()
 }
 
-onMounted(() => {
+const loadProjectTitle = async () => {
   const projectId = route.params.projectId
-  if (projectId) {
-    projectTitle.value = `项目 ${projectId}`
+  if (!projectId) {
+    ElMessage.error('缺少项目 ID')
+    router.push('/projects')
+    return
   }
+
+  try {
+    const response = await getProjectDetailAPI(projectId)
+    if (response.code === '0000' && response.data?.title) {
+      projectTitle.value = response.data.title
+      return
+    }
+  } catch (error) {
+    console.error('加载项目标题失败:', error)
+  }
+
+  projectTitle.value = `项目 ${projectId}`
+}
+
+onMounted(() => {
+  loadProjectTitle()
 })
 </script>
 
@@ -363,6 +246,17 @@ onMounted(() => {
 
 .apply-form {
   max-width: 880px;
+}
+
+.form-note {
+  margin-bottom: 20px;
+}
+
+.form-note-text {
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #606266;
 }
 
 /* 禁止用户拖拽调整文本域大小，由 autosize 自动根据内容增高 */
