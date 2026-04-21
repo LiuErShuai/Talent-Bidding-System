@@ -127,22 +127,33 @@
               <div class="card-header">
                 <h2>资质与文件</h2>
               </div>
-              <div class="file-grid">
-                <div v-if="enterpriseInfo.certifications && enterpriseInfo.certifications.length"
-                     class="file-card"
-                     v-for="(fileUrl, index) in enterpriseInfo.certifications"
-                     :key="index">
+              <div class="file-list">
+                <div
+                  v-if="qualificationFileList.length"
+                  v-for="file in qualificationFileList"
+                  :key="file.id"
+                  class="file-row"
+                >
                   <div class="file-icon">
-                    <el-icon :size="40" :color="getFileIconColor(fileUrl)">
-                      <component :is="getFileIcon(fileUrl)" />
+                    <el-icon :size="34" :color="getFileIconColor(file.url)">
+                      <component :is="getFileIcon(file.url)" />
                     </el-icon>
                   </div>
-                  <div class="file-info">
-                    <div class="file-name">{{ getFileName(fileUrl) }}</div>
-                    <div class="file-actions">
-                      <el-button link type="primary" size="small" @click="previewFile(fileUrl)">预览</el-button>
-                      <el-button link type="primary" size="small" @click="downloadFile(fileUrl)">下载</el-button>
+                  <div class="file-main">
+                    <div class="file-top">
+                      <span class="file-name">{{ file.name }}</span>
+                      <span class="file-type">{{ file.typeLabel }}</span>
                     </div>
+                    <div class="file-meta">
+                      <span>文件大小：{{ file.size }}</span>
+                      <span>上传时间：{{ file.uploadedAt }}</span>
+                      <span>有效期：{{ file.validUntil || '长期有效' }}</span>
+                    </div>
+                    <p class="file-desc">{{ file.description }}</p>
+                  </div>
+                  <div class="file-actions">
+                    <el-button link type="primary" size="small" @click="previewFile(file.url)">预览</el-button>
+                    <el-button link type="primary" size="small" @click="downloadFile(file.url)">下载</el-button>
                   </div>
                 </div>
                 <p v-else class="empty">暂未上传资质信息</p>
@@ -172,6 +183,59 @@ const activeSection = ref('overview')
 const editMode = ref(false)
 const formData = ref({})
 const tagsString = ref('')
+
+const qualificationFileList = [
+  {
+    id: 'cert-business-license',
+    name: '苏州云枢智能科技有限公司营业执照（统一社会信用代码版）.pdf',
+    typeLabel: '营业执照',
+    size: '2.8 MB',
+    uploadedAt: '2026-03-12',
+    validUntil: '长期有效',
+    description: '用于企业主体资质核验，含统一社会信用代码、法定代表人及注册地址信息。',
+    url: 'https://demo.example.com/enterprise-files/business-license-suzhou-yunshu.pdf'
+  },
+  {
+    id: 'cert-iso9001',
+    name: 'ISO9001质量管理体系认证证书.pdf',
+    typeLabel: '体系认证',
+    size: '1.6 MB',
+    uploadedAt: '2026-03-15',
+    validUntil: '2028-11-06',
+    description: '覆盖软件研发与信息系统集成服务范围，用于项目履约能力与内部质量流程佐证。',
+    url: 'https://demo.example.com/enterprise-files/iso9001-yunshu.pdf'
+  },
+  {
+    id: 'cert-software-enterprise',
+    name: '软件企业证书及高新技术企业认定材料.zip',
+    typeLabel: '企业认定',
+    size: '8.4 MB',
+    uploadedAt: '2026-03-18',
+    validUntil: '2027-12-31',
+    description: '包含软件企业证书扫描件、高新技术企业认定通知及近两年年审附件。',
+    url: 'https://demo.example.com/enterprise-files/software-enterprise-package.zip'
+  },
+  {
+    id: 'cert-ip-portfolio',
+    name: '核心知识产权与软著清单（节选）.xlsx',
+    typeLabel: '知识产权',
+    size: '936 KB',
+    uploadedAt: '2026-03-20',
+    validUntil: '',
+    description: '汇总公司已授权发明专利、实用新型及软件著作权，用于展示技术积累与成果转化能力。',
+    url: 'https://demo.example.com/enterprise-files/ip-portfolio-summary.xlsx'
+  },
+  {
+    id: 'cert-casebook',
+    name: '企业项目案例与交付证明材料.pdf',
+    typeLabel: '项目案例',
+    size: '5.2 MB',
+    uploadedAt: '2026-03-22',
+    validUntil: '',
+    description: '含近三年典型合作项目、验收证明、客户评价摘录及交付成果截图。',
+    url: 'https://demo.example.com/enterprise-files/project-casebook-yunshu.pdf'
+  }
+]
 
 // 从 store 读取企业资料并映射字段
 const enterpriseInfo = computed(() => {
@@ -632,6 +696,29 @@ const downloadFile = (url) => {
   gap: 16px;
 }
 
+.file-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.file-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px 18px;
+  background: linear-gradient(180deg, #fbfcff 0%, #f5f8ff 100%);
+  border: 1px solid #e4ebf7;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.file-row:hover {
+  background: #ffffff;
+  border-color: #d5e3fb;
+  box-shadow: 0 8px 20px rgba(12, 95, 231, 0.08);
+}
+
 .file-card {
   display: flex;
   align-items: center;
@@ -666,19 +753,60 @@ const downloadFile = (url) => {
   min-width: 0;
 }
 
+.file-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.file-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
 .file-name {
   font-size: 14px;
   font-weight: 600;
   color: #1f274b;
-  margin-bottom: 8px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+.file-type {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #eaf3ff;
+  color: #1564d6;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.file-meta {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+  color: #73809d;
+  font-size: 12px;
+}
+
+.file-desc {
+  margin: 0;
+  color: #4a5676;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
 .file-actions {
   display: flex;
   gap: 12px;
+  flex-shrink: 0;
+  padding-top: 2px;
 }
 
 .empty {
@@ -710,6 +838,13 @@ const downloadFile = (url) => {
     width: 100%;
     grid-template-columns: repeat(2, 1fr);
   }
+
+  .file-row {
+    flex-direction: column;
+  }
+
+  .file-actions {
+    padding-top: 0;
+  }
 }
 </style>
-
