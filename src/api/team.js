@@ -50,3 +50,30 @@ export function disbandTeamAPI(teamId) {
     method: 'post'
   })
 }
+
+// 邀请成员加入团队
+export function inviteTeamMemberAPI(data) {
+  return request({
+    url: '/team/invite',
+    method: 'post',
+    data
+  })
+}
+
+// 获取我的团队邀请
+export function getMyTeamInvitesAPI(params = {}) {
+  return request({
+    url: '/team/invite/my',
+    method: 'get',
+    params
+  })
+}
+
+// 处理团队邀请
+export function handleTeamInviteAPI(data) {
+  return request({
+    url: '/team/invite/handle',
+    method: 'post',
+    data
+  })
+}

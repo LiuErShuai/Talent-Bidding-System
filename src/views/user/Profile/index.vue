@@ -160,137 +160,12 @@
           <section v-else-if="activeSection === 'team'" class="info-section">
             <div class="section-header">
               <h2 class="section-title">团队管理</h2>
-              <button class="save-btn ghost" @click="openCreateTeamDialog">创建团队</button>
             </div>
-            <div class="info-grid">
-              <div class="info-card">
-                <div class="info-item full-width">
-                  <label class="info-label">团队概览</label>
-                  <div class="team-list">
-                    <button
-                      v-for="team in teamList"
-                      :key="team.id"
-                      class="team-item"
-                      @click="openManageDialog(team)"
-                    >
-                      <div class="team-header">
-                        <div>
-                          <div class="team-name">{{ team.name }}</div>
-                          <p class="team-desc">{{ team.description }}</p>
-                        </div>
-                        <span class="team-meta">成员：{{ team.members.length }} | 角色：{{ team.roleLabel }}</span>
-                      </div>
-                      <div class="team-project">
-                        关联项目：{{ team.project.name }}（{{ team.project.stage }} / {{ team.project.statusText }}）
-                      </div>
-                    </button>
-                    <p v-if="!teamList.length" class="empty-hint">暂无团队，可点击右上角“创建团队”添加。</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <TeamManagementPanel />
           </section>
         </div>
       </div>
     </main>
-
-    <!-- 创建团队弹窗 -->
-    <div v-if="createDialogVisible" class="overlay">
-      <div class="modal">
-        <div class="modal-header">
-          <h3 class="modal-title">创建团队</h3>
-          <button class="close-btn" @click="closeCreateTeamDialog">×</button>
-        </div>
-        <div class="modal-body">
-          <div class="form-row">
-            <label class="info-label">团队名称</label>
-            <input v-model="teamForm.name" class="info-input" placeholder="输入团队名称，如：智能开发小组" />
-          </div>
-          <div class="form-row">
-            <label class="info-label">团队简介</label>
-            <textarea v-model="teamForm.description" class="info-textarea" rows="3" placeholder="简要描述团队职责与定位"></textarea>
-          </div>
-          <div class="form-row">
-            <label class="info-label">可见范围</label>
-            <select v-model="teamForm.visibility" class="info-input">
-              <option value="private">仅团队成员</option>
-              <option value="school">校内可见</option>
-              <option value="public">公开可见</option>
-            </select>
-          </div>
-          <div class="form-row">
-            <label class="info-label">关联项目</label>
-            <input v-model="teamForm.project" class="info-input" placeholder="输入关联项目名称或ID" />
-          </div>
-          <div class="form-row">
-            <label class="info-label">团队标签</label>
-            <input v-model="teamForm.tags" class="info-input" placeholder="如：前端 / 数据 / 移动端" />
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button class="cancel-btn" @click="closeCreateTeamDialog">取消</button>
-          <button class="save-btn" @click="createTeam">创建团队</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- 管理团队弹窗 -->
-    <div v-if="manageDialogVisible && selectedTeam" class="overlay">
-      <div class="modal large">
-        <div class="modal-header">
-          <div>
-            <h3 class="modal-title">{{ selectedTeam.name }}</h3>
-            <p class="modal-subtitle">{{ selectedTeam.description }}</p>
-            <p class="modal-subtitle">关联项目：{{ selectedTeam.project.name }}（{{ selectedTeam.project.stage }} / {{ selectedTeam.project.statusText }}）</p>
-          </div>
-          <button class="close-btn" @click="closeManageDialog">×</button>
-        </div>
-        <div class="modal-body">
-          <div class="member-tag-grid">
-            <button
-              v-for="member in selectedTeam.members"
-              :key="member.name"
-              class="member-tag"
-              :class="{ selected: selectedMemberName === member.name }"
-              @click="toggleMemberSelection(member)"
-            >
-              <span class="member-tag-name">{{ member.name }}</span>
-              <span class="member-tag-role">{{ member.role }}</span>
-              <span class="member-tag-duty">{{ member.duty }}</span>
-            </button>
-            <p v-if="!selectedTeam.members.length" class="empty-hint">暂无成员，可先邀请成员。</p>
-          </div>
-          <div class="form-actions" style="justify-content:flex-start; gap:8px; margin-top:12px;">
-            <button class="save-btn" @click="openInviteForm">邀请成员</button>
-            <button class="ghost-chip" @click="handleManageAction('role')">调整角色</button>
-            <button class="ghost-chip danger" @click="handleManageAction('remove')">移除成员</button>
-          </div>
-          <div v-if="manageMessage" class="dialog-feedback">{{ manageMessage }}</div>
-          <div v-if="inviteFormVisible" class="form-actions-block">
-            <h4 class="section-subtitle">邀请成员</h4>
-            <div class="form-row">
-              <label class="info-label">成员邮箱</label>
-              <input v-model="inviteEmail" class="info-input" placeholder="输入成员邮箱，发送邀请" />
-            </div>
-            <div class="form-row">
-              <label class="info-label">角色</label>
-              <select v-model="inviteRole" class="info-input">
-                <option value="负责人">负责人</option>
-                <option value="前端">前端</option>
-                <option value="后端">后端</option>
-                <option value="算法">算法</option>
-                <option value="测试">测试</option>
-                <option value="产品">产品</option>
-              </select>
-            </div>
-            <div class="form-actions">
-              <button class="save-btn" @click="sendInvite">发送邀请</button>
-            </div>
-            <p v-if="inviteMessage" class="dialog-feedback">{{ inviteMessage }}</p>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -301,6 +176,7 @@ import { useUserStore } from '@store/modules/user'
 import { useAuthStore } from '@store/modules/auth'
 import { ElMessage } from 'element-plus'
 import ProfileCard from '@/components/user/ProfileCard.vue'
+import TeamManagementPanel from '@/components/user/TeamManagementPanel.vue'
   
 const router = useRouter()
 const route = useRoute()
